@@ -1,23 +1,28 @@
 import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Pango
-from ftlangdetect import detect
+from langdetect import detect
 import langtable
 import locale
 
-fontstyle = 'Noto Sans'
-fontweight = 'Thin'
+
+fontweight = 'Regular'
 fallParam = 'fallback="false">'
 fontsize = '30'
-dic = {'en':{'fontweight':['Thin','Light'],
+dic = {'en':{
+        'fontstyle':'Noto Sans',
 		'text':'How are you'}, 
-	'bn':{'fontweight':['Bengali Thin','Bengali Regular'],
+	'bn':{
+        'fontstyle':'Noto Sans Bengali',
 		'text':'আপনি কেমন আছেন'}, 
-	'ja':{'fontweight':['CJK JP Regular','CJK JP DemiLIght'],
+	'ja':{
+        'fontstyle':'Noto Sans CJK JP',
 		'text':'元気ですか'}, 
-	'ko':{'fontweight':['CJK KR Regular','CJK KR DemiLight'],
-		'text':'어떻게 지내세요'}, 
-	'de':{'fontweight':['Thin','Light'],
+	'ko':{
+        'fontstyle':'Noto Sans CJK KR',
+        'text':'어떻게 지내세요'},
+	'de':{
+        'fontstyle':'Noto Sans',
 		'text':'wie gehts'}
 	}
 
@@ -61,11 +66,11 @@ class AppWindow(Gtk.ApplicationWindow):
   
         self.label1 = Gtk.Label()
         self.button1 = Gtk.FontButton.new()
-        self.fontbutton(self.label1, self.button1, self.hbox1, self.vbox1, 0)
+        self.fontbutton(self.label1, self.button1, self.hbox1, self.vbox1)
         self.label2 = Gtk.Label()
         self.button2 = Gtk.FontButton.new()
-        self.fontbutton(self.label2, self.button2, self.hbox2, self.vbox2, 1)
-     
+        self.fontbutton(self.label2, self.button2, self.hbox2, self.vbox2)
+             
         self.entry = Gtk.Entry()
         self.label3 = Gtk.Label(label="")
         self.vbox3.append(self.entry)
@@ -83,10 +88,9 @@ class AppWindow(Gtk.ApplicationWindow):
         combo.append_text('ko')#ko
         combo.append_text('de')#de
                 
-        result = detect(text=self.label1.get_text(), low_memory=False) #using fasttext-langdetect - returns dictionary
-        detectText = result['lang']
+        detectText = self.label1.get_text()
         label3DetectLang = langtable.language_name(languageId=detectText, languageIdQuery=locale.getlocale()[0][:2])
-        self.label3.set_markup('<span font="'+fontstyle+' '+dic['en']['fontweight'][0]+' '+fontsize+'"' + fallParam + label3DetectLang + '</span>')
+        self.label3.set_markup('<span font="'+dic['en']['fontstyle']+' '+fontweight+' '+fontsize+'"' + fallParam + label3DetectLang + '</span>')
 
         keycont = Gtk.EventControllerKey()
         keycont.connect('key-released', self.on_key_released)
@@ -95,13 +99,11 @@ class AppWindow(Gtk.ApplicationWindow):
         self.set_default_size(450, 450)
         self.set_child(self.vbox)
         
-    def fontbutton(self, label, button, boxh, boxv, n):
-        label.set_markup('<span font="'+fontstyle+' '+dic['en']['fontweight'][n]+' '+fontsize+'"' + fallParam + 'With hard work and effort, you can achieve anything' + '</span>')
-        button = Gtk.FontButton.new()
+    def fontbutton(self, label, button, boxh, boxv):
+        label.set_markup('<span font="'+dic['en']['fontstyle']+' '+fontweight+' '+fontsize+'"' + fallParam + 'With hard work and effort, you can achieve anything' + '</span>')
         button.connect('font-set', self.label_font_change, label)
         button.set_hexpand(False)
-        str = fontstyle + ' ' + dic['en']['fontweight'][n] +' '+ fontsize
-        button.set_font(str)
+        button.set_font(dic['en']['fontstyle'] + ' ' + fontweight +' '+ fontsize)
         boxh.append(button)
         boxv.append(boxh)
         boxv.append(label)
@@ -115,30 +117,30 @@ class AppWindow(Gtk.ApplicationWindow):
         label.set_attributes(attrs=pango_attr_list)
 
     def setFont(self, detectLang, setText):
-        self.label1.set_markup('<span font="'+fontstyle+' '+dic[detectLang]['fontweight'][0]+' '+fontsize+'"' + fallParam + setText + '</span>')
-        self.button1.set_font(fontstyle +' '+ dic[detectLang]['fontweight'][0]+' '+fontsize)
-        self.label2.set_markup('<span font="'+fontstyle+dic[detectLang]['fontweight'][1]+' '+fontsize+'"' + fallParam + setText + '</span>')
-        self.button2.set_font(fontstyle +' '+ dic[detectLang]['fontweight'][1]+' '+fontsize)
+        self.label1.set_markup('<span font="'+dic[detectLang]['fontstyle']+' '+fontweight+' '+fontsize+'"' + fallParam + setText + '</span>')
+        print(dic[detectLang]['fontstyle']+' '+fontweight+' '+fontsize) #jft
+        self.button1.set_font(dic[detectLang]['fontstyle'] +' '+ fontweight+' '+fontsize)
+        self.label2.set_markup('<span font="'+dic[detectLang]['fontstyle']+' '+fontweight+' '+fontsize+'"' + fallParam + setText + '</span>')
+        self.button2.set_font(dic[detectLang]['fontstyle'] +' '+ fontweight+' '+fontsize)
         
     def on_key_released(self, *_):
-        result = detect(text=self.entry.get_text(), low_memory=False) #using fasttext-langdetect - returns dictionary
-        detectText = result['lang']
+        detectText = self.entry.get_text()
+        print(detectText) #jft
         self.setFont(detectText,self.entry.get_text())
         label3DetectLang = langtable.language_name(languageId=detectText, languageIdQuery=locale.getlocale()[0][:2])
-        self.label3.set_markup('<span font="'+fontstyle+' '+dic['en']['fontweight'][0]+' '+fontsize+'"' + fallParam + label3DetectLang + '</span>')
+        self.label3.set_markup('<span font="'+dic['en']['fontstyle']+' '+fontweight+' '+fontsize+'"' + fallParam + label3DetectLang + '</span>')
     
     def on_changed(self, wid):
         detectText = wid.get_active_text()
         self.setFont(detectText,dic[detectText]['text'])
         label3DetectLang = langtable.language_name(languageId=detectText, languageIdQuery=locale.getlocale()[0][:2])
-        self.label3.set_markup('<span font="'+fontstyle+' '+dic['en']['fontweight'][0]+' '+fontsize+'"' + fallParam + label3DetectLang + '</span>')
+        self.label3.set_markup('<span font="'+dic['en']['fontstyle']+' '+fontweight+' '+fontsize+'"' + fallParam + label3DetectLang + '</span>')
     
     def langdetectfunc(self, inputtext):
-        result = detect(text=inputtext, low_memory=False) #using fasttext-langdetect - returns dictionary
-        detectText = result['lang']
+        detectText = inputtext
         self.setFont(detectText,inputtext)
         label3DetectLang = langtable.language_name(languageId=detectText, languageIdQuery=locale.getlocale()[0][:2])
-        self.label3.set_markup('<span font="'+fontstyle+' '+dic['en']['fontweight'][0]+' '+fontsize+'"' + fallParam + label3DetectLang + '</span>')
+        self.label3.set_markup('<span font="'+dic['en']['fontstyle']+' '+fontweight+' '+fontsize+'"' + fallParam + label3DetectLang + '</span>')
 
 def on_activate(app):
 
