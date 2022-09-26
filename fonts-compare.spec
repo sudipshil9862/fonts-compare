@@ -5,7 +5,7 @@ Summary:        fonts rendering and comparing
 
 License:        GPLv3
 URL:            https://github.com/sudipshil9862/fonts_compare
-Source0:        https://github.com/sudipshil9862/fonts_compare/archive/refs/tags/1.0.0.tar.gz#/fonts-compare-1.0.0.tar.gz
+Source0:        https://github.com/sudipshil9862/fonts_compare/archive/refs/tags/%{version}.tar.gz#/fonts-compare-%{version}.tar.gz
 
 BuildArch: noarch
 
@@ -19,23 +19,23 @@ Summary: needed to compare fonts with various langugages
 
 
 %prep
-%setup -n fonts_compare-1.0.0
+%setup -n fonts_compare-%{version}
 
 
 %build
 
 
 %install
-/usr/bin/install -D -m 644 fonts_compare.py %{buildroot}/usr/share/fonts-compare/fonts_compare.py
-
+/usr/bin/install -m 755 fonts-compare %{buildroot}/%{bindir}/fonts-compare
+/usr/bin/install -D -m 644 fonts_compare.py %{buildroot}/%{datadir}/fonts-compare/fonts_compare.py
 
 %check
-
 
 %files
 %doc README.md
 %license LICENSE
-/usr/share/fonts-compare/fonts_compare.py
+%{bindir}/fonts-compare
+%{datadir}/fonts-compare/fonts_compare.py
 
 %changelog
 * Fri Sep 23 2019 Sudip Shil <sshil@redhat.com> - 1.0.0-1
