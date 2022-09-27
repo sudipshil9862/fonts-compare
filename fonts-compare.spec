@@ -10,6 +10,7 @@ Source0:        https://github.com/sudipshil9862/fonts-compare/archive/refs/tags
 BuildArch: noarch
 
 BuildRequires:  python3-devel
+Requires: python3-gobject
 Requires: python3-langtable
 Requires: python3-langdetect
 
