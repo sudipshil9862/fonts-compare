@@ -1,18 +1,20 @@
 #!/usr/bin/python3
-
+'''
+This is my fonts-compare program for font rendering and comparing
+'''
 from typing import Any
 import sys
 import re
 import subprocess
 import shutil
-import logging
-import langtable
 import locale
 import argparse
-import gi
-gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Pango
+import logging
+import langtable
 import langdetect
+import gi
+from gi.repository import Gtk, Pango
+gi.require_version('Gtk', '4.0')
 
 LOGGER = logging.getLogger('fonts-compare')
 
@@ -30,10 +32,14 @@ def parse_args() -> Any:
 
 _ARGS = parse_args()
 
-fontweight = 'Regular'
-fallParam = 'fallback="false">'
-fontsize = '30'
-dic = {'en':{
+#FONTWEIGHT = 'Regular'
+#FALLPARAM = 'fallback="false">'
+#FONTSIZE = '30'
+FONTWEIGHT = 'Regular'
+FALLPARAM = 'fallback="false">'
+FONTSIZE = '30'
+dic = {
+    'en':{
         'family':'Noto Sans',
 		'text':'How are you'},
 	'bn':{
@@ -51,15 +57,18 @@ dic = {'en':{
 	}
 
 class AppWindow(Gtk.ApplicationWindow):
-
-    def __init__(self, app):
-
-        super(AppWindow, self).__init__(application=app)
-
+    '''
+    Including appwindow class to window to present
+    '''
+    def __init__(self, appp):
+        #super(AppWindow, self).__init__(application=appp) #python2 style
+        super().__init__(application=appp) #python 3
         self.init_ui()
 
     def init_ui(self):
-
+        '''
+        init_ui contains all the containers, labels, buttons
+        '''
         self.set_title('Font Compare')
 
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
@@ -120,11 +129,11 @@ class AppWindow(Gtk.ApplicationWindow):
         LOGGER.info('label1: text=%s lang=%s', text,lang)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = lc_messages.split('_')[0]
-        label3DetectLang = langtable.language_name(
+        label_lang_full_form = langtable.language_name(
             languageId=lang, languageIdQuery=lc_messages)
         self.label3.set_markup(
             f'<span font="{dic[lc_messages_lang]["family"]} '
-            f'{fontweight} {fontsize}" {fallParam}{label3DetectLang}</span>')
+            f'{FONTWEIGHT} {FONTSIZE}" {FALLPARAM}{label_lang_full_form}</span>')
 
         keycont = Gtk.EventControllerKey()
         keycont.connect('key-released', self.on_key_released)
@@ -134,56 +143,95 @@ class AppWindow(Gtk.ApplicationWindow):
         self.set_child(self.vbox)
 
     def fontbutton(self, label, button, boxh, boxv):
-        label.set_markup('<span font="'+dic['en']['family']+' '+fontweight+' '+fontsize+'"' + fallParam + 'With hard work and effort, you can achieve anything' + '</span>')
+        '''
+        setting up initial font and text for labels and font button text updated
+        '''
+        label.set_markup('<span font="'+dic['en']['family']
+                +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
+                + 'Work Hard and achieve anything'
+                + '</span>')
         button.connect('font-set', self.label_font_change, label)
         button.set_hexpand(False)
-        button.set_font(dic['en']['family'] + ' ' + fontweight +' '+ fontsize)
+        button.set_font(dic['en']['family'] + ' ' + FONTWEIGHT +' '+ FONTSIZE)
         boxh.append(button)
         boxv.append(boxh)
         boxv.append(label)
         self.vbox.append(boxv)
 
-    def label_font_change(self, button, label):
+    @classmethod
+    def label_font_change(cls, button, label):
+        '''
+        font family and font size changes by font-button dialog
+        '''
         pango_font_description = Pango.FontDescription.from_string(str=button.get_font(),)
         pango_attr_font_desc = Pango.AttrFontDesc.new(desc=pango_font_description,)
         pango_attr_list = Pango.AttrList.new()
         pango_attr_list.insert(attr=pango_attr_font_desc)
         label.set_attributes(attrs=pango_attr_list)
 
-    def setFont(self, detectLang, setText):
-        self.label1.set_markup('<span font="'+dic[detectLang]['family']+' '+fontweight+' '+fontsize+'"' + fallParam + setText + '</span>')
+    def set_font(self, detect_lang, set_text):
+        '''
+        setting up text,
+        font family depending upon which language has detected
+        '''
+        self.label1.set_markup('<span font="'+dic[detect_lang]['family']
+                +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
+                + set_text + '</span>')
         LOGGER.info('self.button1.set_font(%s)',
-                    dic[detectLang]['family'] +' '+ fontweight+' '+fontsize)
-        self.button1.set_font(dic[detectLang]['family'] +' '+ fontweight+' '+fontsize)
-        self.label2.set_markup('<span font="'+dic[detectLang]['family']+' '+fontweight+' '+fontsize+'"' + fallParam + setText + '</span>')
-        self.button2.set_font(dic[detectLang]['family'] +' '+ fontweight+' '+fontsize)
+                    dic[detect_lang]['family'] +' '+ FONTWEIGHT+' '+FONTSIZE)
+        self.button1.set_font(dic[detect_lang]['family'] +' '+ FONTWEIGHT+' '+FONTSIZE)
+        self.label2.set_markup('<span font="'+dic[detect_lang]['family']
+                +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
+                + set_text + '</span>')
+        self.button2.set_font(dic[detect_lang]['family'] +' '+ FONTWEIGHT+' '+FONTSIZE)
 
     def on_key_released(self, *_):
+        '''
+        while typing on gtk entry box..
+        the langugage is detected automatically with same time and also
+        setting up label3 text's font family and fontsize
+        '''
         text = self.entry.get_text()
         lang = detect_language(text)
         LOGGER.info('text=%s lang=%s', text, lang)
-        self.setFont(lang, text)
+        self.set_font(lang, text)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = lc_messages.split('_')[0]
-        label3DetectLang = langtable.language_name(
+        label_lang_full_form = langtable.language_name(
             languageId=lang, languageIdQuery=lc_messages)
-        self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']+' '+fontweight+' '+fontsize+'"' + fallParam + label3DetectLang + '</span>')
+        self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']
+                +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
+                + label_lang_full_form + '</span>')
 
     def on_changed(self, wid):
+        '''
+        when we select a perticular langugage from the drop-down..
+        if it's bengali then take one bengali text,
+        setting up bengali fonts on set_font function,
+        display the language full form in label3 depends upon
+        which is the default langugage for the user have
+        '''
         lang = wid.get_active_text()
-        self.setFont(lang, dic[lang]['text'])
+        self.set_font(lang, dic[lang]['text'])
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = lc_messages.split('_')[0]
-        label3DetectLang = langtable.language_name(
+        label_lang_full_form = langtable.language_name(
             languageId=lang,
             languageIdQuery=lc_messages)
-        LOGGER.debug('lc_messages_lang=%s label3DetectLang=%s',
-                    lc_messages_lang, label3DetectLang)
+        LOGGER.debug('lc_messages_lang=%s label_lang_full_form=%s',
+                    lc_messages_lang, label_lang_full_form)
         LOGGER.debug('dic[lc_messages_lang]["family"]=%s',
                      dic[lc_messages_lang]['family'])
-        self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']+' '+fontweight+' '+fontsize+'"' + fallParam + label3DetectLang + '</span>')
+        self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']
+                +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
+                + label_lang_full_form + '</span>')
 
 def detect_language(text: str) -> str:
+    '''
+    detecting language by langdetect and
+    any langugage is not there in my dictionary then
+    it'll only return the 'en' by default
+    '''
     text = text.strip()
     LOGGER.info('Trying to detect language of: %s', text)
     lang = 'en'
@@ -202,12 +250,17 @@ def detect_language(text: str) -> str:
         lang = 'en'
     return lang
 
-def on_activate(app):
-
-    win = AppWindow(app)
+def on_activate(application):
+    '''
+    activating the application by adding the application into gtk window
+    '''
+    win = AppWindow(application)
     win.present()
 
 def get_default_font_family_for_language(lang: str) -> str:
+    '''
+    getting default font by fc-match
+    '''
     fc_match_binary = shutil.which('fc-match')
     if not fc_match_binary:
         return ''
@@ -235,7 +288,7 @@ def get_default_font_family_for_language(lang: str) -> str:
                          fc_match_binary,
                          error.__class__.__name__, error, error.stderr)
         return ''
-    except Exception as error:
+    except Exception as error: # pylint: disable=broad-except
         LOGGER.exception('Exception when calling %s: %s: %s',
                          fc_match_binary, error.__class__.__name__, error)
         return ''
@@ -248,10 +301,10 @@ if __name__ == '__main__':
         LOGGER.addHandler(LOG_HANDLER)
     else:
         LOG_HANDLER_NULL = logging.NullHandler()
-    for lang in dic:
-        family = get_default_font_family_for_language(lang)
-        LOGGER.info('lang=%s default family=%s', lang, family)
-        dic[lang]['family'] = family
+    for language, value in dic.items():
+        family = get_default_font_family_for_language(language)
+        LOGGER.info('lang=%s default family=%s', language, family)
+        value['family'] = family
     LOGGER.info('dic=%s', dic)
     app = Gtk.Application(application_id='org.gtk.Example')
     app.connect('activate', on_activate)
