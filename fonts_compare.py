@@ -211,7 +211,10 @@ class AppWindow(Gtk.ApplicationWindow):
         display the language full form in label3 depends upon
         which is the default langugage for the user have
         '''
+        LOGGER.info('on_changed started...')
         lang = wid.get_active_text()
+        text = dic[lang]['text']
+        self.entry.set_text(text)
         self.set_font(lang, dic[lang]['text'])
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = lc_messages.split('_')[0]
