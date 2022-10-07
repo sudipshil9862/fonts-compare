@@ -110,19 +110,19 @@ class AppWindow(Gtk.ApplicationWindow):
         self.vbox3.append(self.label3)
         self.vbox.append(self.vbox3)
 
-        combo = Gtk.ComboBoxText()
-        self.hbox3.append(combo)
+        self.combo = Gtk.ComboBoxText()
+        self.hbox3.append(self.combo)
         self.vbox3.append(self.hbox3)
         self.vbox.append(self.vbox3)
-        combo.connect('changed', self.on_changed)
-        combo.append_text('en')#en
-        combo.append_text('bn')#bn
-        combo.append_text('ja')#ja
-        combo.append_text('ko')#ko
-        combo.append_text('de')#de
+        self.combo.connect('changed', self.on_changed)
+        self.combo.append_text('en')#en
+        self.combo.append_text('bn')#bn
+        self.combo.append_text('ja')#ja
+        self.combo.append_text('ko')#ko
+        self.combo.append_text('de')#de
         # make 'en' active by default to avoid seeing an empty
         # combobox at program start:
-        combo.set_active(0)
+        self.combo.set_active(0)
 
         text = self.label1.get_text()
         lang = detect_language(text)
@@ -203,7 +203,13 @@ class AppWindow(Gtk.ApplicationWindow):
             languageId=lang, languageIdQuery=lc_messages)
         self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']
                 +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
-                + label_lang_full_form + '</span>')
+                + label_lang_full_form + '</span>') 
+        if lang == 'en': self.combo.set_active(0)
+        elif lang == 'bn': self.combo.set_active(1)
+        elif lang == 'ja': self.combo.set_active(2)
+        elif lang == 'ko': self.combo.set_active(3)
+        elif lang == 'de': self.combo.set_active(4)
+
 
     def on_changed(self, wid):
         '''
