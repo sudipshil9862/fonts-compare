@@ -300,6 +300,11 @@ if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, '')
     if _ARGS.debug:
         LOG_HANDLER = logging.StreamHandler(stream=sys.stderr)
+        LOG_FORMATTER = logging.Formatter(
+            '%(asctime)s %(filename)s '
+            'line %(lineno)d %(funcName)s %(levelname)s: '
+            '%(message)s')
+        LOG_HANDLER.setFormatter(LOG_FORMATTER)
         LOGGER.setLevel(logging.DEBUG)
         LOGGER.addHandler(LOG_HANDLER)
     else:
