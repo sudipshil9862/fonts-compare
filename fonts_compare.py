@@ -194,6 +194,8 @@ class AppWindow(Gtk.ApplicationWindow):
         text = self.entry.get_text()
         lang = detect_language(text)
         LOGGER.info('text=%s lang=%s', text, lang)
+        self.button1.set_preview_text(dic[lang]['text'])
+        self.button2.set_preview_text(dic[lang]['text'])
         self.set_font(lang, text)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = lc_messages.split('_')[0]
@@ -215,7 +217,9 @@ class AppWindow(Gtk.ApplicationWindow):
         lang = wid.get_active_text()
         text = dic[lang]['text']
         self.entry.set_text(text)
-        self.set_font(lang, dic[lang]['text'])
+        self.button1.set_preview_text(text)
+        self.button2.set_preview_text(text)
+        self.set_font(lang, text)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = lc_messages.split('_')[0]
         label_lang_full_form = langtable.language_name(
