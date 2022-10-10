@@ -109,7 +109,6 @@ class AppWindow(Gtk.ApplicationWindow):
         self.hbox3.append(self.combo)
         self.vbox3.append(self.hbox3)
         self.vbox.append(self.vbox3)
-        self.combo.connect('changed', self.on_changed)
         self.combo.append_text('en')#en
         self.combo.append_text('bn')#bn
         self.combo.append_text('ja')#ja
@@ -118,6 +117,7 @@ class AppWindow(Gtk.ApplicationWindow):
         # make 'en' active by default to avoid seeing an empty
         # combobox at program start:
         self.combo.set_active(0)
+        self.combo.connect('changed', self.on_changed)
 
         text = self.label1.get_text()
         lang = detect_language(text)
