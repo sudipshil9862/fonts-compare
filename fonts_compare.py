@@ -40,19 +40,14 @@ FALLPARAM = 'fallback="false">'
 FONTSIZE = '30'
 dic = {
     'en':{
-        'family':'Noto Sans',
 		'text':'How are you'},
 	'bn':{
-        'family':'Noto Sans Bengali',
 		'text':'আপনি কেমন আছেন'},
 	'ja':{
-        'family':'Noto Sans CJK JP',
 		'text':'元気ですか'},
 	'ko':{
-        'family':'Noto Sans CJK KR',
         'text':'어떻게 지내세요'},
 	'de':{
-        'family':'Noto Sans',
 		'text':'wie gehts'}
 	}
 
