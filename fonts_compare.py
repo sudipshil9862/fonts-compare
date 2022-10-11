@@ -109,14 +109,19 @@ class AppWindow(Gtk.ApplicationWindow):
         self.hbox3.append(self.combo)
         self.vbox3.append(self.hbox3)
         self.vbox.append(self.vbox3)
-        self.combo.append_text('en')#en
-        self.combo.append_text('bn')#bn
-        self.combo.append_text('ja')#ja
-        self.combo.append_text('ko')#ko
-        self.combo.append_text('de')#de
-        # make 'en' active by default to avoid seeing an empty
-        # combobox at program start:
-        self.combo.set_active(0)
+        for lang in sorted(dic,
+                           key = lambda x: (
+                               x != 'en', # Put 'en' on top
+                               x, # Sort everything else alphabetically
+                           )):
+            self.combo.append_text(lang)
+        # Make 'en' active by default to avoid seeing an empty
+        # combobox at program start (We know that 'en' is at index 0
+        # because of the way we sorted above, but let’s better not
+        # assume that and just search for 'en' whereever it is):
+        for i, item in enumerate(self.combo.get_model()):
+            if item[0] == 'en':
+                self.combo.set_active(i)
         self.combo.connect('changed', self.on_changed)
 
         text = self.label1.get_text()
@@ -199,12 +204,9 @@ class AppWindow(Gtk.ApplicationWindow):
         self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']
                 +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
                 + label_lang_full_form + '</span>') 
-        if lang == 'en': self.combo.set_active(0)
-        elif lang == 'bn': self.combo.set_active(1)
-        elif lang == 'ja': self.combo.set_active(2)
-        elif lang == 'ko': self.combo.set_active(3)
-        elif lang == 'de': self.combo.set_active(4)
-
+        for i, item in enumerate(self.combo.get_model()):
+            if item[0] == lang:
+                self.combo.set_active(i)
 
     def on_changed(self, wid):
         '''
