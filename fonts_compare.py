@@ -203,11 +203,12 @@ class AppWindow(Gtk.ApplicationWindow):
             languageId=lang, languageIdQuery=lc_messages)
         self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']
                 +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
-                + label_lang_full_form + '</span>') 
+                + label_lang_full_form + '</span>')
+        text1 = text
         for i, item in enumerate(self.combo.get_model()):
             if item[0] == lang:
                 self.combo.set_active(i)
-
+        self.entry.set_text(text1)
     def on_changed(self, wid):
         '''
         when we select a perticular langugage from the drop-down..
