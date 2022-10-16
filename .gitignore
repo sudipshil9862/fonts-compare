@@ -1,0 +1,4 @@
+*.gz
+*.rpm
+*.~*~
+results_fonts-compare/
