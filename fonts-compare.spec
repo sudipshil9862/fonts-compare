@@ -28,7 +28,7 @@ Summary: needed to compare fonts with various langugages
 
 
 %install
-/usr/bin/install -m 755 fonts-compare %{buildroot}/%{bindir}/fonts-compare
+/usr/bin/install -D -m 755 fonts-compare %{buildroot}/%{bindir}/fonts-compare
 /usr/bin/install -D -m 644 fonts_compare.py %{buildroot}/%{datadir}/fonts-compare/fonts_compare.py
 
 %check
@@ -36,8 +36,8 @@ Summary: needed to compare fonts with various langugages
 %files
 %doc README.md
 %license LICENSE
-%{bindir}/fonts-compare
-%{datadir}/fonts-compare/fonts_compare.py
+/%{bindir}/fonts-compare
+/%{datadir}/fonts-compare/fonts_compare.py
 
 %changelog
 * Sun Oct 16 2022 Sudip Shil <sshil@redhat.com> - 1.0.2-1
