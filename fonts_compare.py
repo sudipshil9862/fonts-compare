@@ -122,7 +122,8 @@ class AppWindow(Gtk.ApplicationWindow):
         for i, item in enumerate(self.combo.get_model()):
             if item[0] == 'en':
                 self.combo.set_active(i)
-        self.combo.connect('changed', self.on_changed)
+        self.combo.changed_signal_id = self.combo.connect(
+            'changed', self.on_changed)
 
         text = self.label1.get_text()
         lang = detect_language(text)
@@ -204,11 +205,12 @@ class AppWindow(Gtk.ApplicationWindow):
         self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']
                 +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
                 + label_lang_full_form + '</span>')
-        text1 = text
+        self.combo.handler_block(self.combo.changed_signal_id)
         for i, item in enumerate(self.combo.get_model()):
             if item[0] == lang:
                 self.combo.set_active(i)
-        self.entry.set_text(text1)
+        self.combo.handler_unblock(self.combo.changed_signal_id)
+
     def on_changed(self, wid):
         '''
         when we select a perticular langugage from the drop-down..
