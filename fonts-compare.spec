@@ -1,6 +1,6 @@
 Name:           fonts-compare
 Version:        1.0.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        fonts rendering and comparing
 
 License:        GPLv3
@@ -28,18 +28,21 @@ Summary: needed to compare fonts with various langugages
 
 
 %install
-/usr/bin/install -D -m 755 fonts-compare %{buildroot}/%{bindir}/fonts-compare
-/usr/bin/install -D -m 644 fonts_compare.py %{buildroot}/%{datadir}/fonts-compare/fonts_compare.py
+install -D -m 755 fonts-compare %{buildroot}%{_bindir}/fonts-compare
+install -D -m 644 fonts_compare.py %{buildroot}%{_datadir}/fonts-compare/fonts_compare.py
 
 %check
 
 %files
 %doc README.md
 %license LICENSE
-/%{bindir}/fonts-compare
-/%{datadir}/fonts-compare/fonts_compare.py
+%{_bindir}/fonts-compare
+%{_datadir}/fonts-compare/fonts_compare.py
 
 %changelog
+* Tue Oct 18 2022 Sudip Shil <sshil@redhat.com> - 1.0.2-2
+- fixed broken macros
+
 * Sun Oct 16 2022 Sudip Shil <sshil@redhat.com> - 1.0.2-1
 - updated version 1.0.2-1
 - Bug 1 fixed: errors and warning removed - checked pylint, 

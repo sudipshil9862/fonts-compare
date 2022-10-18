@@ -204,12 +204,10 @@ class AppWindow(Gtk.ApplicationWindow):
         self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']
                 +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
                 + label_lang_full_form + '</span>')
-        #text1 = text
         self.combo.handler_block(self.combo.changed_signal_id)
         for i, item in enumerate(self.combo.get_model()):
             if item[0] == lang:
                 self.combo.set_active(i)
-        #self.entry.set_text(text1)
         self.combo.handler_unblock(self.combo.changed_signal_id)
     def on_changed(self, wid):
         '''

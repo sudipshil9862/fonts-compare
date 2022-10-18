@@ -1,4 +1,5 @@
 *.gz
 *.rpm
 *.~*~
+*.spec
 results_fonts-compare/
