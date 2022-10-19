@@ -1,10 +1,11 @@
-# fonts_compare
-fonts rendering and comparing
+#|| fonts_compare ||
+[fonts rendering and comparing]
 ---------------------------------------------------------------------
-##################The font packages needs to be installed if user is using fedora 36:########################
+# The font packages needs to be installed if user is using fedora 36:
 [install font packages depending upon the languages in which you are going to work with]
 
-#######################in command line type this command##########################
+#in command line type this command
+```
 $ sudo dnf search noto-sans-cjk
 [sudo] password for sshil: 
 Last metadata expiration check: 1:40:00 ago on Mon 10 Oct 2022 12:04:09 PM CEST.
@@ -21,7 +22,8 @@ google-noto-sans-cjk-tc-fonts.noarch : Traditional Chinese Multilingual Sans OTF
                                      : for google-noto-cjk-fonts
 google-noto-sans-cjk-ttc-fonts.noarch : Sans OTC font files for google-noto-cjk-fonts
 
-[NOTE]:
+```
+#[NOTE]:
 You can either install every font packages manually or you can directly install 'ttc' and ttc contains all the language fonts in a single bundle
 
 -----------------------------------------------------------------------

@@ -13,8 +13,9 @@ import logging
 import langtable
 import langdetect
 import gi
-from gi.repository import Gtk, Pango
 gi.require_version('Gtk', '4.0')
+from gi.repository import Gtk, Pango
+#gi.require_version('Gtk', '4.0')
 
 LOGGER = logging.getLogger('fonts-compare')
 
