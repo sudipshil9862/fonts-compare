@@ -14,8 +14,7 @@ import langtable
 import langdetect
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Pango
-#gi.require_version('Gtk', '4.0')
+from gi.repository import Gtk, Gio, Pango
 
 LOGGER = logging.getLogger('fonts-compare')
 
@@ -33,23 +32,33 @@ def parse_args() -> Any:
 
 _ARGS = parse_args()
 
-#FONTWEIGHT = 'Regular'
-#FALLPARAM = 'fallback="false">'
-#FONTSIZE = '30'
 FONTWEIGHT = 'Regular'
 FALLPARAM = 'fallback="false">'
-FONTSIZE = '30'
+FONTSIZE = '50'
 dic = {
     'en':{
-		'text':'How are you'},
-	'bn':{
-		'text':'আপনি কেমন আছেন'},
-	'ja':{
-		'text':'元気ですか'},
-	'ko':{
+	    'text':'How are you'},
+    'bn':{
+	    'text':'আপনি কেমন আছেন'},
+    'ja':{
+	    'text':'元気ですか'},
+    'hi':{
+        'text':'आप कैसे हैं'},
+    'mr':{
+        'text':'तू कसा आहेस'},
+    'ta':{
+        'text':'நீங்கள் எப்படி இருக்கிறீர்கள்'},
+    'ko':{
         'text':'어떻게 지내세요'},
-	'de':{
-		'text':'wie gehts'}
+    'de':{
+	    'text':'wie gehts'},
+    'da':{
+	    'text':'Hvordan har du det'},
+    'gu':{
+        'text':'તમે કેમ છો'},
+    'ar':{
+        'text':'كيف حالك؟'}
+
 	}
 
 class AppWindow(Gtk.ApplicationWindow):
@@ -82,6 +91,9 @@ class AppWindow(Gtk.ApplicationWindow):
         self.hbox3 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.hbox3.set_margin_top(5)
 
+        self.hbox4 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        self.hbox3.set_margin_top(5)
+
         self.vbox.set_margin_start(150)
         self.vbox.set_margin_top(50)
         self.vbox.set_margin_end(150)
@@ -92,6 +104,8 @@ class AppWindow(Gtk.ApplicationWindow):
         self.vbox2.set_margin_bottom(20)
         self.vbox3.set_margin_top(20)
         self.vbox3.set_margin_bottom(20)
+        self.vbox4.set_margin_top(20)
+        self.vbox4.set_margin_bottom(20)
 
         self.label1 = Gtk.Label()
         self.button1 = Gtk.FontButton.new()
@@ -100,13 +114,41 @@ class AppWindow(Gtk.ApplicationWindow):
         self.button2 = Gtk.FontButton.new()
         self.fontbutton(self.label2, self.button2, self.hbox2, self.vbox2)
 
+        #slider for both label-font change
+        self.slider = Gtk.Scale()
+        self.slider.set_digits(0)
+        self.slider.set_range(0,100)
+        self.slider.set_draw_value(True)
+        self.slider.set_value(int(FONTSIZE)) #default fontsize that initialized globally
+        self.button1_family = ''
+        self.button2_family = ''
+        self.slider.connect('value-changed', self.slider_changed,
+                self.button1_family, self.button2_family)
+        self.label_slider = Gtk.Label()
+        self.label_slider.set_markup('<span font="'+dic['en']['family']
+                +' '+FONTWEIGHT+' '+'15'+'"' + FALLPARAM
+                + 'Select FontSize'
+                + '</span>')
+        self.vbox4.append(self.label_slider)
+        #self.hbox3.append(self.slider)
+        #self.vbox4.append(self.hbox3)
+        self.vbox4.append(self.slider)
+        self.vbox.append(self.vbox4)
+
         self.entry = Gtk.Entry()
         self.label3 = Gtk.Label(label="")
         self.vbox3.append(self.entry)
         self.vbox3.append(self.label3)
         self.vbox.append(self.vbox3)
 
+
         self.combo = Gtk.ComboBoxText()
+        self.label4 = Gtk.Label()
+        self.label4.set_markup('<span font="'+dic['en']['family']
+                +' '+FONTWEIGHT+' '+'15'+'"' + FALLPARAM
+                + 'Select Language'
+                + '</span>')
+        self.hbox3.append(self.label4)
         self.hbox3.append(self.combo)
         self.vbox3.append(self.hbox3)
         self.vbox.append(self.vbox3)
@@ -124,6 +166,7 @@ class AppWindow(Gtk.ApplicationWindow):
             if item[0] == 'en':
                 self.combo.set_active(i)
         self.combo.changed_signal_id = self.combo.connect('changed', self.on_changed)
+
 
         text = self.label1.get_text()
         lang = detect_language(text)
@@ -158,6 +201,23 @@ class AppWindow(Gtk.ApplicationWindow):
         boxv.append(boxh)
         boxv.append(label)
         self.vbox.append(boxv)
+
+    def slider_changed(self, slider, button1_family, button2_family):
+        '''
+        both text labels will change it's fontsize depending upon font's slider
+        '''
+        #LOGGER.info('self.button1.get_font(%s)',self.button1.get_font())
+        button1_family = self.button1.get_font()[:-3].strip()
+        button2_family = self.button1.get_font()[:-3].strip()
+        #LOGGER.info('self.button1_family(%s)', self.button1_family)
+        self.button1.set_font(button1_family + ' ' + str(int(slider.get_value())))
+        self.button2.set_font(self.button2_family + ' ' + str(int(slider.get_value())))
+        self.label1.set_markup('<span font="'+self.button1.get_font()+'"' + FALLPARAM
+                + self.label1.get_text()
+                + '</span>')
+        self.label2.set_markup('<span font="'+self.button2.get_font()+'"' + FALLPARAM
+                + self.label2.get_text()
+                + '</span>')
 
     @classmethod
     def label_font_change(cls, button, label):
@@ -210,6 +270,8 @@ class AppWindow(Gtk.ApplicationWindow):
             if item[0] == lang:
                 self.combo.set_active(i)
         self.combo.handler_unblock(self.combo.changed_signal_id)
+
+
     def on_changed(self, wid):
         '''
         when we select a perticular langugage from the drop-down..

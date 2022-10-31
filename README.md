@@ -24,6 +24,13 @@ google-noto-sans-cjk-ttc-fonts.noarch : Sans OTC font files for google-noto-cjk-
 
 ```
 #[NOTE]:
-You can either install every font packages manually or you can directly install 'ttc' and ttc contains all the language fonts in a single bundle
+- You can either install every font's packages manually or you can directly install 'ttc'
+- TTC file can combine the multiple font files into a single bundle
 
 -----------------------------------------------------------------------
+
+# install fonts for other languages
+```
+sudo dnf install @fonts
+```
+- This will download fonts for languages like hindi(Devanagari), maratha, gujrati, odia, tamil, telegu,, arabic etc.

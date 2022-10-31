@@ -2,4 +2,5 @@
 *.rpm
 *.~*~
 *.spec
+*.txt
 results_fonts-compare/
