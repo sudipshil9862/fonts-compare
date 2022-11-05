@@ -15,6 +15,7 @@ import langdetect
 import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Gio, Pango
+import fontconfig
 
 LOGGER = logging.getLogger('fonts-compare')
 
@@ -35,6 +36,7 @@ _ARGS = parse_args()
 FONTWEIGHT = 'Regular'
 FALLPARAM = 'fallback="false">'
 FONTSIZE = '50'
+label3_font = '20'
 dic = {
     'en':{
 	    'text':'How are you'},
@@ -56,8 +58,8 @@ dic = {
 	    'text':'Hvordan har du det'},
     'gu':{
         'text':'તમે કેમ છો'},
-    'ar':{
-        'text':'كيف حالك؟'}
+    #'ar':{
+    #    'text':'كيف حالك؟'}
 
 	}
 
@@ -95,7 +97,7 @@ class AppWindow(Gtk.ApplicationWindow):
         self.hbox3.set_margin_top(5)
 
         self.vbox.set_margin_start(150)
-        self.vbox.set_margin_top(50)
+        self.vbox.set_margin_top(25)
         self.vbox.set_margin_end(150)
 
         self.vbox1.set_margin_top(20)
@@ -106,35 +108,9 @@ class AppWindow(Gtk.ApplicationWindow):
         self.vbox3.set_margin_bottom(20)
         self.vbox4.set_margin_top(20)
         self.vbox4.set_margin_bottom(20)
-
-        self.label1 = Gtk.Label()
-        self.button1 = Gtk.FontButton.new()
-        self.fontbutton(self.label1, self.button1, self.hbox1, self.vbox1)
-        self.label2 = Gtk.Label()
-        self.button2 = Gtk.FontButton.new()
-        self.fontbutton(self.label2, self.button2, self.hbox2, self.vbox2)
-
-        #slider for both label-font change
-        self.slider = Gtk.Scale()
-        self.slider.set_digits(0)
-        self.slider.set_range(0,100)
-        self.slider.set_draw_value(True)
-        self.slider.set_value(int(FONTSIZE)) #default fontsize that initialized globally
-        self.button1_family = ''
-        self.button2_family = ''
-        self.slider.connect('value-changed', self.slider_changed,
-                self.button1_family, self.button2_family)
-        self.label_slider = Gtk.Label()
-        self.label_slider.set_markup('<span font="'+dic['en']['family']
-                +' '+FONTWEIGHT+' '+'15'+'"' + FALLPARAM
-                + 'Select FontSize'
-                + '</span>')
-        self.vbox4.append(self.label_slider)
-        #self.hbox3.append(self.slider)
-        #self.vbox4.append(self.hbox3)
-        self.vbox4.append(self.slider)
-        self.vbox.append(self.vbox4)
-
+ 
+        
+        #---------
         self.entry = Gtk.Entry()
         self.label3 = Gtk.Label(label="")
         self.vbox3.append(self.entry)
@@ -152,6 +128,38 @@ class AppWindow(Gtk.ApplicationWindow):
         self.hbox3.append(self.combo)
         self.vbox3.append(self.hbox3)
         self.vbox.append(self.vbox3)
+
+        #---------
+
+        self.label1 = Gtk.Label()
+        self.button1 = Gtk.FontButton.new()
+        self.fontbutton(self.label1, self.button1, self.hbox1, self.vbox1)
+        self.label2 = Gtk.Label()
+        self.button2 = Gtk.FontButton.new()
+        self.fontbutton(self.label2, self.button2, self.hbox2, self.vbox2)
+
+        #slider for both label-font change
+        self.slider = Gtk.Scale()
+        self.slider.set_digits(0)
+        self.slider.set_range(1,100)
+        self.slider.set_draw_value(True)
+        self.slider.set_value(int(FONTSIZE)) #default fontsize that initialized globally
+        self.button1_family = ''
+        self.button2_family = ''
+        self.slider.connect('value-changed', self.slider_changed,
+                self.button1_family, self.button2_family)
+        self.label_slider = Gtk.Label()
+        self.label_slider.set_markup('<span font="'+dic['en']['family']
+                +' '+FONTWEIGHT+' '+'15'+'"' + FALLPARAM
+                + 'Select FontSize'
+                + '</span>')
+        self.vbox4.append(self.label_slider)
+        #self.hbox3.append(self.slider)
+        #self.vbox4.append(self.hbox3)
+        self.vbox4.append(self.slider)
+        self.vbox.append(self.vbox4)
+
+       
         for lang in sorted(dic,
                            key = lambda x: (
                                x != 'en', # Put 'en' on top
@@ -177,14 +185,16 @@ class AppWindow(Gtk.ApplicationWindow):
             languageId=lang, languageIdQuery=lc_messages)
         self.label3.set_markup(
             f'<span font="{dic[lc_messages_lang]["family"]} '
-            f'{FONTWEIGHT} {FONTSIZE}" {FALLPARAM}{label_lang_full_form}</span>')
+            f'{FONTWEIGHT} {label3_font}" {FALLPARAM}{label_lang_full_form}</span>')
 
         keycont = Gtk.EventControllerKey()
         keycont.connect('key-released', self.on_key_released)
         self.add_controller(keycont)
 
         self.set_default_size(450, 450)
+        #self.set_resizable(1)
         self.set_child(self.vbox)
+        #self.set_position(Gtk.WindowPosition.CENTER)
 
     def fontbutton(self, label, button, boxh, boxv):
         '''
@@ -197,6 +207,7 @@ class AppWindow(Gtk.ApplicationWindow):
         button.connect('font-set', self.label_font_change, label)
         button.set_hexpand(False)
         button.set_font(dic['en']['family'] + ' ' + FONTWEIGHT +' '+ FONTSIZE)
+        #button.set_language('English')
         boxh.append(button)
         boxv.append(boxh)
         boxv.append(label)
@@ -206,12 +217,14 @@ class AppWindow(Gtk.ApplicationWindow):
         '''
         both text labels will change it's fontsize depending upon font's slider
         '''
-        #LOGGER.info('self.button1.get_font(%s)',self.button1.get_font())
-        button1_family = self.button1.get_font()[:-3].strip()
-        button2_family = self.button1.get_font()[:-3].strip()
-        #LOGGER.info('self.button1_family(%s)', self.button1_family)
+        LOGGER.info('self.button1.get_font(%s)',self.button1.get_font())
+        #button1_family = self.button1.get_font()[:-3].strip()
+        #button2_family = self.button1.get_font()[:-3].strip()
+        button1_family = self.button1.get_font().rsplit(' ',1)[0]
+        button2_family = self.button1.get_font().rsplit(' ',1)[0]
+        LOGGER.info('self.button1_family(%s)', button1_family)
         self.button1.set_font(button1_family + ' ' + str(int(slider.get_value())))
-        self.button2.set_font(self.button2_family + ' ' + str(int(slider.get_value())))
+        self.button2.set_font(button2_family + ' ' + str(int(slider.get_value())))
         self.label1.set_markup('<span font="'+self.button1.get_font()+'"' + FALLPARAM
                 + self.label1.get_text()
                 + '</span>')
@@ -219,6 +232,7 @@ class AppWindow(Gtk.ApplicationWindow):
                 + self.label2.get_text()
                 + '</span>')
 
+        
     @classmethod
     def label_font_change(cls, button, label):
         '''
@@ -244,6 +258,9 @@ class AppWindow(Gtk.ApplicationWindow):
         self.label2.set_markup('<span font="'+dic[detect_lang]['family']
                 +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
                 + set_text + '</span>')
+        #self.label2.set_markup('<span font="'+dic[detect_lang]['family2']
+        #        +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
+        #        + set_text + '</span>')
         self.button2.set_font(dic[detect_lang]['family'] +' '+ FONTWEIGHT+' '+FONTSIZE)
 
     def on_key_released(self, *_):
@@ -255,16 +272,27 @@ class AppWindow(Gtk.ApplicationWindow):
         text = self.entry.get_text()
         lang = detect_language(text)
         LOGGER.info('text=%s lang=%s', text, lang)
-        self.button1.set_preview_text(dic[lang]['text'])
-        self.button2.set_preview_text(dic[lang]['text'])
-        self.set_font(lang, text)
+        #----
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = lc_messages.split('_')[0]
         label_lang_full_form = langtable.language_name(
             languageId=lang, languageIdQuery=lc_messages)
         self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']
-                +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
+                +' '+FONTWEIGHT+' '+label3_font+'"' + FALLPARAM
                 + label_lang_full_form + '</span>')
+        #----
+        self.button1.set_preview_text(dic[lang]['text'])
+        self.button2.set_preview_text(dic[lang]['text'])
+        self.set_font(lang, text)
+        '''
+        lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
+        lc_messages_lang = lc_messages.split('_')[0]
+        label_lang_full_form = langtable.language_name(
+            languageId=lang, languageIdQuery=lc_messages)
+        self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']
+                +' '+FONTWEIGHT+' '+label3_font+'"' + FALLPARAM
+                + label_lang_full_form + '</span>')
+        '''
         self.combo.handler_block(self.combo.changed_signal_id)
         for i, item in enumerate(self.combo.get_model()):
             if item[0] == lang:
@@ -297,7 +325,7 @@ class AppWindow(Gtk.ApplicationWindow):
         LOGGER.debug('dic[lc_messages_lang]["family"]=%s',
                      dic[lc_messages_lang]['family'])
         self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']
-                +' '+FONTWEIGHT+' '+FONTSIZE+'"' + FALLPARAM
+                +' '+FONTWEIGHT+' '+label3_font+'"' + FALLPARAM
                 + label_lang_full_form + '</span>')
 
 def detect_language(text: str) -> str:
@@ -321,7 +349,7 @@ def detect_language(text: str) -> str:
             'lang=%s was detected but we don’t have that in dic'
             'falling back to "en".',
             lang)
-        lang = 'en'
+        #lang = 'en'
     return lang
 
 def on_activate(application):
@@ -348,7 +376,7 @@ def get_default_font_family_for_language(lang: str) -> str:
             LOGGER.error('Regexp did not match')
             return ''
         families = match.group('families').split(',')
-        LOGGER.info('families=%s', families)
+        LOGGER.info('default font families=%s', families)
         if families:
             last_family = families[-1:][0]
             return last_family
@@ -367,6 +395,24 @@ def get_default_font_family_for_language(lang: str) -> str:
                          fc_match_binary, error.__class__.__name__, error)
         return ''
 
+#----------selecting random font for label2
+'''
+def get_random_font_family_for_language(lang: str) -> str:
+    
+    #getting random font by python fontconfig
+    
+    try:
+        fonts = fontconfig.query(lang=lang) 
+        fonts_family = fonts[0].family[0][1]
+        fonts_style = fonts[0].style[0][1]
+        LOGGER.info('random - fonconfig family = %s and style = %s', fonts_family, fonts_style)
+        return fonts_family
+    except Exception as error:
+        LOGGER.exception('error', error.__class__.__name__, error)
+        return ''
+'''
+#----------
+
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, '')
     if _ARGS.debug:
@@ -380,10 +426,20 @@ if __name__ == '__main__':
         LOGGER.addHandler(LOG_HANDLER)
     else:
         LOG_HANDLER_NULL = logging.NullHandler()
+    #jft
+    #fonts = fontconfig.query(lang='ar')
+    #fonts_family = fonts[0].family[0][1] 
+    #fonts_style = fonts[0].style[0][1]
+    #LOGGER.info('random - fonconfig family = %s and style = %s', fonts_family, fonts_style)
     for language, value in dic.items():
         family = get_default_font_family_for_language(language)
         LOGGER.info('lang=%s default family=%s', language, family)
         value['family'] = family
+        #jft for label2 random font
+        #family2 = get_random_font_family_for_language(language)
+        #LOGGER.info('lang=%s random family=%s', language, family2)
+        #value['family2'] = family2
+
     LOGGER.info('dic=%s', dic)
     app = Gtk.Application(application_id='org.gtk.Example')
     app.connect('activate', on_activate)
