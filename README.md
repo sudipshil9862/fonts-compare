@@ -34,3 +34,29 @@ google-noto-sans-cjk-ttc-fonts.noarch : Sans OTC font files for google-noto-cjk-
 sudo dnf install @fonts
 ```
 - This will download fonts for languages like hindi(Devanagari), maratha, gujrati, odia, tamil, telegu,, arabic etc.
+
+----------------------------------------------------------------------
+
+#install devanagari fonts for hindi
+```
+sudo dnf install google-noto-sans-devanagari-fonts.noarch
+```
+```
+sudo dnf install google-noto-serif-devanagari-fonts.noarch
+```
+
+#install Gujrati fonts
+```
+sudo dnf install google-noto-sans-gujarati-fonts.noarch
+```
+
+#install Japanese fonts
+```
+sudo dnf install google-noto-sans-cjk-jp-fonts.noarch
+```
+```
+sudo dnf install google-noto-serif-jp-fonts.noarch
+```
+
+----------------------------------------------------------------------
+#you may use other fonts but it's better to install these fonts 
