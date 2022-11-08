@@ -1,5 +1,4 @@
 ## Fonts-Compare
-[fonts rendering and comparing]
 This project is all about comparing different fonts of a particular language with respect to FontWeight, FontSize and FontStyle.
 ---------------------------------------------------------------------
 # The font packages need to be installed:
@@ -34,7 +33,7 @@ google-noto-sans-cjk-ttc-fonts.noarch : Sans OTC font files for google-noto-cjk-
 ```
 sudo dnf install @fonts
 ```
-- This will download fonts for languages like hindi(Devanagari), maratha, gujrati, odia, tamil, telegu,, arabic etc.
+- This will download fonts for languages like hindi(Devanagari), maratha, gujarati, odia, tamil, telegu,, arabic etc.
 - if you are still facing problem with fonts then download individual packages mentioned below
 ----------------------------------------------------------------------
 
@@ -46,7 +45,7 @@ sudo dnf install google-noto-sans-devanagari-fonts.noarch
 sudo dnf install google-noto-serif-devanagari-fonts.noarch
 ```
 
-# install Gujrati fonts
+# install Gujarati fonts
 ```
 sudo dnf install google-noto-sans-gujarati-fonts.noarch
 ```
