@@ -58,8 +58,8 @@ dic = {
 	    'text':'Hvordan har du det'},
     'gu':{
         'text':'તમે કેમ છો'},
-    #'ar':{
-    #    'text':'كيف حالك؟'}
+    'ar':{
+        'text':'كيف حالك؟'}
 
 	}
 

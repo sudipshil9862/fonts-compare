@@ -1,10 +1,11 @@
-#|| fonts_compare ||
+## Fonts-Compare
 [fonts rendering and comparing]
+This project is all about comparing different fonts of a particular language with respect to FontWeight, FontSize and FontStyle.
 ---------------------------------------------------------------------
-# The font packages needs to be installed if user is using fedora 36:
-[install font packages depending upon the languages in which you are going to work with]
+# The font packages need to be installed:
+[install font packages depending upon the languages, you are going to work with]
 
-#in command line type this command
+# In Command Line type this command
 ```
 $ sudo dnf search noto-sans-cjk
 [sudo] password for sshil: 
@@ -23,7 +24,7 @@ google-noto-sans-cjk-tc-fonts.noarch : Traditional Chinese Multilingual Sans OTF
 google-noto-sans-cjk-ttc-fonts.noarch : Sans OTC font files for google-noto-cjk-fonts
 
 ```
-#[NOTE]:
+# [NOTE]:
 - You can either install every font's packages manually or you can directly install 'ttc'
 - TTC file can combine the multiple font files into a single bundle
 
@@ -34,10 +35,10 @@ google-noto-sans-cjk-ttc-fonts.noarch : Sans OTC font files for google-noto-cjk-
 sudo dnf install @fonts
 ```
 - This will download fonts for languages like hindi(Devanagari), maratha, gujrati, odia, tamil, telegu,, arabic etc.
-
+- if you are still facing problem with fonts then download individual packages mentioned below
 ----------------------------------------------------------------------
 
-#install devanagari fonts for hindi
+# install devanagari fonts for hindi
 ```
 sudo dnf install google-noto-sans-devanagari-fonts.noarch
 ```
@@ -45,12 +46,12 @@ sudo dnf install google-noto-sans-devanagari-fonts.noarch
 sudo dnf install google-noto-serif-devanagari-fonts.noarch
 ```
 
-#install Gujrati fonts
+# install Gujrati fonts
 ```
 sudo dnf install google-noto-sans-gujarati-fonts.noarch
 ```
 
-#install Japanese fonts
+# install Japanese fonts
 ```
 sudo dnf install google-noto-sans-cjk-jp-fonts.noarch
 ```
@@ -58,5 +59,7 @@ sudo dnf install google-noto-sans-cjk-jp-fonts.noarch
 sudo dnf install google-noto-serif-jp-fonts.noarch
 ```
 
-----------------------------------------------------------------------
-#you may use other fonts but it's better to install these fonts 
+# install Arabic fonts
+```
+sudo dnf install google-noto-sans-arabic-fonts.noarch
+``` 
