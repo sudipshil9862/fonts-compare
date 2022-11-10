@@ -4,6 +4,7 @@ This is my fonts-compare program for font rendering and comparing
 '''
 from typing import Any
 import sys
+import random
 import re
 import subprocess
 import shutil
@@ -513,21 +514,54 @@ def get_default_font_family_for_language(lang: str) -> str:
 #----------selecting random font for label2
 
 def get_random_font_family_for_language(lang: str) -> str:
-    LOGGER.info('get_random_font_family_for_language function started') 
-    #getting random font by python fontconfig
-
-    try:
-        LOGGER.info('entered try block')
-        fonts = fontconfig.query(lang=lang) 
-        fonts_family = fonts[0].family[0][1]
-        fonts_style = fonts[0].style[0][1]
-        LOGGER.info('random - fonconfig family = (%s) and style = (%s)', fonts_family, fonts_style)
-        return fonts_family
-    except Exception as error:
-        LOGGER.info('entered except block')
-        LOGGER.exception('error', error.__class__.__name__, error)
+    '''
+    getting a random font using fc-list
+    '''
+    LOGGER.info('language: %s',lang)
+    fc_list_binary = shutil.which('fc-list')
+    if not fc_list_binary:
         return ''
-
+    try:
+        result = subprocess.run(
+                [fc_list_binary, f':lang={lang}', 'family', 'style'],
+                encoding='utf-8', check=True, capture_output=True)
+        fonts_listed = result.stdout.strip().split('\n')
+        random_font = random.choice(fonts_listed)
+        pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*)$')
+        match = pattern.match(random_font)
+        if not match:
+            LOGGER.error('Regexp did not match %s', result.stdout.strip())
+            return ''
+        families = match.group('families').split(',')
+        styles = match.group('style').split(',')
+        LOGGER.info('Random font families=%s styles=%s', families, styles)
+        last_family = ''
+        if families:
+            last_family = families[-1:][0]
+        if not last_family:
+            return ''
+        for style in styles:
+            if last_family.endswith(style):
+                return last_family
+        last_style = ''
+        if styles:
+            last_style = styles[-1:][0]
+        if last_style:
+            last_family += ' ' + last_style
+        return last_family
+    except FileNotFoundError as error:
+        LOGGER.exception('Exception when calling %s: %s: %s',
+                fc_match_binary, error.__class__.__name__, error)
+        return ''
+    except subprocess.CalledProcessError as error:
+        LOGGER.exception('Exception when calling %s: %s: %s stderr: %s',
+                fc_match_binary,
+                error.__class__.__name__, error, error.stderr)
+        return ''
+    except Exception as error: # pylint: disable=broad-except
+        LOGGER.exception('Exception when calling %s: %s: %s',
+                fc_match_binary, error.__class__.__name__, error)
+        return ''
 #----------
 
 if __name__ == '__main__':
