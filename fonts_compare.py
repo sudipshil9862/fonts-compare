@@ -379,25 +379,25 @@ class AppWindow(Gtk.ApplicationWindow):
             self.open_dialog(label_lang_full_form)
             LOGGER.exception('Fonts are not installed for (%s) language', label_lang_full_form)
             self.label1.set_markup('<span font="'
-                    +get_default_font_family_for_language(label_lang_full_form)
+                    +get_random_font_family_for_language(label_lang_full_form)
                     +' '+FONTSIZE+'"' + FALLPARAM
                     + text + '</span>')
             LOGGER.info('self.button1.set_font(%s)',
-                    get_default_font_family_for_language(label_lang_full_form) 
+                    get_random_font_family_for_language(label_lang_full_form) 
                     +' '+FONTSIZE)
             self.button1.set_font(
-                    get_default_font_family_for_language(label_lang_full_form) 
+                    get_random_font_family_for_language(label_lang_full_form) 
                     +' '+FONTSIZE)
             LOGGER.info('self.button1.get_font(%s)',self.button1.get_font())
             self.label2.set_markup('<span font="'
-                    +get_default_font_family_for_language(label_lang_full_form)
+                    +get_random_font_family_for_language(label_lang_full_form)
                     +' '+FONTSIZE+'"' + FALLPARAM
                     + text + '</span>')
             LOGGER.info('self.button2.set_font(%s)',
-                    get_default_font_family_for_language(label_lang_full_form) 
+                    get_random_font_family_for_language(label_lang_full_form) 
                     +' '+ FONTSIZE)
             self.button2.set_font(
-                    get_default_font_family_for_language(label_lang_full_form)
+                    get_random_font_family_for_language(label_lang_full_form)
                     +' '+ FONTSIZE)
             LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
 
@@ -475,6 +475,7 @@ def get_default_font_family_for_language(lang: str) -> str:
     '''
     getting default font by fc-match
     '''
+    LOGGER.info('language: %s',lang)
     fc_match_binary = shutil.which('fc-match')
     if not fc_match_binary:
         return ''
