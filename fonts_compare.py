@@ -64,8 +64,9 @@ dic = {
 
         }
 
-'''
+
 #Custom Box class for dialog box
+'''
 class CustomDialog(Gtk.Dialog):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
