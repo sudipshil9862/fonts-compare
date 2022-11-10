@@ -37,7 +37,7 @@ _ARGS = parse_args()
 FALLPARAM = 'fallback="false">'
 FONTSIZE = '50'
 label3_font = '20'
-DIALOG_WARNING = ''
+#DIALOG_WARNING = ''
 dic = {
         'en':{
             'text':'How are you'},
@@ -64,7 +64,7 @@ dic = {
 
         }
 
-
+'''
 #Custom Box class for dialog box
 class CustomDialog(Gtk.Dialog):
     def __init__(self, **kwargs):
@@ -116,7 +116,7 @@ class CustomDialog(Gtk.Dialog):
             #self.label.set_text(str=f'pressed CANCEL')
 
         dialog.close()
-
+'''
 
 
 #main class
@@ -376,8 +376,9 @@ class AppWindow(Gtk.ApplicationWindow):
             self.combo.handler_unblock(self.combo.changed_signal_id)
         elif not lang in dic:
             #dialog box
-            self.open_dialog(label_lang_full_form)
-            LOGGER.exception('Fonts are not installed for (%s) language', label_lang_full_form)
+            #self.open_dialog(label_lang_full_form)
+            #LOGGER.exception('Fonts are not installed for (%s) language', label_lang_full_form)
+            LOGGER.info('%s is not there in dic',label_lang_full_form)
             self.label1.set_markup('<span font="'
                     +get_default_font_family_for_language(lang)
                     +' '+FONTSIZE+'"' + FALLPARAM
@@ -401,7 +402,7 @@ class AppWindow(Gtk.ApplicationWindow):
                     +' '+ FONTSIZE)
             LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
 
-    
+    ''' 
     def open_dialog(self, lang_full_form):
         global DIALOG_WARNING
         DIALOG_WARNING = lang_full_form
@@ -409,6 +410,7 @@ class AppWindow(Gtk.ApplicationWindow):
         #CustomDialog is a class
         custom_dialog = CustomDialog(transient_for=self, use_header_bar=True)
         custom_dialog.present()
+    '''
 
     def on_changed(self, wid):
         '''
