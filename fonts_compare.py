@@ -13,6 +13,7 @@ import logging
 import langtable
 import langdetect
 import gi
+import random
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Gio, Pango
 import fontconfig
@@ -520,9 +521,14 @@ def get_random_font_family_for_language(lang: str) -> str:
     try:
         LOGGER.info('entered try block')
         fonts = fontconfig.query(lang=lang) 
-        fonts_family = fonts[0].family[0][1]
-        fonts_style = fonts[0].style[0][1]
+        #jft
+        length = len(fonts) #list of fonts' file
+        #fonts_family = fonts[0].family[0][1]
+        #fonts_style = fonts[0].style[0][1]
+        fonts_family = fonts[random.randint(0,length)].family[0][1]
+        fonts_style = fonts[random.randint(0,length)].style[0][1]
         LOGGER.info('random - fonconfig family = (%s) and style = (%s)', fonts_family, fonts_style)
+        #return fonts_family + ' ' + fonts_style
         return fonts_family
     except Exception as error:
         LOGGER.info('entered except block')
