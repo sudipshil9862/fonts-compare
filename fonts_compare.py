@@ -524,7 +524,7 @@ def get_random_font_family_for_language(lang: str) -> str:
         #jft
         length = len(fonts)
         LOGGER.info('random font list length = %s',length)
-        randomnum = random.randint(0,length)
+        randomnum = abs(random.randint(0,length)-1)
         LOGGER.info('random font list random number = %s',randomnum)
         #fonts_family = fonts[0].family[0][1]
         #fonts_style = fonts[0].style[0][1]
