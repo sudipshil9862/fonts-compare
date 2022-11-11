@@ -50,6 +50,11 @@ sudo dnf install google-noto-serif-devanagari-fonts.noarch
 sudo dnf install google-noto-sans-gujarati-fonts.noarch
 ```
 
+### install Tamil fonts
+```
+sudo dnf install google-noto-sans-tamil-fonts.noarch
+```
+
 ### install Japanese fonts
 ```
 sudo dnf install google-noto-sans-cjk-jp-fonts.noarch
