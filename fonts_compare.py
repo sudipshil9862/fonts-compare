@@ -35,7 +35,6 @@ def parse_args() -> Any:
 
 _ARGS = parse_args()
 
-#FONTWEIGHT = 'Regular'
 FALLPARAM = 'fallback="false">'
 FONTSIZE = '50'
 label3_font = '20'
@@ -488,15 +487,23 @@ def get_default_font_family_for_language(lang: str) -> str:
         result = subprocess.run(
                 [fc_match_binary, f':lang={lang}', 'family', 'style', 'file'],
                 encoding='utf-8', check=True, capture_output=True)
-        pattern = re.compile(r'^(?P<families>.*):style=.*$')
+        pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*):file=.*$')
         match = pattern.match(result.stdout.strip())
         if not match:
             LOGGER.error('Regexp did not match')
             return ''
         families = match.group('families').split(',')
-        LOGGER.info('default font families=%s', families)
+        styles = match.group('style').split(',')
+        LOGGER.info('default font families=%s, styles=%s', families, styles)
+        last_family = ''
+        last_style = ''
         if families:
             last_family = families[-1:][0]
+        if styles:
+            last_style = styles[-1:][0]
+        if last_family and last_style:
+            last_family += ' ' + last_style
+        if last_family:
             return last_family
         return ''
     except FileNotFoundError as error:
