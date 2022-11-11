@@ -4,3 +4,5 @@
 *.spec
 *.txt
 results_fonts-compare/
+.mypy_cache/
+__pycache__/
