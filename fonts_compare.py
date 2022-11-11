@@ -522,11 +522,14 @@ def get_random_font_family_for_language(lang: str) -> str:
         LOGGER.info('entered try block')
         fonts = fontconfig.query(lang=lang) 
         #jft
-        length = len(fonts) #list of fonts' file
+        length = len(fonts)
+        LOGGER.info('random font list length = %s',length)
+        randomnum = random.randint(0,length)
+        LOGGER.info('random font list random number = %s',randomnum)
         #fonts_family = fonts[0].family[0][1]
         #fonts_style = fonts[0].style[0][1]
-        fonts_family = fonts[random.randint(0,length)].family[0][1]
-        fonts_style = fonts[random.randint(0,length)].style[0][1]
+        fonts_family = fonts[randomnum].family[0][1]
+        fonts_style = fonts[randomnum].style[0][1]
         LOGGER.info('random - fonconfig family = (%s) and style = (%s)', fonts_family, fonts_style)
         #return fonts_family + ' ' + fonts_style
         return fonts_family
