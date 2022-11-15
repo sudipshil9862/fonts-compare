@@ -62,8 +62,9 @@ dic = {
         'gu':{
             'text':'તમે કેમ છો'},
         'ar':{
-            'text':'كيف حالك؟'}
-
+            'text':'كيف حالك؟'},
+        'zh-cn':{
+            'text':'你好吗'}
         }
 
 class AppWindow(Gtk.ApplicationWindow):
@@ -269,8 +270,23 @@ class AppWindow(Gtk.ApplicationWindow):
         LOGGER.info('text=%s lang=%s', text, lang)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = lc_messages.split('_')[0]
-        label_lang_full_form = langtable.language_name(
+        if(lang.find('-') != -1):
+            #zh-CN
+            lang_modify = lang.replace("-","_")
+            LOGGER.info('lang modify=%s',lang_modify)
+            a = lang_modify.find('_') + 1
+            b = len(lang_modify)
+            for i in range(a,b):
+                l = lang_modify[i].upper()
+                lang_modify = lang_modify.replace(lang_modify[i],l)
+            LOGGER.info('lang modify=%s',lang_modify)
+            label_lang_full_form = langtable.language_name(
+                    languageId=lang_modify, languageIdQuery=lc_messages)
+            LOGGER.info('label_lang full form=%s',label_lang_full_form)
+        else:
+            label_lang_full_form = langtable.language_name(
                 languageId=lang, languageIdQuery=lc_messages)
+            LOGGER.info('label_lang full form=%s',label_lang_full_form)
         self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']
                 +' '+LABEL3_FONT+'"' + FALLPARAM
                 + label_lang_full_form + '</span>')
