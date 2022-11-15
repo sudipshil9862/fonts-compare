@@ -38,7 +38,7 @@ def parse_args() -> Any:
 _ARGS = parse_args()
 
 FALLPARAM = 'fallback="false">'
-FONTSIZE = '50'
+FONTSIZE = '40'
 LABEL3_FONT = '20'
 dic = {
         'en':{
@@ -81,9 +81,7 @@ class AppWindow(Gtk.ApplicationWindow):
         self.set_title('Font Compare')
 
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        self.vbox1 = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        self.vbox2 = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        self.vbox3 = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        self.vbox.props.halign = Gtk.Align.CENTER
         self.vbox4 = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
 
         self.hbox1 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
@@ -94,28 +92,28 @@ class AppWindow(Gtk.ApplicationWindow):
 
         self.hbox3 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.hbox3.set_margin_top(5)
+        self.hbox3.props.halign = Gtk.Align.CENTER
 
-        self.hbox4 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.hbox3.set_margin_top(5)
+        self.vbox5 = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        self.vbox5.set_margin_top(5)
+        self.vbox5.set_margin_start(50)
+        self.vbox5.set_margin_end(50)
+        self.vbox5.props.halign = Gtk.Align.CENTER
+        
+        self.hbox5 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        self.hbox5.set_margin_top(5)
+        self.hbox5.props.halign = Gtk.Align.CENTER
 
-        self.vbox.set_margin_start(150)
+        self.vbox.set_margin_start(20)
         self.vbox.set_margin_top(25)
-        self.vbox.set_margin_end(150)
+        self.vbox.set_margin_end(20)
 
-        self.vbox1.set_margin_top(20)
-        self.vbox1.set_margin_bottom(20)
-        self.vbox2.set_margin_top(20)
-        self.vbox2.set_margin_bottom(20)
-        self.vbox3.set_margin_top(20)
-        self.vbox3.set_margin_bottom(20)
         self.vbox4.set_margin_top(20)
         self.vbox4.set_margin_bottom(20)
 
         self.entry = Gtk.Entry()
         self.label3 = Gtk.Label(label="")
-        self.vbox3.append(self.entry)
-        self.vbox3.append(self.label3)
-        self.vbox.append(self.vbox3)
+        self.vbox.append(self.entry)
 
 
         self.combo = Gtk.ComboBoxText()
@@ -126,19 +124,17 @@ class AppWindow(Gtk.ApplicationWindow):
                 + '</span>')
         self.hbox3.append(self.label4)
         self.hbox3.append(self.combo)
-        self.vbox3.append(self.hbox3)
-        self.vbox.append(self.vbox3)
+        self.vbox.append(self.hbox3)
 
         self.label1 = Gtk.Label()
         self.button1 = Gtk.FontButton.new()
-        self.fontbutton(self.label1, self.button1, self.hbox1, self.vbox1)
+        self.fontbutton(self.label1, self.button1, self.hbox1)
         self.label2 = Gtk.Label()
         self.button2 = Gtk.FontButton.new()
-        self.fontbutton(self.label2, self.button2, self.hbox2, self.vbox2)
-        #label2 font set for en when first time open and family2 contains fontweight
+        self.fontbutton(self.label2, self.button2, self.hbox2)
         self.label2.set_markup('<span font="'+dic['en']['family2']
                 +' '+FONTSIZE+'"' + FALLPARAM
-                + 'Work Hard and achieve anything'
+                + 'Fonts Compare'
                 + '</span>')
         self.button2.set_font(dic['en']['family2'] + ' ' + FONTSIZE)
 
@@ -159,10 +155,9 @@ class AppWindow(Gtk.ApplicationWindow):
                 + 'Select FontSize'
                 + '</span>')
         self.vbox4.append(self.label_slider)
-        #self.hbox3.append(self.slider)
-        #self.vbox4.append(self.hbox3)
         self.vbox4.append(self.slider)
         self.vbox.append(self.vbox4)
+        self.vbox.append(self.vbox5)
 
 
         for lang in sorted(dic, key = lambda x: (
@@ -194,30 +189,31 @@ class AppWindow(Gtk.ApplicationWindow):
         keycont = Gtk.EventControllerKey()
         keycont.connect('key-released', self.on_key_released)
         self.add_controller(keycont)
-
-        self.set_default_size(450, 450)
+        width = 1
+        height = 1
+        #self.set_default_size(450, 450)
+        self.set_resizable(True);
         self.set_child(self.vbox)
 
-    def fontbutton(self, label, button, boxh, boxv):
+   
+    def fontbutton(self, label, button, boxh):
         '''
         setting up initial font and text for labels and font button text updated
         '''
         label.set_markup('<span font="'+dic['en']['family']
                 +' '+FONTSIZE+'"' + FALLPARAM
-                + 'Work Hard and achieve anything'
+                + 'Fonts Compare'
                 + '</span>')
         button.connect('font-set', self.label_font_change, label)
         button.set_hexpand(False)
         button.set_font(dic['en']['family'] + ' ' + FONTSIZE)
         boxh.append(button)
-        boxv.append(boxh)
-        boxv.append(label)
-        self.vbox.append(boxv)
+        self.vbox.append(boxh)
+        self.vbox.append(label)
 
     def slider_changed(self, slider, button1_family, button2_family):
-        '''
-        both text labels will change it's fontsize depending upon font's slider
-        '''
+        #both text labels will change it's fontsize depending upon font's slider
+        
         button1_family = self.button1.get_font().rsplit(' ',1)[0]
         button2_family = self.button2.get_font().rsplit(' ',1)[0]
         self.button1.set_font(button1_family + ' ' + str(int(slider.get_value())))
@@ -228,7 +224,7 @@ class AppWindow(Gtk.ApplicationWindow):
         self.label2.set_markup('<span font="'+self.button2.get_font()+'"' + FALLPARAM
                 + self.label2.get_text()
                 + '</span>')
-
+        
 
     @classmethod
     def label_font_change(cls, button, label):
@@ -247,18 +243,18 @@ class AppWindow(Gtk.ApplicationWindow):
         font family depending upon which language has detected
         '''
         self.label1.set_markup('<span font="'+dic[detect_lang]['family']
-                +' '+FONTSIZE+'"' + FALLPARAM
+                +' '+str(int(self.slider.get_value()))+'"' + FALLPARAM
                 + set_text + '</span>')
         LOGGER.info('self.button1.set_font(%s)',
-                dic[detect_lang]['family'] +' '+FONTSIZE)
-        self.button1.set_font(dic[detect_lang]['family'] +' '+FONTSIZE)
+                dic[detect_lang]['family'] +' '+str(int(self.slider.get_value())))
+        self.button1.set_font(dic[detect_lang]['family'] +' '+str(int(self.slider.get_value())))
         LOGGER.info('self.button1.get_font(%s)',self.button1.get_font())
         self.label2.set_markup('<span font="'+dic[detect_lang]['family2']
-                +' '+FONTSIZE+'"' + FALLPARAM
+                +' '+str(int(self.slider.get_value()))+'"' + FALLPARAM
                 + set_text + '</span>')
         LOGGER.info('self.button2.set_font(%s)',
-                dic[detect_lang]['family2'] +' '+ FONTSIZE)
-        self.button2.set_font(dic[detect_lang]['family2'] +' '+ FONTSIZE)
+                dic[detect_lang]['family2'] +' '+ str(int(self.slider.get_value())))
+        self.button2.set_font(dic[detect_lang]['family2'] +' '+ str(int(self.slider.get_value())))
         LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
 
     def on_key_released(self, *_):
@@ -404,6 +400,18 @@ def get_default_font_family_for_language(lang: str) -> str:
         return ''
 
 #----------selecting random font for label2
+#font_filter() - filtering out and removing the fonts starts with 'Droid', 'STIX'
+def font_filter(x):
+    if x.find('Droid') != -1:
+        return False
+    elif x.find('STIX') != -1:
+        return False
+    elif x=='':
+        return False
+    elif x==' ':
+        return False
+    return True
+
 
 def get_random_font_family_for_language(lang: str) -> str:
     '''
@@ -417,7 +425,9 @@ def get_random_font_family_for_language(lang: str) -> str:
                 [fc_list_binary, f':lang={lang}', 'family', 'style'],
                 encoding='utf-8', check=True, capture_output=True)
         fonts_listed = result.stdout.strip().split('\n')
-        random_font = random.choice(fonts_listed)
+        unfilter_random_font = filter(font_filter, fonts_listed)
+        list_unfilter_random_font = list(unfilter_random_font)
+        random_font = random.choice(list_unfilter_random_font)
         pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*)$')
         match = pattern.match(random_font)
         if not match:
