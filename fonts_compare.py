@@ -114,6 +114,7 @@ class AppWindow(Gtk.ApplicationWindow):
         self.entry = Gtk.Entry()
         self.label3 = Gtk.Label(label="")
         self.vbox.append(self.entry)
+        self.vbox.append(self.label3)
 
 
         self.combo = Gtk.ComboBoxText()
