@@ -63,7 +63,7 @@ dic = {
             'text':'તમે કેમ છો'},
         'ar':{
             'text':'كيف حالك؟'},
-        'zh-cn':{
+        'zh_CN':{
             'text':'你好吗'}
         }
 
@@ -191,8 +191,7 @@ class AppWindow(Gtk.ApplicationWindow):
         keycont = Gtk.EventControllerKey()
         keycont.connect('key-released', self.on_key_released)
         self.add_controller(keycont)
-        width = 1
-        height = 1
+        
         #self.set_default_size(450, 450)
         self.set_resizable(True);
         self.set_child(self.vbox)
@@ -270,23 +269,9 @@ class AppWindow(Gtk.ApplicationWindow):
         LOGGER.info('text=%s lang=%s', text, lang)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = lc_messages.split('_')[0]
-        if(lang.find('-') != -1):
-            #zh-CN
-            lang_modify = lang.replace("-","_")
-            LOGGER.info('lang modify=%s',lang_modify)
-            a = lang_modify.find('_') + 1
-            b = len(lang_modify)
-            for i in range(a,b):
-                l = lang_modify[i].upper()
-                lang_modify = lang_modify.replace(lang_modify[i],l)
-            LOGGER.info('lang modify=%s',lang_modify)
-            label_lang_full_form = langtable.language_name(
-                    languageId=lang_modify, languageIdQuery=lc_messages)
-            LOGGER.info('label_lang full form=%s',label_lang_full_form)
-        else:
-            label_lang_full_form = langtable.language_name(
+        label_lang_full_form = langtable.language_name(
                 languageId=lang, languageIdQuery=lc_messages)
-            LOGGER.info('label_lang full form=%s',label_lang_full_form)
+        LOGGER.info('label_lang full form=%s',label_lang_full_form)
         self.label3.set_markup('<span font="'+dic[lc_messages_lang]['family']
                 +' '+LABEL3_FONT+'"' + FALLPARAM
                 + label_lang_full_form + '</span>')
@@ -370,6 +355,9 @@ def detect_language(text: str) -> str:
             LOGGER.exception('Problem detecting language: %s: %s',
                     error.__class__.__name__, error)
             lang = 'en'
+    if '-' in lang:
+        (language, rest) = lang.split('-', maxsplit=1)
+        lang = language + '_' + rest.upper() 
     return lang
 
 def on_activate(application):
@@ -383,6 +371,7 @@ def get_default_font_family_for_language(lang: str) -> str:
     '''
     getting default font by fc-match
     '''
+    lang = lang.replace('_','-')
     LOGGER.info('language: %s',lang)
     fc_match_binary = shutil.which('fc-match')
     if not fc_match_binary:
@@ -434,6 +423,7 @@ def get_random_font_family_for_language(lang: str) -> str:
     '''
     getting a random font using fc-list
     '''
+    lang = lang.replace('_','-')
     fc_list_binary = shutil.which('fc-list')
     if not fc_list_binary:
         return ''
