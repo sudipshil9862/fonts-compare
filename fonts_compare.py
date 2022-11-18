@@ -14,10 +14,12 @@ import logging
 import langtable
 import langdetect
 import gi
+# pylint: disable=wrong-import-position
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
+# pylint: enable=wrong-import-position
 
 LOGGER = logging.getLogger('fonts-compare')
 
@@ -82,12 +84,12 @@ class AppWindow(Gtk.ApplicationWindow):
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.vbox.props.halign = Gtk.Align.CENTER
         self.vbox.set_margin_top(25)
-        
+
         self.vbox_last = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.vbox_last.set_margin_top(20)
         self.vbox_last.set_margin_bottom(20)
         self.vbox_last.props.halign = Gtk.Align.CENTER
-        
+
         self.hbox1 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.hbox1.set_margin_top(10)
         self.hbox1.props.halign = Gtk.Align.CENTER
@@ -181,12 +183,11 @@ class AppWindow(Gtk.ApplicationWindow):
         keycont = Gtk.EventControllerKey()
         keycont.connect('key-released', self.on_key_released)
         self.add_controller(keycont)
-        
+
         #self.set_default_size(450, 450)
-        self.set_resizable(True);
+        self.set_resizable(True)
         self.set_child(self.vbox)
 
-   
     def fontbutton(self, label, button, boxh):
         '''
         setting up initial font and text for labels and font button text updated
@@ -203,8 +204,9 @@ class AppWindow(Gtk.ApplicationWindow):
         #self.vbox.append(label)
 
     def slider_changed(self, slider, button1_family, button2_family):
+        '''Called when the slider is moved'''
         #both text labels will change it's fontsize depending upon font's slider
-        
+
         button1_family = self.button1.get_font().rsplit(' ',1)[0]
         button2_family = self.button2.get_font().rsplit(' ',1)[0]
         self.button1.set_font(button1_family + ' ' + str(int(slider.get_value())))
@@ -215,7 +217,6 @@ class AppWindow(Gtk.ApplicationWindow):
         self.label2.set_markup('<span font="'+self.button2.get_font()+'"' + FALLPARAM
                 + self.label2.get_text()
                 + '</span>')
-        
 
     @classmethod
     def label_font_change(cls, button, label):
@@ -346,8 +347,8 @@ def detect_language(text: str) -> str:
                     error.__class__.__name__, error)
             lang = 'en'
     if '-' in lang:
-        (language, rest) = lang.split('-', maxsplit=1)
-        lang = language + '_' + rest.upper()
+        (first, rest) = lang.split('-', maxsplit=1)
+        lang = first + '_' + rest.upper()
     return lang
 
 def on_activate(application):
@@ -396,14 +397,6 @@ def get_default_font_family_for_language(lang: str) -> str:
         return ''
 
 #----------selecting random font for label2
-#font_filter() - filtering out and removing the fonts starts with 'Droid', 'STIX'
-def font_filter(x):
-    if x.find('Droid') != -1:
-        return False
-    elif x.find('STIX') != -1:
-        return False
-    return True
-
 
 def get_random_font_family_for_language(lang: str) -> str:
     '''
@@ -418,8 +411,8 @@ def get_random_font_family_for_language(lang: str) -> str:
                 [fc_list_binary, f':lang={lang}', 'family', 'style'],
                 encoding='utf-8', check=True, capture_output=True)
         fonts_listed = result.stdout.strip().split('\n')
-        unfilter_random_font = filter(font_filter, fonts_listed)
-        list_unfilter_random_font = list(unfilter_random_font)
+        list_unfilter_random_font = [x for x in fonts_listed
+                                     if not ('Droid' in x or 'STIX' in x)]
         random_font = random.choice(list_unfilter_random_font)
         pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*)$')
         match = pattern.match(random_font)
