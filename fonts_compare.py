@@ -16,8 +16,6 @@ import langdetect
 import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
-#gi.require_version('Gio', '2.0')
-#from gi.repository import Gio
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
 
@@ -83,40 +81,29 @@ class AppWindow(Gtk.ApplicationWindow):
 
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.vbox.props.halign = Gtk.Align.CENTER
-        self.vbox4 = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-
+        self.vbox.set_margin_top(25)
+        
+        self.vbox_last = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        self.vbox_last.set_margin_top(20)
+        self.vbox_last.set_margin_bottom(20)
+        self.vbox_last.props.halign = Gtk.Align.CENTER
+        
         self.hbox1 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.hbox1.set_margin_top(10)
+        self.hbox1.props.halign = Gtk.Align.CENTER
 
         self.hbox2 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.hbox2.set_margin_top(10)
+        self.hbox2.props.halign = Gtk.Align.CENTER
 
         self.hbox3 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.hbox3.set_margin_top(5)
+        self.hbox3.set_margin_top(10)
         self.hbox3.props.halign = Gtk.Align.CENTER
-
-        self.vbox5 = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        self.vbox5.set_margin_top(5)
-        self.vbox5.set_margin_start(50)
-        self.vbox5.set_margin_end(50)
-        self.vbox5.props.halign = Gtk.Align.CENTER
-        
-        self.hbox5 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.hbox5.set_margin_top(5)
-        self.hbox5.props.halign = Gtk.Align.CENTER
-
-        self.vbox.set_margin_start(20)
-        self.vbox.set_margin_top(25)
-        self.vbox.set_margin_end(20)
-
-        self.vbox4.set_margin_top(20)
-        self.vbox4.set_margin_bottom(20)
 
         self.entry = Gtk.Entry()
         self.label3 = Gtk.Label(label="")
         self.vbox.append(self.entry)
         self.vbox.append(self.label3)
-
 
         self.combo = Gtk.ComboBoxText()
         self.label4 = Gtk.Label()
@@ -131,9 +118,13 @@ class AppWindow(Gtk.ApplicationWindow):
         self.label1 = Gtk.Label()
         self.button1 = Gtk.FontButton.new()
         self.fontbutton(self.label1, self.button1, self.hbox1)
+        self.vbox.append(self.hbox1)
+        self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
         self.button2 = Gtk.FontButton.new()
-        self.fontbutton(self.label2, self.button2, self.hbox2)
+        self.fontbutton(self.label2, self.button2, self.vbox_last)
+        self.vbox.append(self.label2)
+        self.vbox.append(self.vbox_last)
         self.label2.set_markup('<span font="'+dic['en']['family2']
                 +' '+FONTSIZE+'"' + FALLPARAM
                 + 'Fonts Compare'
@@ -156,10 +147,9 @@ class AppWindow(Gtk.ApplicationWindow):
                 +' '+'15'+'"' + FALLPARAM
                 + 'Select FontSize'
                 + '</span>')
-        self.vbox4.append(self.label_slider)
-        self.vbox4.append(self.slider)
-        self.vbox.append(self.vbox4)
-        self.vbox.append(self.vbox5)
+        self.vbox_last.append(self.label_slider)
+        self.vbox_last.append(self.slider)
+        self.vbox.append(self.vbox_last)
 
 
         for lang in sorted(dic, key = lambda x: (
@@ -209,8 +199,8 @@ class AppWindow(Gtk.ApplicationWindow):
         button.set_hexpand(False)
         button.set_font(dic['en']['family'] + ' ' + FONTSIZE)
         boxh.append(button)
-        self.vbox.append(boxh)
-        self.vbox.append(label)
+        #self.vbox.append(boxh)
+        #self.vbox.append(label)
 
     def slider_changed(self, slider, button1_family, button2_family):
         #both text labels will change it's fontsize depending upon font's slider
@@ -357,7 +347,7 @@ def detect_language(text: str) -> str:
             lang = 'en'
     if '-' in lang:
         (language, rest) = lang.split('-', maxsplit=1)
-        lang = language + '_' + rest.upper() 
+        lang = language + '_' + rest.upper()
     return lang
 
 def on_activate(application):
@@ -411,10 +401,6 @@ def font_filter(x):
     if x.find('Droid') != -1:
         return False
     elif x.find('STIX') != -1:
-        return False
-    elif x=='':
-        return False
-    elif x==' ':
         return False
     return True
 
