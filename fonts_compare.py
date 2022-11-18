@@ -11,12 +11,12 @@ import shutil
 import locale
 import argparse
 import logging
-import langtable
-import langdetect
-import gi
+import langtable # type: ignore
+import langdetect # type: ignore
+import gi # type: ignore
 # pylint: disable=wrong-import-position
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+from gi.repository import Gtk # type: ignore
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
 # pylint: enable=wrong-import-position
@@ -67,15 +67,15 @@ dic = {
             'text':'你好吗'}
         }
 
-class AppWindow(Gtk.ApplicationWindow):
+class AppWindow(Gtk.ApplicationWindow): # type: ignore
     '''
     Including appwindow class to window to present
     '''
-    def __init__(self, appp):
+    def __init__(self, appp: Gtk.Application) -> None:
         super().__init__(application=appp)
         self.init_ui()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         '''
         init_ui contains all the containers, labels, buttons
         '''
@@ -173,7 +173,9 @@ class AppWindow(Gtk.ApplicationWindow):
         lang = detect_language(text)
         LOGGER.info('label1: text=%s lang=%s', text,lang)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
-        lc_messages_lang = lc_messages.split('_')[0]
+        lc_messages_lang = 'en'
+        if lc_messages:
+            lc_messages_lang = lc_messages.split('_')[0]
         label_lang_full_form = langtable.language_name(
                 languageId=lang, languageIdQuery=lc_messages)
         self.label3.set_markup(
@@ -188,7 +190,11 @@ class AppWindow(Gtk.ApplicationWindow):
         self.set_resizable(True)
         self.set_child(self.vbox)
 
-    def fontbutton(self, label, button, boxh):
+    def fontbutton(
+            self,
+            label: Gtk.Label,
+            button: Gtk.FontButton,
+            boxh: Gtk.Box) -> None:
         '''
         setting up initial font and text for labels and font button text updated
         '''
@@ -203,7 +209,11 @@ class AppWindow(Gtk.ApplicationWindow):
         #self.vbox.append(boxh)
         #self.vbox.append(label)
 
-    def slider_changed(self, slider, button1_family, button2_family):
+    def slider_changed(
+            self,
+            slider: Gtk.Scale,
+            button1_family: str,
+            button2_family: str) -> None:
         '''Called when the slider is moved'''
         #both text labels will change it's fontsize depending upon font's slider
 
@@ -219,7 +229,8 @@ class AppWindow(Gtk.ApplicationWindow):
                 + '</span>')
 
     @classmethod
-    def label_font_change(cls, button, label):
+    def label_font_change(
+            cls, button: Gtk.FontButton, label: Gtk.Label) -> None:
         '''
         font family and font size changes by font-button dialog
         '''
@@ -229,7 +240,7 @@ class AppWindow(Gtk.ApplicationWindow):
         pango_attr_list.insert(attr=pango_attr_font_desc)
         label.set_attributes(attrs=pango_attr_list)
 
-    def set_font(self, detect_lang, set_text):
+    def set_font(self, detect_lang: str, set_text: str) -> None:
         '''
         setting up text,
         font family depending upon which language has detected
@@ -249,7 +260,7 @@ class AppWindow(Gtk.ApplicationWindow):
         self.button2.set_font(dic[detect_lang]['family2'] +' '+ str(int(self.slider.get_value())))
         LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
 
-    def on_key_released(self, *_):
+    def on_key_released(self, *_: Any) -> None:
         '''
         while typing on gtk entry box..
         the langugage is detected automatically with same time and also
@@ -259,7 +270,9 @@ class AppWindow(Gtk.ApplicationWindow):
         lang = detect_language(text)
         LOGGER.info('text=%s lang=%s', text, lang)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
-        lc_messages_lang = lc_messages.split('_')[0]
+        lc_messages_lang = 'en'
+        if lc_messages:
+            lc_messages_lang = lc_messages.split('_')[0]
         label_lang_full_form = langtable.language_name(
                 languageId=lang, languageIdQuery=lc_messages)
         LOGGER.info('label_lang full form=%s',label_lang_full_form)
@@ -300,7 +313,7 @@ class AppWindow(Gtk.ApplicationWindow):
                     +' '+ FONTSIZE)
             LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
 
-    def on_changed(self, wid):
+    def on_changed(self, wid: Gtk.ComboBoxText) -> None:
         '''
         when we select a perticular langugage from the drop-down..
         if it's bengali then take one bengali text,
@@ -319,7 +332,9 @@ class AppWindow(Gtk.ApplicationWindow):
         self.button2.set_preview_text(text)
         self.set_font(lang, text)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
-        lc_messages_lang = lc_messages.split('_')[0]
+        lc_messages_lang = 'en'
+        if lc_messages:
+            lc_messages_lang = lc_messages.split('_')[0]
         label_lang_full_form = langtable.language_name(
                 languageId=lang,
                 languageIdQuery=lc_messages)
@@ -351,7 +366,7 @@ def detect_language(text: str) -> str:
         lang = first + '_' + rest.upper()
     return lang
 
-def on_activate(application):
+def on_activate(application: Gtk.Application) -> None:
     '''
     activating the application by adding the application into gtk window
     '''
