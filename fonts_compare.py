@@ -103,6 +103,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.hbox3.props.halign = Gtk.Align.CENTER
 
         self.entry = Gtk.Entry()
+        self.entry.connect('notify::text', self.on_entry_changed)
         self.label3 = Gtk.Label(label="")
         self.vbox.append(self.entry)
         self.vbox.append(self.label3)
@@ -182,10 +183,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 f'<span font="{dic[lc_messages_lang]["family"]} '
                 f'{LABEL3_FONT}" {FALLPARAM}{label_lang_full_form}</span>')
 
-        keycont = Gtk.EventControllerKey()
-        keycont.connect('key-released', self.on_key_released)
-        self.add_controller(keycont)
-
         #self.set_default_size(450, 450)
         self.set_resizable(True)
         self.set_child(self.vbox)
@@ -260,13 +257,14 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button2.set_font(dic[detect_lang]['family2'] +' '+ str(int(self.slider.get_value())))
         LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
 
-    def on_key_released(self, *_: Any) -> None:
+    def on_entry_changed(self, widget: Gtk.Entry, _property_spec: Any) -> None:
+        '''Called when the text in the entry has changed.
+
+        While typing on gtk entry box, the language is detected
+        automatically time and then the font family and fontsize to
+        display the text on label3 is changed accordingly.
         '''
-        while typing on gtk entry box..
-        the langugage is detected automatically with same time and also
-        setting up label3 text's font family and fontsize
-        '''
-        text = self.entry.get_text()
+        text = widget.get_text()
         lang = detect_language(text)
         LOGGER.info('text=%s lang=%s', text, lang)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
