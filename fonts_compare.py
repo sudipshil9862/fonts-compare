@@ -161,14 +161,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         for lang in list_dropdown:
             self.combo.append_text(lang)
 
-        '''
-        for lang in sorted(list_dropdown = lambda x: (
-            x != 'en', # Put 'en' on top
-            x, # Sort everything else alphabetically
-            )):
-            self.combo.append_text(lang)
-        
-        '''
+        #for lang in sorted(list_dropdown = lambda x: (
+        #    x != 'en', # Put 'en' on top
+        #    x, # Sort everything else alphabetically
+        #    )):
+        #    self.combo.append_text(lang)
+
         # Make 'en' active by default to avoid seeing an empty
         # combobox at program start (We know that 'en' is at index 0
         # because of the way we sorted above, but let’s better not
@@ -290,8 +288,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 +' '+LABEL3_FONT+'"' + FALLPARAM
                 + label_lang_full_form + '</span>')
         if lang in list_dropdown:
-            self.button1.set_preview_text(langtable.language_name(languageId=lang, languageIdQuery=lang))
-            self.button2.set_preview_text(langtable.language_name(languageId=lang, languageIdQuery=lang))
+            self.button1.set_preview_text(langtable.language_name(
+                languageId=lang, languageIdQuery=lang))
+            self.button2.set_preview_text(langtable.language_name(
+                languageId=lang, languageIdQuery=lang))
             self.set_font(lang, text)
             self.combo.handler_block(self.combo.changed_signal_id)
             for i, item in enumerate(self.combo.get_model()):
@@ -479,17 +479,17 @@ if __name__ == '__main__':
         LOGGER.addHandler(LOG_HANDLER)
     else:
         LOG_HANDLER_NULL = logging.NullHandler()
-    '''
-    dic = {}
-    for language, value in dic.items():
-        family = get_default_font_family_for_language(language)
-        LOGGER.info('lang=%s default family=%s', language, family)
-        value['family'] = family
-        family2 = get_random_font_family_for_language(language)
-        LOGGER.info('lang=%s random family=%s', language, family2)
-        value['family2'] = family2
-    LOGGER.info('dic=%s', dic)
-    '''
+
+    # dic = {}
+    # for language, value in dic.items():
+    #     family = get_default_font_family_for_language(language)
+    #     LOGGER.info('lang=%s default family=%s', language, family)
+    #     value['family'] = family
+    #     family2 = get_random_font_family_for_language(language)
+    #     LOGGER.info('lang=%s random family=%s', language, family2)
+    #     value['family2'] = family2
+    # LOGGER.info('dic=%s', dic)
+
     list_dropdown = ['en','bn','ja','hi','mr','ta','ko','de','da','gu','ar','zh_CN']
     app = Gtk.Application(application_id='org.gtk.Example')
     app.connect('activate', on_activate)
