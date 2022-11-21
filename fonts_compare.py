@@ -154,8 +154,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 + '</span>')
         self.vbox_last.append(self.label_slider)
         self.vbox_last.append(self.slider)
-        self.vbox.append(self.vbox_last)
-
 
         list_dropdown.sort()
         for lang in list_dropdown:
