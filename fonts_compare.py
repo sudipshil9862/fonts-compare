@@ -32,7 +32,7 @@ def parse_args() -> Any:
             action='store_true',
             default=False,
             help=('Print debug output '
-                'default: %(default)s'))
+                  'default: %(default)s'))
     return parser.parse_args()
 
 _ARGS = parse_args()
@@ -89,9 +89,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.combo = Gtk.ComboBoxText()
         self.label4 = Gtk.Label()
         self.label4.set_markup('<span font="'+get_default_font_family_for_language('en')
-                +' '+'15'+'"' + FALLPARAM
-                + 'Select Language'
-                + '</span>')
+                               +' '+'15'+'"' + FALLPARAM
+                               + 'Select Language'
+                               + '</span>')
         self.hbox3.append(self.label4)
         self.hbox3.append(self.combo)
         self.vbox.append(self.hbox3)
@@ -99,9 +99,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         #switch button/toggle button - pango or langtable sample string
         self.label5 = Gtk.Label()
         self.label5.set_markup('<span font="'+get_default_font_family_for_language('en')
-                +' '+'15'+'"' + FALLPARAM
-                + ' Use Sample Text :  '
-                + '</span>')
+                               +' '+'15'+'"' + FALLPARAM
+                               + ' Use Sample Text :  '
+                               + '</span>')
         self.hbox4.append(self.label5)
         self.label_switch_prev = Gtk.Label(label = 'Pango')
         self.label_switch_next = Gtk.Label(label = 'LangTable')
@@ -125,9 +125,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.vbox.append(self.vbox_last)
         temp_random_font = get_random_font_family_for_language('en')
         self.label2.set_markup('<span font="'+temp_random_font
-                +' '+FONTSIZE+'"' + FALLPARAM
-                + sample_text_selector('en')
-                + '</span>')
+                               +' '+FONTSIZE+'"' + FALLPARAM
+                               + sample_text_selector('en')
+                               + '</span>')
         self.button2.set_font(temp_random_font + ' ' + FONTSIZE)
 
         #wrap
@@ -143,12 +143,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button1_family = ''
         self.button2_family = ''
         self.slider.connect('value-changed', self.slider_changed,
-                self.button1_family, self.button2_family)
+                            self.button1_family, self.button2_family)
         self.label_slider = Gtk.Label()
         self.label_slider.set_markup('<span font="'+get_default_font_family_for_language('en')
-                +' '+'15'+'"' + FALLPARAM
-                + 'Select FontSize'
-                + '</span>')
+                                     +' '+'15'+'"' + FALLPARAM
+                                     + 'Select FontSize'
+                                     + '</span>')
         self.vbox_last.append(self.label_slider)
         self.vbox_last.append(self.slider)
 
@@ -193,9 +193,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         temp_label_button_font = get_default_font_family_for_language('en')
         label.set_markup('<span font="'+temp_label_button_font
-                +' '+FONTSIZE+'"' + FALLPARAM
-                + sample_text_selector('en')
-                + '</span>')
+                         +' '+FONTSIZE+'"' + FALLPARAM
+                         + sample_text_selector('en')
+                         + '</span>')
         button.connect('font-set', self.label_font_change, label)
         button.set_hexpand(False)
         button.set_font(temp_label_button_font + ' ' + FONTSIZE)
@@ -227,11 +227,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         #self.set_font(self.combo.get_active_text(),
         #    sample_text_selector(self.combo.get_active_text()))
         self.label1.set_markup('<span font="'+self.button1.get_font()+'"' + FALLPARAM
-                + sample_text_selector(self.combo.get_active_text())
-                + '</span>')
+                               + sample_text_selector(self.combo.get_active_text())
+                               + '</span>')
         self.label2.set_markup('<span font="'+self.button2.get_font()+'"' + FALLPARAM
-                + sample_text_selector(self.combo.get_active_text())
-                + '</span>')
+                               + sample_text_selector(self.combo.get_active_text())
+                               + '</span>')
 
     def slider_changed(
             self,
@@ -246,11 +246,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button1.set_font(button1_family + ' ' + str(int(slider.get_value())))
         self.button2.set_font(button2_family + ' ' + str(int(slider.get_value())))
         self.label1.set_markup('<span font="'+self.button1.get_font()+'"' + FALLPARAM
-                + self.label1.get_text()
-                + '</span>')
+                               + self.label1.get_text()
+                               + '</span>')
         self.label2.set_markup('<span font="'+self.button2.get_font()+'"' + FALLPARAM
-                + self.label2.get_text()
-                + '</span>')
+                               + self.label2.get_text()
+                               + '</span>')
 
     @classmethod
     def label_font_change(
@@ -271,18 +271,18 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         temp_label1_font = get_default_font_family_for_language(detect_lang)
         self.label1.set_markup('<span font="'+temp_label1_font
-                +' '+str(int(self.slider.get_value()))+'"' + FALLPARAM
-                + set_text + '</span>')
+                               +' '+str(int(self.slider.get_value()))+'"' + FALLPARAM
+                               + set_text + '</span>')
         LOGGER.info('self.button1.set_font(%s)',
-                temp_label1_font +' '+str(int(self.slider.get_value())))
+                    temp_label1_font +' '+str(int(self.slider.get_value())))
         self.button1.set_font(temp_label1_font +' '+str(int(self.slider.get_value())))
         LOGGER.info('self.button1.get_font(%s)',self.button1.get_font())
         temp_label2_font = get_random_font_family_for_language(detect_lang)
         self.label2.set_markup('<span font="'+temp_label2_font
-                +' '+str(int(self.slider.get_value()))+'"' + FALLPARAM
-                + set_text + '</span>')
+                               +' '+str(int(self.slider.get_value()))+'"' + FALLPARAM
+                               + set_text + '</span>')
         LOGGER.info('self.button2.set_font(%s)',
-                temp_label2_font +' '+ str(int(self.slider.get_value())))
+                    temp_label2_font +' '+ str(int(self.slider.get_value())))
         self.button2.set_font(temp_label2_font +' '+ str(int(self.slider.get_value())))
         LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
 
@@ -304,8 +304,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 languageId=lang, languageIdQuery=lc_messages)
         LOGGER.info('label_lang full form=%s',label_lang_full_form)
         self.label3.set_markup('<span font="'+get_default_font_family_for_language(lc_messages_lang)
-                +' '+LABEL3_FONT+'"' + FALLPARAM
-                + label_lang_full_form + '</span>')
+                               +' '+LABEL3_FONT+'"' + FALLPARAM
+                               + label_lang_full_form + '</span>')
         if lang in list_dropdown:
             self.button1.set_preview_text(langtable.language_name(
                 languageId=lang, languageIdQuery=lang))
@@ -320,23 +320,23 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         elif not lang in list_dropdown:
             LOGGER.info('%s is not there in dropdown list',label_lang_full_form)
             self.label1.set_markup('<span font="'
-                    +get_default_font_family_for_language(lang)
-                    +' '+FONTSIZE+'"' + FALLPARAM
-                    + text + '</span>')
+                                   +get_default_font_family_for_language(lang)
+                                   +' '+FONTSIZE+'"' + FALLPARAM
+                                   + text + '</span>')
             LOGGER.info('self.button1.set_font(%s)',
-                    get_default_font_family_for_language(lang)
-                    +' '+FONTSIZE)
+                        get_default_font_family_for_language(lang)
+                        +' '+FONTSIZE)
             self.button1.set_font(
                     get_default_font_family_for_language(lang)
                     +' '+FONTSIZE)
             LOGGER.info('self.button1.get_font(%s)',self.button1.get_font())
             self.label2.set_markup('<span font="'
-                    +get_default_font_family_for_language(lang)
-                    +' '+FONTSIZE+'"' + FALLPARAM
-                    + text + '</span>')
+                                   +get_default_font_family_for_language(lang)
+                                   +' '+FONTSIZE+'"' + FALLPARAM
+                                   + text + '</span>')
             LOGGER.info('self.button2.set_font(%s)',
-                    get_default_font_family_for_language(lang)
-                    +' '+ FONTSIZE)
+                        get_default_font_family_for_language(lang)
+                        +' '+ FONTSIZE)
             self.button2.set_font(
                     get_default_font_family_for_language(lang)
                     +' '+ FONTSIZE)
@@ -370,10 +370,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 languageIdQuery=lc_messages)
         LOGGER.debug('label_lang_full_form=%s', label_lang_full_form)
         LOGGER.debug('label3 local lang=%s, label3 font=%s',
-                lc_messages_lang, get_default_font_family_for_language(lc_messages_lang))
+                     lc_messages_lang, get_default_font_family_for_language(lc_messages_lang))
         self.label3.set_markup('<span font="'+get_default_font_family_for_language(lc_messages_lang)
-                +' '+LABEL3_FONT+'"' + FALLPARAM
-                + label_lang_full_form + '</span>')
+                               +' '+LABEL3_FONT+'"' + FALLPARAM
+                               + label_lang_full_form + '</span>')
 
 def detect_language(text: str) -> str:
     '''
@@ -389,7 +389,7 @@ def detect_language(text: str) -> str:
             lang = langdetect.detect(text)
         except langdetect.LangDetectException as error:
             LOGGER.exception('Problem detecting language: %s: %s',
-                    error.__class__.__name__, error)
+                             error.__class__.__name__, error)
             lang = 'en'
     if '-' in lang:
         (first, rest) = lang.split('-', maxsplit=1)
@@ -429,16 +429,16 @@ def get_default_font_family_for_language(lang: str) -> str:
         return ''
     except FileNotFoundError as error:
         LOGGER.exception('Exception when calling %s: %s: %s',
-                fc_match_binary, error.__class__.__name__, error)
+                         fc_match_binary, error.__class__.__name__, error)
         return ''
     except subprocess.CalledProcessError as error:
         LOGGER.exception('Exception when calling %s: %s: %s stderr: %s',
-                fc_match_binary,
-                error.__class__.__name__, error, error.stderr)
+                         fc_match_binary,
+                         error.__class__.__name__, error, error.stderr)
         return ''
     except Exception as error: # pylint: disable=broad-except
         LOGGER.exception('Exception when calling %s: %s: %s',
-                fc_match_binary, error.__class__.__name__, error)
+                         fc_match_binary, error.__class__.__name__, error)
         return ''
 
 #----------selecting random font for label2
@@ -474,16 +474,16 @@ def get_random_font_family_for_language(lang: str) -> str:
         return last_family
     except FileNotFoundError as error:
         LOGGER.exception('Exception when calling %s: %s: %s',
-                fc_list_binary, error.__class__.__name__, error)
+                         fc_list_binary, error.__class__.__name__, error)
         return ''
     except subprocess.CalledProcessError as error:
         LOGGER.exception('Exception when calling %s: %s: %s stderr: %s',
-                fc_list_binary,
-                error.__class__.__name__, error, error.stderr)
+                         fc_list_binary,
+                         error.__class__.__name__, error, error.stderr)
         return ''
     except Exception as error: # pylint: disable=broad-except
         LOGGER.exception('Exception when calling %s: %s: %s',
-                fc_list_binary, error.__class__.__name__, error)
+                         fc_list_binary, error.__class__.__name__, error)
         return ''
 
 
