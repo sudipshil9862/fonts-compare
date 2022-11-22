@@ -40,34 +40,7 @@ _ARGS = parse_args()
 FALLPARAM = 'fallback="false">'
 FONTSIZE = '40'
 LABEL3_FONT = '20'
-'''
-dic = {
-        'en':{
-            'text':'How are you'},
-        'bn':{
-            'text':'আপনি কেমন আছেন'},
-        'ja':{
-            'text':'元気ですか'},
-        'hi':{
-            'text':'आप कैसे हैं'},
-        'mr':{
-            'text':'तू कसा आहेस'},
-        'ta':{
-            'text':'நீங்கள் எப்படி இருக்கிறீர்கள்'},
-        'ko':{
-            'text':'어떻게 지내세요'},
-        'de':{
-            'text':'wie gehts'},
-        'da':{
-            'text':'Hvordan har du det'},
-        'gu':{
-            'text':'તમે કેમ છો'},
-        'ar':{
-            'text':'كيف حالك؟'},
-        'zh_CN':{
-            'text':'你好吗'}
-        }
-'''
+
 class AppWindow(Gtk.ApplicationWindow): # type: ignore
     '''
     Including appwindow class to window to present
@@ -157,6 +130,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 + '</span>')
         self.button2.set_font(temp_random_font + ' ' + FONTSIZE)
 
+        #wrap
+        self.label1.set_wrap(True)
+        self.label2.set_wrap(True)
 
         #slider for both label-font change
         self.slider = Gtk.Scale()
@@ -203,6 +179,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         #self.set_default_size(450, 450)
         self.set_resizable(False)
         self.set_child(self.vbox)
+        #scrolled = Gtk.ScrolledWindow()
+        #scrolled.set_child(self.vbox)
+        #self.set_child(scrolled)
 
     def fontbutton(
             self,
@@ -538,8 +517,6 @@ if __name__ == '__main__':
         LOG_HANDLER_NULL = logging.NullHandler()
 
     STATE_UNIV = False
-    hello = Pango.Language.get_sample_string(Pango.language_from_string ('bn'))
-    LOGGER.info('pango sample string = %s', hello)
     list_dropdown = ['en','bn','ja','hi','mr','ta','ko','de','da','gu','ar','zh_CN']
     app = Gtk.Application(application_id='org.gtk.Example')
     app.connect('activate', on_activate)
