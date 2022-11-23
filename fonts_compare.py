@@ -203,12 +203,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
     def switch_switched(
             self,
-            switch: Gtk.Switch,
-            state):
+            _switch: Gtk.Switch,
+            state: bool) -> None:
         '''
         function to change sample string depends upon toogle switch
         '''
-        print(f"The switch has been switched {'on' if state else 'off'}")
+        LOGGER.info('The switch has been switched %s', 'on' if state else 'off')
         if state:
             #sample_text by langtable.language_name
             self.switch.set_state(state)
@@ -222,16 +222,19 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.label2.set_markup('<span font="'+self.button2.get_font()+'"' + FALLPARAM
                                + self.sample_text_selector(self.combo.get_active_text())
                                + '</span>')
+
     def sample_text_selector(self, lang: str) -> str:
         '''
         sample text will be selected by either Pango or Langtable
         '''
         if self.switch.get_state():
             #True - Langtable sample text
-            sample_text = langtable.language_name(languageId=lang, languageIdQuery=lang)
+            sample_text = str(langtable.language_name(
+                languageId=lang, languageIdQuery=lang))
             return sample_text
         #else - False - Pango sample text
-        sample_text = Pango.Language.get_sample_string(Pango.language_from_string (lang))
+        sample_text = str(Pango.Language.get_sample_string(
+            Pango.language_from_string (lang)))
         return sample_text
 
 
