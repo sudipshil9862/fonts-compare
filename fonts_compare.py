@@ -3,6 +3,7 @@
 This is my fonts-compare program for font rendering and comparing
 '''
 from typing import Any
+from typing import List
 import sys
 import random
 import re
@@ -493,6 +494,167 @@ def get_random_font_family_for_language(lang: str) -> str:
                          fc_list_binary, error.__class__.__name__, error)
         return ''
 
+def list_languages_langtable() -> List[str]:
+    '''Return a list of languages known by langtable'''
+    languages: List[str] = []
+    for language_id in langtable._languages_db: # pylint: disable=protected-access
+        # Parsing the language_id and reassembling is to remove the
+        # script if there is one. For example if language_id is
+        # “zh_Hant_TW” we remove the script “Hant” and leave just
+        # “zh_TW”. We cannot really use the script part from a CLDR
+        # style locale name because fontconfig does not use it.
+        locale_object = langtable.parse_locale(language_id)
+        if locale_object.territory:
+            languages.append(
+                locale_object.language + '_' + locale_object.territory)
+        else:
+            languages.append(locale_object.language)
+    return languages
+
+def list_languages_python() -> List[str]:
+    '''Return a list of languages known by Python'''
+    languages: List[str] = []
+    for _alias, value in locale.locale_alias.items():
+        value = value.split('.')[0]
+        value = value.split('@')[0]
+        exclude = (
+            # AA is only a NATO code, not in ISO_3166-2
+            'ar_AA',
+            # https://en.wikipedia.org/wiki/Ewe_language an African
+            # language, I think it has nothing to do with EE (Estonia)
+            'ee_EE',
+            'eo_XX', # XX Territory does not exist
+            # “pd” is not an iso-639-1 code:
+            # https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+            # Probably it means “Pennsylvania Dutch”:
+            # https://en.wikipedia.org/wiki/Pennsylvania_Dutch
+            'pd',
+            'pd_DE',
+            'pd_US',
+            # ph is not an iso-639-1 code. I guess “fil” was meant.
+            'ph',
+            'ph_PH',
+            # pp is not an iso-639-1 code. I guess “pap” was meant.
+            'pp',
+            'pp_AN',
+            'C', # POSIX locale, not really a language
+        )
+        if value in exclude:
+            continue
+        if value and value not in languages:
+            languages.append(value)
+        if '_' in value:
+            lang_only = value.split('_')[0]
+            if lang_only and lang_only not in languages:
+                languages.append(lang_only)
+    return languages
+
+def list_languages_fontconfig() -> List[str]:
+    '''
+    Return a list of languages for which fonts are currently
+    installed according to fontconfig
+    '''
+    languages: List[str] = []
+    fc_list_binary = shutil.which('fc-list')
+    if not fc_list_binary:
+        return languages
+    result_lines: List[str] = []
+    try:
+        result = subprocess.run(
+                [fc_list_binary, ':', 'lang'],
+                encoding='utf-8', check=True, capture_output=True)
+    except FileNotFoundError as error:
+        LOGGER.exception('Exception when calling %s: %s: %s',
+                         fc_list_binary, error.__class__.__name__, error)
+        return languages
+    except subprocess.CalledProcessError as error:
+        LOGGER.exception('Exception when calling %s: %s: %s stderr: %s',
+                         fc_list_binary,
+                         error.__class__.__name__, error, error.stderr)
+        return languages
+    except Exception as error: # pylint: disable=broad-except
+        LOGGER.exception('Exception when calling %s: %s: %s',
+                         fc_list_binary, error.__class__.__name__, error)
+        return languages
+    if not result:
+        return languages
+    result_lines = result.stdout.strip().split('\n')
+    for line in result_lines:
+        if not line.startswith(':lang='):
+            continue
+        for lang in line.replace(':lang=', '').split('|'):
+            if lang in ('und-zmth', 'und-zsye'):
+                # 'und-zmth' are mathematical symbols, 'und-zsye' are
+                # emoji.  These are not “real” languages, better skip
+                # them.
+                continue
+            if '-' in lang:
+                (first, rest) = lang.split('-', maxsplit=1)
+                lang = first + '_' + rest.upper()
+            if lang and lang not in languages:
+                languages.append(lang)
+    return languages
+
+def list_languages_glibc() -> List[str]:
+    '''
+    Return a list of languages for the currently installed glibc locales
+    '''
+    languages: List[str] = []
+    locale_binary = shutil.which('locale')
+    if not locale_binary:
+        return languages
+    result_lines: List[str] = []
+    try:
+        result = subprocess.run(
+                [locale_binary, '-a'],
+                encoding='utf-8', check=True, capture_output=True)
+    except FileNotFoundError as error:
+        LOGGER.exception('Exception when calling %s: %s: %s',
+                         locale_binary, error.__class__.__name__, error)
+        return languages
+    except subprocess.CalledProcessError as error:
+        LOGGER.exception('Exception when calling %s: %s: %s stderr: %s',
+                         locale_binary,
+                         error.__class__.__name__, error, error.stderr)
+        return languages
+    except Exception as error: # pylint: disable=broad-except
+        LOGGER.exception('Exception when calling %s: %s: %s',
+                         locale_binary, error.__class__.__name__, error)
+        return languages
+    if not result:
+        return languages
+    result_lines = result.stdout.strip().split('\n')
+    for line in result_lines:
+        locale_object = langtable.parse_locale(line)
+        lang = locale_object.language
+        if not lang:
+            continue
+        if lang not in languages:
+            languages.append(lang)
+        if locale_object.territory:
+            lang += '_' + locale_object.territory
+        if lang not in languages:
+            languages.append(lang)
+    return languages
+
+def list_languages() -> List[str]:
+    '''
+    Return a list of languages combining the languages known by
+    langtable, fontconfig, and glibc.
+    '''
+    languages: List[str] = []
+    languages = list_languages_langtable()
+    for lang in list_languages_fontconfig():
+        if lang not in languages:
+            languages.append(lang)
+    for lang in list_languages_glibc():
+        if lang not in languages:
+            languages.append(lang)
+    for lang in list_languages_python():
+        if lang not in languages:
+            languages.append(lang)
+    return languages
+
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, '')
     if _ARGS.debug:
@@ -506,7 +668,8 @@ if __name__ == '__main__':
         LOGGER.addHandler(LOG_HANDLER)
     else:
         LOG_HANDLER_NULL = logging.NullHandler()
-    list_dropdown = ['en','bn','ja','hi','mr','ta','ko','de','da','gu','ar','zh_CN']
+    # list_dropdown = ['en','bn','ja','hi','mr','ta','ko','de','da','gu','ar','zh_CN']
+    list_dropdown = sorted(list_languages())
     app = Gtk.Application(application_id='org.gtk.Example')
     app.connect('activate', on_activate)
     app.run(None)
