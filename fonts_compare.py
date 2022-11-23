@@ -81,7 +81,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.hbox4.props.halign = Gtk.Align.CENTER
 
         self.entry = Gtk.Entry()
-        self.entry.connect('notify::text', self.on_entry_changed)
+        self.entry.changed_signal_id = self.entry.connect(
+            'notify::text', self.on_entry_changed)
         self.label3 = Gtk.Label(label="")
         self.vbox.append(self.entry)
         self.vbox.append(self.label3)
@@ -358,7 +359,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         lang = wid.get_active_text()
         LOGGER.info('%s is selected from drop-down',lang)
         text = self.sample_text_selector(lang)
+        self.entry.handler_block(self.entry.changed_signal_id)
         self.entry.set_text(text)
+        self.entry.handler_unblock(self.entry.changed_signal_id)
         #set_preview_text means -
         #Setting the sample text for specific selected language
         #into the sample text field section at the bottom of the Gtk font selection dialog
