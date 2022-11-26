@@ -80,13 +80,33 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.hbox4 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.hbox4.set_margin_top(10)
         self.hbox4.props.halign = Gtk.Align.CENTER
+        
+        self.hbox_entry_label = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        self.hbox_entry_label.set_margin_top(10)
+
 
         self.entry = Gtk.Entry()
         self.entry.changed_signal_id = self.entry.connect(
             'notify::text', self.on_entry_changed)
+        self.label_entry_define = Gtk.Label(label="  Type Here")
         self.label3 = Gtk.Label(label="")
+        self.hbox_entry_label.append(self.label_entry_define)
+        self.vbox.append(self.hbox_entry_label)
         self.vbox.append(self.entry)
         self.vbox.append(self.label3)
+    
+        '''
+        #jft
+        #search box for dropdown
+        self.searchbar = Gtk.SearchBar()
+        searchentry = Gtk.SearchEntry()
+        self.searchbar.connect_entry(searchentry)
+        self.searchbar.set_show_close_button(False)
+        self.searchbar.set_child(searchentry)
+        self.label_searchbar = Gtk.Label(label='Search Here')
+        self.vbox.append(self.label_searchbar)
+        self.vbox.append(self.searchbar)
+        '''
 
         self.combo = Gtk.ComboBoxText()
         self.label4 = Gtk.Label()
@@ -105,10 +125,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                + ' Use Sample Text :  '
                                + '</span>')
         self.hbox4.append(self.label5)
-        self.label_switch_prev = Gtk.Label(label = 'Pango')
-        self.label_switch_next = Gtk.Label(label = 'LangTable')
+        self.label_switch_prev = Gtk.Label(label = 'LangTable')
+        self.label_switch_next = Gtk.Label(label = 'Pango')
         self.switch = Gtk.Switch()
-        self.switch.set_active(True)
+        self.switch.set_active(False)
         self.switch.connect("state-set", self.switch_switched)
         self.hbox4.append(self.label_switch_prev)
         self.hbox4.append(self.switch)
@@ -131,6 +151,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                + self.sample_text_selector('en')
                                + '</span>')
         self.button2.set_font(temp_random_font + ' ' + FONTSIZE)
+
+        #first initialize text of label1 set to entry textbox
+        self.entry.handler_block(self.entry.changed_signal_id) 
+        self.entry.set_text(self.label1.get_text())
+        self.entry.handler_unblock(self.entry.changed_signal_id) 
 
         #wrap text
         self.label1.set_wrap(True)
@@ -180,10 +205,24 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         #self.set_default_size(450, 450)
         self.set_resizable(True)
+        
+        #jft
+        #self.scrolledwindow = Gtk.ScrolledWindow()
+        #self.scrolledwindow.set_policy(Gtk.PolicyType.NEVER,
+        #                       Gtk.PolicyType.AUTOMATIC)
+        #self.set_child(self.scrolledwindow)
+
+
         self.set_child(self.vbox)
+
+
+
+        #self.add(self.scrolledwindow)
         #scrolled = Gtk.ScrolledWindow()
+        #scrolled.set_vscroll_policy()
         #scrolled.set_child(self.vbox)
         #self.set_child(scrolled)
+        #self.set_child(self.scrolledwindow)
 
     def fontbutton(
             self,
@@ -211,34 +250,56 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         function to change sample string depends upon toogle switch
         '''
         LOGGER.info('The switch has been switched %s', 'on' if state else 'off')
+        global FONTSIZE
         if state:
-            #sample_text by langtable.language_name
+            #True - sample_text by Pango.Language
             self.switch.set_state(state)
+            FONTSIZE = '20'
+            LOGGER.info('pango font = %s',FONTSIZE)
+            #instant label1 and label2 change after switch change
+            self.label1.set_markup('<span font="'+self.button1.get_font().rsplit(' ',1)[0]+' '+FONTSIZE+'"' + FALLPARAM
+                                   + self.sample_text_selector(self.combo.get_active_text())
+                                   + '</span>')
+            self.button1.set_font(self.button1.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
+            self.label2.set_markup('<span font="'+self.button2.get_font().rsplit(' ',1)[0]+' '+FONTSIZE+'"' + FALLPARAM
+                                   + self.sample_text_selector(self.combo.get_active_text())
+                                   + '</span>')
+            self.button2.set_font(self.button2.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
+            self.slider.set_value(int(FONTSIZE))
         else:
-            #sample_text by Pango.Language
+            #False - sample_text by langtable.language_name
+            FONTSIZE = '40'
             self.switch.set_state(state)
-        #instant label1 and label2 change after switch change
-        self.label1.set_markup('<span font="'+self.button1.get_font()+'"' + FALLPARAM
-                               + self.sample_text_selector(self.combo.get_active_text())
-                               + '</span>')
-        self.label2.set_markup('<span font="'+self.button2.get_font()+'"' + FALLPARAM
-                               + self.sample_text_selector(self.combo.get_active_text())
-                               + '</span>')
+            LOGGER.info('langtable font = %s',FONTSIZE)
+            #instant label1 and label2 change after switch change
+            self.label1.set_markup('<span font="'+self.button1.get_font()+' '+FONTSIZE+'"' + FALLPARAM
+                                   + self.sample_text_selector(self.combo.get_active_text())
+                                   + '</span>')
+            self.label2.set_markup('<span font="'+self.button2.get_font()+' '+FONTSIZE+'"' + FALLPARAM
+                                   + self.sample_text_selector(self.combo.get_active_text())
+                                   + '</span>')
+            self.slider.set_value(int(FONTSIZE))
+        self.entry.handler_block(self.entry.changed_signal_id)
+        self.entry.set_text(self.label1.get_text())
+        self.entry.handler_unblock(self.entry.changed_signal_id)
+
+
 
     def sample_text_selector(self, lang: str) -> str:
         '''
         sample text will be selected by either Pango or Langtable
         '''
         if self.switch.get_state():
-            #True - Langtable sample text
-            sample_text = str(langtable.language_name(
-                languageId=lang, languageIdQuery=lang))
-            return sample_text
-        #else - False - Pango sample text
-        sample_text = str(Pango.Language.get_sample_string(
+            #True - Pango sample text
+            sample_text = str(Pango.Language.get_sample_string(
             Pango.language_from_string (lang)))
+            return sample_text
+        #False - Langtable sample text
+        sample_text = str(langtable.language_name(
+        languageId=lang, languageIdQuery=lang))
         return sample_text
 
+       
 
     def slider_changed(
             self,
@@ -258,6 +319,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.label2.set_markup('<span font="'+self.button2.get_font()+'"' + FALLPARAM
                                + self.label2.get_text()
                                + '</span>')
+        LOGGER.info('slider_changed: button{1,2} font = %s', str(int(slider.get_value())))
 
     @classmethod
     def label_font_change(
@@ -427,6 +489,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             LOGGER.info('default font families=%s', families)
             if families:
                 last_family = families[-1:][0]
+                LOGGER.info('selected default font = %s',last_family)
                 return last_family
             return ''
         except FileNotFoundError as error:
@@ -461,9 +524,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             list_unfilter_random_font = [x for x in fonts_listed
                                          if not ('Droid' in x or 'STIX' in x)]
             random_font = random.choice(list_unfilter_random_font)
-            LOGGER.info('selected random font = %s',random_font)
+            LOGGER.info('selected random list from fc-list = %s',random_font)
             if random_font == '':
-                #jft
                 LOGGER.info('fonts are not installed for %s language',lang)
                 custom_dialog = CustomDialog(transient_for=self, use_header_bar=True)
                 custom_dialog.present()
@@ -472,20 +534,16 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             match = pattern.match(random_font)
             if not match:
                 LOGGER.error('Regexp did not match %s', result.stdout.strip())
-                #means no family in last_family
-                #custom_dialog = CustomDialog(transient_for=Gtk.ApplicationWindow, use_header_bar=True)
-                #custom_dialog.present()
                 return ''
             families = match.group('families').split(',')
             LOGGER.info('Random font families=%s', families)
             last_family = ''
             if families:
                 last_family = families[-1:][0]
+                LOGGER.info('selected random font before confirm = %s',last_family)
             if not last_family:
-                #means fonts of this language are not installed
-                #custom_dialog = CustomDialog(transient_for=Gtk.ApplicationWindow, use_header_bar=True)
-                #custom_dialog.present()
                 return ''
+            LOGGER.info('selected random font confirm = %s',last_family)
             return last_family
         except FileNotFoundError as error:
             LOGGER.exception('Exception when calling %s: %s: %s',
@@ -670,7 +728,6 @@ def list_languages() -> List[str]:
             languages.append(lang)
     return languages
 
-#jft - dialog box
 class CustomDialog(Gtk.Dialog):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -734,8 +791,9 @@ if __name__ == '__main__':
         LOGGER.addHandler(LOG_HANDLER)
     else:
         LOG_HANDLER_NULL = logging.NullHandler()
-    # list_dropdown = ['en','bn','ja','hi','mr','ta','ko','de','da','gu','ar','zh_CN']
+    #list_dropdown = ['en','bn','ja','hi','mr','ta','ko','de','da','gu','ar','zh_CN']
     list_dropdown = sorted(list_languages())
+    #print(list_dropdown)
     app = Gtk.Application(application_id='org.gtk.Example')
     app.connect('activate', on_activate)
     app.run(None)
