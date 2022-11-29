@@ -11,6 +11,8 @@ import subprocess
 import shutil
 import locale
 import argparse
+from tkinter import *
+from tkinter import messagebox
 import logging
 import langtable # type: ignore
 import langdetect # type: ignore
@@ -18,6 +20,7 @@ import gi # type: ignore
 # pylint: disable=wrong-import-position
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk # type: ignore
+from gi.repository import Gio # type: ignore
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
 # pylint: enable=wrong-import-position
@@ -56,9 +59,28 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         self.set_title('Font Compare')
 
+        #menu-bar
+        main = Gio.Menu.new()
+        lang_menuitem = Gio.MenuItem.new('Language')
+        about_menuitem = Gio.MenuItem.new('About')
+        exit_menuitem = Gio.MenuItem.new('Exit')
+        menu = Gio.Menu.new()
+        #select_lang_menuitem = Gio.MenuItem.new('Select Language', 'app.change_language')
+        select_lang_menuitem = Gio.MenuItem.new('Select Language')
+        menu.append_item(select_lang_menuitem)
+        lang_menuitem.set_submenu(menu)
+        main.append_item(lang_menuitem)
+        main.append_item(about_menuitem)
+        main.append_item(exit_menuitem)
+        app.set_menubar(main)
+
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.vbox.props.halign = Gtk.Align.CENTER
         self.vbox.set_margin_top(25)
+
+        self.hbox_button2 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        self.hbox_button2.set_margin_top(10)
+        self.hbox_button2.props.halign = Gtk.Align.CENTER
 
         self.vbox_last = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.vbox_last.set_margin_top(20)
@@ -80,7 +102,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.hbox4 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.hbox4.set_margin_top(10)
         self.hbox4.props.halign = Gtk.Align.CENTER
-        
+
         self.hbox_entry_label = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.hbox_entry_label.set_margin_top(10)
 
@@ -94,19 +116,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.vbox.append(self.hbox_entry_label)
         self.vbox.append(self.entry)
         self.vbox.append(self.label3)
-    
-        '''
-        #jft
-        #search box for dropdown
-        self.searchbar = Gtk.SearchBar()
-        searchentry = Gtk.SearchEntry()
-        self.searchbar.connect_entry(searchentry)
-        self.searchbar.set_show_close_button(False)
-        self.searchbar.set_child(searchentry)
-        self.label_searchbar = Gtk.Label(label='Search Here')
-        self.vbox.append(self.label_searchbar)
-        self.vbox.append(self.searchbar)
-        '''
 
         self.combo = Gtk.ComboBoxText()
         self.label4 = Gtk.Label()
@@ -142,8 +151,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
         self.button2 = Gtk.FontButton.new()
-        self.fontbutton(self.label2, self.button2, self.vbox_last)
+        #self.fontbutton(self.label2, self.button2, self.vbox_last)
+        self.fontbutton(self.label2, self.button2, self.hbox_button2)
         self.vbox.append(self.label2)
+        self.vbox_last.append(self.hbox_button2)
         self.vbox.append(self.vbox_last)
         temp_random_font = self.get_random_font_family_for_language('en')
         self.label2.set_markup('<span font="'+temp_random_font
@@ -153,9 +164,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button2.set_font(temp_random_font + ' ' + FONTSIZE)
 
         #first initialize text of label1 set to entry textbox
-        self.entry.handler_block(self.entry.changed_signal_id) 
+        self.entry.handler_block(self.entry.changed_signal_id)
         self.entry.set_text(self.label1.get_text())
-        self.entry.handler_unblock(self.entry.changed_signal_id) 
+        #self.entry.set_position(-1)
+        self.entry.handler_unblock(self.entry.changed_signal_id)
 
         #wrap text
         self.label1.set_wrap(True)
@@ -203,9 +215,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 f'<span font="{self.get_default_font_family_for_language(lc_messages_lang)} '
                 f'{LABEL3_FONT}" {FALLPARAM}{label_lang_full_form}</span>')
 
+        self.set_show_menubar(True)
         #self.set_default_size(450, 450)
         self.set_resizable(True)
-        
+
         #jft
         #self.scrolledwindow = Gtk.ScrolledWindow()
         #self.scrolledwindow.set_policy(Gtk.PolicyType.NEVER,
@@ -257,11 +270,13 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             FONTSIZE = '20'
             LOGGER.info('pango font = %s',FONTSIZE)
             #instant label1 and label2 change after switch change
-            self.label1.set_markup('<span font="'+self.button1.get_font().rsplit(' ',1)[0]+' '+FONTSIZE+'"' + FALLPARAM
+            self.label1.set_markup('<span font="'+self.button1.get_font().rsplit(' ',1)[0]
+                                   +' '+FONTSIZE+'"' + FALLPARAM
                                    + self.sample_text_selector(self.combo.get_active_text())
                                    + '</span>')
             self.button1.set_font(self.button1.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
-            self.label2.set_markup('<span font="'+self.button2.get_font().rsplit(' ',1)[0]+' '+FONTSIZE+'"' + FALLPARAM
+            self.label2.set_markup('<span font="'+self.button2.get_font().rsplit(' ',1)[0]
+                                   +' '+FONTSIZE+'"' + FALLPARAM
                                    + self.sample_text_selector(self.combo.get_active_text())
                                    + '</span>')
             self.button2.set_font(self.button2.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
@@ -299,7 +314,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         languageId=lang, languageIdQuery=lang))
         return sample_text
 
-       
+ 
 
     def slider_changed(
             self,
@@ -466,7 +481,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             lang = first + '_' + rest.upper()
         return lang
 
-        
+ 
     def get_default_font_family_for_language(self, lang: str) -> str:
         '''
         getting default font by fc-match
@@ -527,8 +542,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             LOGGER.info('selected random list from fc-list = %s',random_font)
             if random_font == '':
                 LOGGER.info('fonts are not installed for %s language',lang)
-                custom_dialog = CustomDialog(transient_for=self, use_header_bar=True)
-                custom_dialog.present()
+                information = "Fonts for " + lang + " language are not yet installed in your system"
+                messagebox.showwarning("showinfo",information)
                 return ''
             pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*)$')
             match = pattern.match(random_font)
@@ -566,61 +581,6 @@ def on_activate(application: Gtk.Application) -> None:
     win = AppWindow(application)
     win.present()
 
-
-def list_languages_langtable() -> List[str]:
-    '''Return a list of languages known by langtable'''
-    languages: List[str] = []
-    for language_id in langtable._languages_db: # pylint: disable=protected-access
-        # Parsing the language_id and reassembling is to remove the
-        # script if there is one. For example if language_id is
-        # “zh_Hant_TW” we remove the script “Hant” and leave just
-        # “zh_TW”. We cannot really use the script part from a CLDR
-        # style locale name because fontconfig does not use it.
-        locale_object = langtable.parse_locale(language_id)
-        if locale_object.territory:
-            languages.append(
-                locale_object.language + '_' + locale_object.territory)
-        else:
-            languages.append(locale_object.language)
-    return languages
-
-def list_languages_python() -> List[str]:
-    '''Return a list of languages known by Python'''
-    languages: List[str] = []
-    for _alias, value in locale.locale_alias.items():
-        value = value.split('.')[0]
-        value = value.split('@')[0]
-        exclude = (
-            # AA is only a NATO code, not in ISO_3166-2
-            'ar_AA',
-            # https://en.wikipedia.org/wiki/Ewe_language an African
-            # language, I think it has nothing to do with EE (Estonia)
-            'ee_EE',
-            'eo_XX', # XX Territory does not exist
-            # “pd” is not an iso-639-1 code:
-            # https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-            # Probably it means “Pennsylvania Dutch”:
-            # https://en.wikipedia.org/wiki/Pennsylvania_Dutch
-            'pd',
-            'pd_DE',
-            'pd_US',
-            # ph is not an iso-639-1 code. I guess “fil” was meant.
-            'ph',
-            'ph_PH',
-            # pp is not an iso-639-1 code. I guess “pap” was meant.
-            'pp',
-            'pp_AN',
-            'C', # POSIX locale, not really a language
-        )
-        if value in exclude:
-            continue
-        if value and value not in languages:
-            languages.append(value)
-        if '_' in value:
-            lang_only = value.split('_')[0]
-            if lang_only and lang_only not in languages:
-                languages.append(lang_only)
-    return languages
 
 def list_languages_fontconfig() -> List[str]:
     '''
@@ -668,115 +628,11 @@ def list_languages_fontconfig() -> List[str]:
                 languages.append(lang)
     return languages
 
-def list_languages_glibc() -> List[str]:
-    '''
-    Return a list of languages for the currently installed glibc locales
-    '''
-    languages: List[str] = []
-    locale_binary = shutil.which('locale')
-    if not locale_binary:
-        return languages
-    result_lines: List[str] = []
-    try:
-        result = subprocess.run(
-                [locale_binary, '-a'],
-                encoding='utf-8', check=True, capture_output=True)
-    except FileNotFoundError as error:
-        LOGGER.exception('Exception when calling %s: %s: %s',
-                         locale_binary, error.__class__.__name__, error)
-        return languages
-    except subprocess.CalledProcessError as error:
-        LOGGER.exception('Exception when calling %s: %s: %s stderr: %s',
-                         locale_binary,
-                         error.__class__.__name__, error, error.stderr)
-        return languages
-    except Exception as error: # pylint: disable=broad-except
-        LOGGER.exception('Exception when calling %s: %s: %s',
-                         locale_binary, error.__class__.__name__, error)
-        return languages
-    if not result:
-        return languages
-    result_lines = result.stdout.strip().split('\n')
-    for line in result_lines:
-        locale_object = langtable.parse_locale(line)
-        lang = locale_object.language
-        if not lang:
-            continue
-        if lang not in languages:
-            languages.append(lang)
-        if locale_object.territory:
-            lang += '_' + locale_object.territory
-        if lang not in languages:
-            languages.append(lang)
-    return languages
-
 def list_languages() -> List[str]:
-    '''
-    Return a list of languages combining the languages known by
-    langtable, fontconfig, and glibc.
-    '''
+    #Return a list of fontconfig languages
     languages: List[str] = []
-    languages = list_languages_langtable()
-    for lang in list_languages_fontconfig():
-        if lang not in languages:
-            languages.append(lang)
-    for lang in list_languages_glibc():
-        if lang not in languages:
-            languages.append(lang)
-    for lang in list_languages_python():
-        if lang not in languages:
-            languages.append(lang)
+    languages = list_languages_fontconfig()
     return languages
-
-class CustomDialog(Gtk.Dialog):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        #self.parent = kwargs.get('transient_for')
-
-        self.set_title(title='Dialog Box')
-        self.use_header_bar = True
-        self.connect('response', self.dialog_response)
-
-        self.set_width = 683
-        self.set_height = 384
-
-        self.add_buttons(
-            '_Cancel', Gtk.ResponseType.CANCEL,
-            '_OK', Gtk.ResponseType.OK,
-        )
-
-        btn_ok = self.get_widget_for_response(
-            response_id=Gtk.ResponseType.OK,
-        )
-        btn_ok.get_style_context().add_class(class_name='suggested-action')
-        btn_cancel = self.get_widget_for_response(
-            response_id=Gtk.ResponseType.CANCEL,
-        )
-        btn_cancel.get_style_context().add_class(class_name='destructive-action')
-
-        content_area = self.get_content_area()
-        content_area.set_orientation(orientation=Gtk.Orientation.VERTICAL)
-        content_area.set_spacing(spacing=24)
-        content_area.set_margin_top(margin=12)
-        content_area.set_margin_end(margin=12)
-        content_area.set_margin_bottom(margin=12)
-        content_area.set_margin_start(margin=12)
-
-        class_appwindow = AppWindow(app)
-        string = 'Fonts are not installed for '+ class_appwindow.combo.get_active_text() + ' language. Please press OK or CANCEL'
-        self.label = Gtk.Label.new(str=string)
-        content_area.append(self.label)
-
-
-    def dialog_response(self, dialog, response):
-        if response == Gtk.ResponseType.OK:
-            print('pressed ok')
-        elif response == Gtk.ResponseType.CANCEL:
-            print('pressed cancel')
-            self.label.set_text(str=f'pressed CANCEL')
-
-        dialog.close()
-
 
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, '')
@@ -793,7 +649,6 @@ if __name__ == '__main__':
         LOG_HANDLER_NULL = logging.NullHandler()
     #list_dropdown = ['en','bn','ja','hi','mr','ta','ko','de','da','gu','ar','zh_CN']
     list_dropdown = sorted(list_languages())
-    #print(list_dropdown)
     app = Gtk.Application(application_id='org.gtk.Example')
     app.connect('activate', on_activate)
     app.run(None)
