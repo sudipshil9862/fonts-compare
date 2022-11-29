@@ -125,8 +125,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
 
         self.entry = Gtk.Entry()
-        self.entry.changed_signal_id = self.entry.connect(
-            'notify::text', self.on_entry_changed)
         self.label_entry_define = Gtk.Label(label="  Type Here")
         self.label3 = Gtk.Label(label="")
         self.hbox_entry_label.append(self.label_entry_define)
@@ -187,10 +185,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button2.set_font(temp_random_font + ' ' + FONTSIZE)
 
         #first initialize text of label1 set to entry textbox
-        self.entry.handler_block(self.entry.changed_signal_id)
         self.entry.set_text(self.label1.get_text())
         self.entry.set_position(-1)
-        self.entry.handler_unblock(self.entry.changed_signal_id)
+        self.entry.changed_signal_id = self.entry.connect(
+            'notify::text', self.on_entry_changed)
 
         #wrap text
         self.label1.set_wrap(True)
@@ -251,14 +249,14 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self.set_child(self.vbox)
 
-
-
         #self.add(self.scrolledwindow)
         #scrolled = Gtk.ScrolledWindow()
         #scrolled.set_vscroll_policy()
         #scrolled.set_child(self.vbox)
         #self.set_child(scrolled)
         #self.set_child(self.scrolledwindow)
+
+        self.entry.grab_focus_without_selecting()
 
     def fontbutton(
             self,
@@ -319,6 +317,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.slider.set_value(int(FONTSIZE))
         self.entry.handler_block(self.entry.changed_signal_id)
         self.entry.set_text(self.label1.get_text())
+        self.entry.set_position(-1)
+        self.entry.grab_focus_without_selecting()
         self.entry.handler_unblock(self.entry.changed_signal_id)
 
 
@@ -462,6 +462,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         text = self.sample_text_selector(lang)
         self.entry.handler_block(self.entry.changed_signal_id)
         self.entry.set_text(text)
+        self.entry.set_position(-1)
+        self.entry.grab_focus_without_selecting()
         self.entry.handler_unblock(self.entry.changed_signal_id)
         #set_preview_text means -
         #Setting the sample text for specific selected language
