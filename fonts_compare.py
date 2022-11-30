@@ -76,9 +76,16 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         #header bar
         self.header = Gtk.HeaderBar()
         self.set_titlebar(self.header)
-        self.header_button = Gtk.Button(label="header")
-        self.header.pack_start(self.header_button)
-        self.header_button.set_icon_name("document-open-symbolic")
+        #self.header_button = Gtk.Button(label="header")
+        #self.header.pack_start(self.header_button)
+        #self.header_button.set_icon_name("document-open-symbolic")
+
+        #hamburger
+        self.hamburger = Gtk.MenuButton()
+        #self.hamburger.set_popover(self.popover)
+        self.hamburger.set_icon_name("open-menu-symbolic")
+        self.header.pack_start(self.hamburger)
+
 
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.vbox.props.halign = Gtk.Align.CENTER
