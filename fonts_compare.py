@@ -57,6 +57,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         self.set_title('Font Compare')
 
+        '''
         #menu-bar
         main = Gio.Menu.new()
         lang_menuitem = Gio.MenuItem.new('Language')
@@ -71,20 +72,18 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         main.append_item(about_menuitem)
         main.append_item(exit_menuitem)
         app.set_menubar(main)
+        '''
 
         
-        #header bar
+        #header bar - hamburger icon
         self.header = Gtk.HeaderBar()
         self.set_titlebar(self.header)
-        #self.header_button = Gtk.Button(label="header")
-        #self.header.pack_start(self.header_button)
-        #self.header_button.set_icon_name("document-open-symbolic")
-
-        #hamburger
         self.hamburger = Gtk.MenuButton()
         #self.hamburger.set_popover(self.popover)
         self.hamburger.set_icon_name("open-menu-symbolic")
         self.header.pack_start(self.hamburger)
+        self.language = Gtk.MenuButton(label="language")
+        self.header.pack_start(self.language)
 
 
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
@@ -166,10 +165,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button2 = Gtk.FontButton.new()
         self.fontbutton(self.label2, self.button2, self.hbox_button2)
         self.vbox.append(self.label2)
-        #error question mark
-        self.question_mark_error_button = Gtk.Button()
-        self.question_mark_error_button.set_icon_name("dialog-question")
-        self.hbox_button2.append(self.question_mark_error_button)
+        #error question mark - maybe -jft
+        #self.question_mark_error_button = Gtk.Button()
+        #self.question_mark_error_button.set_icon_name("dialog-question")
+        #self.hbox_button2.append(self.question_mark_error_button)
         self.vbox_last.append(self.hbox_button2)
         self.vbox.append(self.vbox_last)
         temp_random_font = self.get_random_font_family_for_language('en')
@@ -556,10 +555,18 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                          if not ('Droid' in x or 'STIX' in x)]
             random_font = random.choice(list_unfilter_random_font)
             LOGGER.info('selected random list from fc-list = %s',random_font)
+            self.question_mark_error_button = Gtk.Button() #jft
             if random_font == '':
                 LOGGER.info('fonts are not installed for %s language',lang)
                 #insert dialog box and message box here
+                #error question mark - maybe -jft
+                #self.question_mark_error_button = Gtk.Button()
+                self.question_mark_error_button.set_icon_name("dialog-question")
+                self.hbox_button2.append(self.question_mark_error_button)
                 return ''
+            #diable error button when font available
+            self.question_mark_error_button.set_sensitive(False)
+            #self.question_mark_error_button.remove()
             pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*)$')
             match = pattern.match(random_font)
             if not match:
@@ -596,6 +603,101 @@ def on_activate(application: Gtk.Application) -> None:
     win = AppWindow(application)
     win.present()
 
+#langtable languages fro testing
+def list_languages_langtable() -> List[str]:
+    '''Return a list of languages known by langtable'''
+    languages: List[str] = []
+    for language_id in langtable._languages_db: # pylint: disable=protected-access
+        # Parsing the language_id and reassembling is to remove the
+        # script if there is one. For example if language_id is
+        # “zh_Hant_TW” we remove the script “Hant” and leave just
+        # “zh_TW”. We cannot really use the script part from a CLDR
+        # style locale name because fontconfig does not use it.
+        locale_object = langtable.parse_locale(language_id)
+        if locale_object.territory:
+            languages.append(
+                locale_object.language + '_' + locale_object.territory)
+        else:
+            languages.append(locale_object.language)
+    return languages
+
+def list_languages_python() -> List[str]:
+    '''Return a list of languages known by Python'''
+    languages: List[str] = []
+    for _alias, value in locale.locale_alias.items():
+        value = value.split('.')[0]
+        value = value.split('@')[0]
+        exclude = (
+            # AA is only a NATO code, not in ISO_3166-2
+            'ar_AA',
+            # https://en.wikipedia.org/wiki/Ewe_language an African
+            # language, I think it has nothing to do with EE (Estonia)
+            'ee_EE',
+            'eo_XX', # XX Territory does not exist
+            # “pd” is not an iso-639-1 code:
+            # https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+            # Probably it means “Pennsylvania Dutch”:
+            # https://en.wikipedia.org/wiki/Pennsylvania_Dutch
+            'pd',
+            'pd_DE',
+            'pd_US',
+            # ph is not an iso-639-1 code. I guess “fil” was meant.
+            'ph',
+            'ph_PH',
+            # pp is not an iso-639-1 code. I guess “pap” was meant.
+            'pp',
+            'pp_AN',
+            'C', # POSIX locale, not really a language
+        )
+        if value in exclude:
+            continue
+        if value and value not in languages:
+            languages.append(value)
+        if '_' in value:
+            lang_only = value.split('_')[0]
+            if lang_only and lang_only not in languages:
+                languages.append(lang_only)
+    return languages
+
+def list_languages_glibc() -> List[str]:
+    #Return a list of languages for the currently installed glibc locales
+    languages: List[str] = []
+    locale_binary = shutil.which('locale')
+    if not locale_binary:
+        return languages
+    result_lines: List[str] = []
+    try:
+        result = subprocess.run(
+                [locale_binary, '-a'],
+                encoding='utf-8', check=True, capture_output=True)
+    except FileNotFoundError as error:
+        LOGGER.exception('Exception when calling %s: %s: %s',
+                         locale_binary, error.__class__.__name__, error)
+        return languages
+    except subprocess.CalledProcessError as error:
+        LOGGER.exception('Exception when calling %s: %s: %s stderr: %s',
+                         locale_binary,
+                         error.__class__.__name__, error, error.stderr)
+        return languages
+    except Exception as error: # pylint: disable=broad-except
+        LOGGER.exception('Exception when calling %s: %s: %s',
+                         locale_binary, error.__class__.__name__, error)
+        return languages
+    if not result:
+        return languages
+    result_lines = result.stdout.strip().split('\n')
+    for line in result_lines:
+        locale_object = langtable.parse_locale(line)
+        lang = locale_object.language
+        if not lang:
+            continue
+        if lang not in languages:
+            languages.append(lang)
+        if locale_object.territory:
+            lang += '_' + locale_object.territory
+        if lang not in languages:
+            languages.append(lang)
+    return languages
 
 def list_languages_fontconfig() -> List[str]:
     '''
@@ -643,10 +745,26 @@ def list_languages_fontconfig() -> List[str]:
                 languages.append(lang)
     return languages
 
+#def list_languages() -> List[str]:
+#    #Return a list of fontconfig languages
+#    languages: List[str] = []
+#    languages = list_languages_fontconfig()
+#    return languages
+
 def list_languages() -> List[str]:
-    #Return a list of fontconfig languages
+    #Return a list of languages combining the languages known by
+    #langtable, fontconfig, and glibc.
     languages: List[str] = []
-    languages = list_languages_fontconfig()
+    languages = list_languages_python()
+    for lang in list_languages_fontconfig():
+        if lang not in languages:
+            languages.append(lang)
+    #for lang in list_languages_glibc():
+    #    if lang not in languages:
+    #        languages.append(lang)
+    for lang in list_languages_python():
+        if lang not in languages:
+            languages.append(lang)
     return languages
 
 if __name__ == '__main__':
