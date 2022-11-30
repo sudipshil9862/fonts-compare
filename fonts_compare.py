@@ -11,8 +11,6 @@ import subprocess
 import shutil
 import locale
 import argparse
-from tkinter import *
-from tkinter import messagebox
 import logging
 import langtable # type: ignore
 import langdetect # type: ignore
@@ -73,6 +71,14 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         main.append_item(about_menuitem)
         main.append_item(exit_menuitem)
         app.set_menubar(main)
+
+        
+        #header bar
+        self.header = Gtk.HeaderBar()
+        self.set_titlebar(self.header)
+        self.header_button = Gtk.Button(label="header")
+        self.header.pack_start(self.header_button)
+        self.header_button.set_icon_name("document-open-symbolic")
 
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.vbox.props.halign = Gtk.Align.CENTER
@@ -151,9 +157,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
         self.button2 = Gtk.FontButton.new()
-        #self.fontbutton(self.label2, self.button2, self.vbox_last)
         self.fontbutton(self.label2, self.button2, self.hbox_button2)
         self.vbox.append(self.label2)
+        #error question mark
+        self.question_mark_error_button = Gtk.Button()
+        self.question_mark_error_button.set_icon_name("dialog-question")
+        self.hbox_button2.append(self.question_mark_error_button)
         self.vbox_last.append(self.hbox_button2)
         self.vbox.append(self.vbox_last)
         temp_random_font = self.get_random_font_family_for_language('en')
@@ -166,7 +175,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         #first initialize text of label1 set to entry textbox
         self.entry.handler_block(self.entry.changed_signal_id)
         self.entry.set_text(self.label1.get_text())
-        #self.entry.set_position(-1)
+        self.entry.set_position(-1)
         self.entry.handler_unblock(self.entry.changed_signal_id)
 
         #wrap text
@@ -542,8 +551,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             LOGGER.info('selected random list from fc-list = %s',random_font)
             if random_font == '':
                 LOGGER.info('fonts are not installed for %s language',lang)
-                information = "Fonts for " + lang + " language are not yet installed in your system"
-                messagebox.showwarning("showinfo",information)
+                #insert dialog box and message box here
                 return ''
             pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*)$')
             match = pattern.match(random_font)
