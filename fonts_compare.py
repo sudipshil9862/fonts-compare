@@ -566,7 +566,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             random_font = random.choice(list_unfilter_random_font)
             LOGGER.info('selected random list from fc-list = %s',random_font)
             self.question_mark_error_button = Gtk.Button() #jft
-            if random_font == '':
+            if random_font:
+                self.label_error.hide()
+            else:
                 LOGGER.info('fonts are not installed for %s language',lang)
                 #insert dialog box and message box here
                 #error question mark - maybe -jft
@@ -576,6 +578,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 #error level show no font installed
                 label_error_text = "NOTE : fonts are not installed for " + lang + " language"
                 self.label_error.set_text(label_error_text)
+                self.label_error.show()
                 return ''
             #diable error button when font available
             #self.question_mark_error_button.set_sensitive(False)
