@@ -99,6 +99,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.vbox_last.set_margin_bottom(20)
         self.vbox_last.props.halign = Gtk.Align.CENTER
 
+        self.vbox_error_note = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        self.vbox_error_note.set_margin_top(20)
+        self.vbox_error_note.set_margin_bottom(20)
+        self.vbox_error_note.props.halign = Gtk.Align.CENTER
+
         self.hbox1 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.hbox1.set_margin_top(10)
         self.hbox1.props.halign = Gtk.Align.CENTER
@@ -138,6 +143,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.hbox3.append(self.label4)
         self.hbox3.append(self.combo)
         self.vbox.append(self.hbox3)
+        self.label_error = Gtk.Label()
+        self.vbox_error_note.append(self.label_error)
+        self.vbox.append(self.vbox_error_note)
 
         #switch button/toggle button - pango and langtable sample string
         self.label5 = Gtk.Label()
@@ -561,11 +569,14 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 #insert dialog box and message box here
                 #error question mark - maybe -jft
                 #self.question_mark_error_button = Gtk.Button()
-                self.question_mark_error_button.set_icon_name("dialog-question")
-                self.hbox_button2.append(self.question_mark_error_button)
+                #self.question_mark_error_button.set_icon_name("dialog-question")
+                #self.hbox_button2.append(self.question_mark_error_button)
+                #error level show no font installed
+                label_error_text = "NOTE : fonts are not installed for " + lang + " language"
+                self.label_error.set_text(label_error_text)
                 return ''
             #diable error button when font available
-            self.question_mark_error_button.set_sensitive(False)
+            #self.question_mark_error_button.set_sensitive(False)
             #self.question_mark_error_button.remove()
             pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*)$')
             match = pattern.match(random_font)
