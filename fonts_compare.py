@@ -5,6 +5,7 @@ This is my fonts-compare program for font rendering and comparing
 from typing import Any
 from typing import List
 import sys
+import os
 import random
 import re
 import subprocess
@@ -12,6 +13,7 @@ import shutil
 import locale
 import argparse
 import logging
+import unicodedata
 import langtable # type: ignore
 import langdetect # type: ignore
 import gi # type: ignore
@@ -42,6 +44,62 @@ FALLPARAM = 'fallback="false">'
 FONTSIZE = '40'
 LABEL3_FONT = '20'
 
+class FontsCompareAboutDialog(Gtk.AboutDialog): # type: ignore
+    '''
+    The “About” dialog for fonts-compare
+    '''
+    def  __init__(self, parent: Gtk.Window = None) -> None:
+        Gtk.AboutDialog.__init__(self, parent=parent)
+        self.set_modal(True)
+        # An empty string in aboutdialog.set_logo_icon_name('')
+        # prevents an ugly default icon to be shown. We don’t yet
+        # have nice icons for Fonts Compare
+        self.set_logo_icon_name('')
+        self.set_title('Fonts Compare')
+        self.set_program_name('Fonts Compare')
+        self.set_version('1.0.5')
+        self.set_comments('A tool to compare fonts.')
+        self.set_copyright(
+            'Copyright © 2022 Sudip Shil')
+        self.set_authors([
+            'Sudip Shil <sudipshil9862@gmail.com',
+            ])
+        self.set_translator_credits(
+            # Translators: put your names here, one name per line.
+            #_('translator-credits')
+            'Nobody translated anything yet.'
+        )
+        # self.set_artists('')
+        self.set_documenters([
+            'Sudip Shil <sudipshil9862@gmail.com>',
+            ])
+        self.set_website(
+            'https://github.com/sudipshil9862/fonts-compare')
+        self.set_website_label(
+            'Github: https://github.com/sudipshil9862/fonts-compare')
+        self.set_license('''
+        No license decided yet.
+        ''')
+        self.set_wrap_license(True)
+        # overrides the above .set_license()
+        #self.set_license_type(Gtk.License.GPL_3_0)
+        self.connect('close-request', self._on_close_aboutdialog)
+        if parent:
+            self.set_transient_for(parent.get_toplevel())
+        self.show()
+
+    def _on_close_aboutdialog( # pylint: disable=no-self-use
+            self,
+            _about_dialog: Gtk.Dialog,
+            _response: Gtk.ResponseType) -> None:
+        '''
+        The “About” dialog has been closed by the user
+
+        :param _about_dialog: The “About” dialog
+        :param _response: The response when the “About” dialog was closed
+        '''
+        self.destroy()
+
 class AppWindow(Gtk.ApplicationWindow): # type: ignore
     '''
     Including appwindow class to window to present
@@ -55,6 +113,58 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         init_ui contains all the containers, labels, buttons
         '''
         self.set_title('Font Compare')
+
+        header_bar = Gtk.HeaderBar()
+        header_bar.set_hexpand(True)
+        header_bar.set_vexpand(False)
+        main_menu_button = Gtk.MenuButton()
+        main_menu_button.set_icon_name("open-menu-symbolic")
+        main_menu_button.set_direction(Gtk.ArrowType.DOWN)
+        header_bar.pack_start(main_menu_button)
+        self._main_menu_popover = Gtk.Popover()
+        main_menu_button.set_popover(self._main_menu_popover)
+        self._main_menu_popover.set_autohide(True)
+        self._main_menu_popover.set_position(Gtk.PositionType.BOTTOM)
+        main_menu_popover_vbox = Gtk.Box()
+        main_menu_popover_vbox.set_orientation(Gtk.Orientation.VERTICAL)
+        main_menu_popover_vbox.set_spacing(0)
+        self._main_menu_about_button = Gtk.Button(label='About')
+        self._main_menu_about_button.connect(
+            'clicked', self._on_about_button_clicked)
+        main_menu_popover_vbox.append(self._main_menu_about_button)
+        self._main_menu_quit_button = Gtk.Button(label='Quit')
+        self._main_menu_quit_button.connect('clicked', self._on_quit_button_clicked)
+        main_menu_popover_vbox.append(self._main_menu_quit_button)
+        self._main_menu_popover.set_child(main_menu_popover_vbox)
+
+        self._language_menu_button = Gtk.MenuButton(label='en')
+        self._language_menu_button.set_has_tooltip(True)
+        self._language_menu_button.set_tooltip_text('Select language')
+        self._language_menu_button.set_direction(Gtk.ArrowType.DOWN)
+        header_bar.pack_start(self._language_menu_button)
+        self._language_menu_popover = Gtk.Popover()
+        self._language_menu_button.set_popover(self._language_menu_popover)
+        self._language_menu_popover.set_autohide(True)
+        self._language_menu_popover.set_position(Gtk.PositionType.BOTTOM)
+        self._language_menu_popover.set_vexpand(True)
+        self._language_menu_popover.set_hexpand(True)
+        self._language_menu_popover_scroll = Gtk.ScrolledWindow()
+        self._language_menu_popover_scroll.set_policy(
+            Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        self._language_menu_popover_scroll.set_has_frame(True)
+        self._language_menu_popover_scroll.set_hexpand(True)
+        self._language_menu_popover_scroll.set_vexpand(True)
+        # set_propagate_natural_height(True) is important, otherwise the
+        # scrolled window will be very short (only two rows will did fit):
+        self._language_menu_popover_scroll.set_propagate_natural_height(True)
+        self._language_menu_popover_scroll.set_valign(Gtk.Align.FILL)
+        self._language_menu_popover_scroll.set_kinetic_scrolling(False)
+        self._language_menu_popover_scroll.set_overlay_scrolling(True)
+        self._language_menu_popover.connect(
+            'show', self._on_language_menu_popover_show)
+        self._language_menu_popover_language_ids: List[str] = []
+
+        self.set_titlebar(header_bar)
 
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.vbox.props.halign = Gtk.Align.CENTER
@@ -343,6 +453,160 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button2.set_font(temp_label2_font +' '+ str(int(self.slider.get_value())))
         LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
 
+    def _on_about_button_clicked(self, _button: Gtk.Button) -> None:
+        '''The “About” button has been clicked'''
+        LOGGER.debug('About button clicked')
+        self._main_menu_popover.popdown()
+        FontsCompareAboutDialog()
+
+    def _on_quit_button_clicked(self, _button: Gtk.Button) -> None:
+        '''The “Quit” button has been clicked'''
+        LOGGER.debug('Quit button clicked')
+        self._main_menu_popover.popdown()
+        # Destroy all the windows bound to the GtkApplication
+        # instance. Once the last window is destroyed, the application
+        # will automatically terminate.
+        self.destroy()
+
+    def _on_language_search_entry_changed(
+            self, search_entry: Gtk.SearchEntry) -> None:
+        '''Called when the text in the language search entry changes'''
+        LOGGER.debug('Language search entry changed')
+        filter_text = search_entry.get_text()
+        self._language_menu_popover_listbox_fill(filter_text)
+
+    def _language_menu_popover_listbox_fill_row(self, language_id: str) -> str:
+        '''Formats the text of a line in the listbox of languages'''
+        row = language_id
+        if is_right_to_left_messages():
+             # Add U+200F RIGHT_TO_LEFT MARK
+            row = chr(0x200F) + language_id
+        language_description = locale_language_description(language_id)
+        if language_description:
+            row += ' ' + language_description
+        return row
+
+    def _language_menu_popover_listbox_fill(self, filter_text: str) -> None:
+        '''Fill the list of languages to choose from'''
+        LOGGER.debug('Filling list of languages to choose from')
+        self._language_menu_popover_language_ids = []
+        if self._language_menu_popover_scroll is None:
+            LOGGER.debug('self._language_menu_popover_scroll is None')
+            return
+        listbox = Gtk.ListBox()
+        listbox.set_vexpand(True)
+        listbox.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        listbox.set_activate_on_single_click(True)
+        rows = []
+        filter_words = remove_accents(filter_text.lower()).split()
+        for language_id in sorted(list_languages()):
+            text_to_match = locale_text_to_match(language_id)
+            filter_match = True
+            for filter_word in filter_words:
+                if filter_word not in text_to_match:
+                    filter_match = False
+            if filter_match:
+                self._language_menu_popover_language_ids.append(language_id)
+                rows.append(
+                    self._language_menu_popover_listbox_fill_row(language_id))
+        for row in rows:
+            label = Gtk.Label()
+            label.set_text(row)
+            label.set_xalign(0)
+            margin = 1
+            label.set_margin_start(margin)
+            label.set_margin_end(margin)
+            label.set_margin_top(margin)
+            label.set_margin_bottom(margin)
+            listbox.append(label)
+        listbox.connect(
+            'row-selected',
+            self._on_language_menu_popover_listbox_row_selected)
+        self._language_menu_popover_scroll.set_child(listbox)
+
+    def _on_language_menu_popover_listbox_row_selected(
+            self, _listbox: Gtk.ListBox, listbox_row: Gtk.ListBoxRow) -> None:
+        '''Called when a language is selected'''
+        LOGGER.debug('Listbox row selected')
+        if not listbox_row:
+            return
+        index = listbox_row.get_index()
+        language_id = self._language_menu_popover_language_ids[index]
+        self._language_menu_popover.popdown()
+        self._language_menu_button.set_label(language_id)
+        self._language_menu_popover_language_ids = []
+        LOGGER.info('language selected from menu = %s', language_id)
+        text = self.sample_text_selector(language_id)
+        self.entry.handler_block(self.entry.changed_signal_id)
+        self.entry.set_text(text)
+        self.entry.set_position(-1)
+        self.entry.grab_focus_without_selecting()
+        self.entry.handler_unblock(self.entry.changed_signal_id)
+        #set_preview_text means -
+        #Setting the sample text for specific selected language
+        #into the sample text field section at the bottom of the Gtk font selection dialog
+        self.button1.set_preview_text(text)
+        self.button2.set_preview_text(text)
+        self.set_font(language_id, text)
+        lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
+        lc_messages_lang = 'en'
+        if lc_messages:
+            lc_messages_lang = lc_messages.split('_')[0]
+        label_lang_full_form = langtable.language_name(
+                languageId=language_id,
+                languageIdQuery=lc_messages)
+        LOGGER.debug('label_lang_full_form=%s', label_lang_full_form)
+        LOGGER.debug('label3 local lang=%s, label3 font=%s',
+                     lc_messages_lang, self.get_default_font_family_for_language(lc_messages_lang))
+        self.label3.set_markup('<span font="'+self.get_default_font_family_for_language(lc_messages_lang)
+                               +' '+LABEL3_FONT+'"' + FALLPARAM
+                               + label_lang_full_form + '</span>')
+        self.combo.handler_block(self.combo.changed_signal_id)
+        for index, item in enumerate(self.combo.get_model()):
+            if item[0] == language_id:
+                self.combo.set_active(index)
+        self.combo.handler_unblock(self.combo.changed_signal_id)
+
+
+    def _on_language_menu_popover_show(self, popover: Gtk.Popover) -> None:
+        '''Called when the language menu popover is shown'''
+        LOGGER.debug('Language menu popover is shown')
+        if popover is None:
+            LOGGER.error('popover is None, should never happen')
+            return
+        vbox = Gtk.Box()
+        vbox.set_orientation(Gtk.Orientation.VERTICAL)
+        margin = 12
+        vbox.set_margin_start(margin)
+        vbox.set_margin_end(margin)
+        vbox.set_margin_top(margin)
+        vbox.set_margin_bottom(margin)
+        vbox.set_spacing(margin)
+        label = Gtk.Label()
+        label.set_text('Select language')
+        label.set_halign(Gtk.Align.FILL)
+        vbox.append(label)
+        search_entry = Gtk.SearchEntry()
+        search_entry.set_can_focus(True)
+        search_entry.set_halign(Gtk.Align.FILL)
+        vbox.append(search_entry)
+        search_entry.connect(
+            'search-changed', self._on_language_search_entry_changed)
+        self._language_menu_popover_listbox_fill('')
+        if self._language_menu_popover_scroll.get_parent():
+            # self._language_menu_popover_scroll has already been
+            # added to another vbox in a previous call to this
+            # function remove it from there to be able to reparent it:
+            self._language_menu_popover_scroll.get_parent().remove(
+                self._language_menu_popover_scroll)
+        # Set both scrollbars to their lowest values:
+        hadjustment = self._language_menu_popover_scroll.get_hadjustment()
+        hadjustment.set_value(hadjustment.get_lower())
+        vadjustment = self._language_menu_popover_scroll.get_vadjustment()
+        vadjustment.set_value(vadjustment.get_lower())
+        vbox.append(self._language_menu_popover_scroll)
+        popover.set_child(vbox)
+
     def on_entry_changed(self, widget: Gtk.Entry, _property_spec: Any) -> None:
         '''Called when the text in the entry has changed.
 
@@ -353,6 +617,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         text = widget.get_text()
         lang = self.detect_language(text)
         LOGGER.info('text=%s lang=%s', text, lang)
+        self._language_menu_button.set_label(lang)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = 'en'
         if lc_messages:
@@ -410,6 +675,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         lang = wid.get_active_text()
         LOGGER.info('%s is selected from drop-down',lang)
+        self._language_menu_button.set_label(lang)
         text = self.sample_text_selector(lang)
         self.entry.handler_block(self.entry.changed_signal_id)
         self.entry.set_text(text)
@@ -723,6 +989,182 @@ def list_languages() -> List[str]:
         if lang not in languages:
             languages.append(lang)
     return languages
+
+def get_effective_lc_messages() -> str:
+    '''Returns the effective value of LC_MESSAGES'''
+    if 'LC_ALL' in os.environ:
+        return os.environ['LC_ALL']
+    if 'LC_MESSAGES' in os.environ:
+        return os.environ['LC_MESSAGES']
+    if 'LANG' in os.environ:
+        return os.environ['LANG']
+    return 'C'
+
+def is_right_to_left_messages() -> bool:
+    '''
+    Check whether the effective LC_MESSAGES locale points to a languages
+    which is usually written in a right-to-left script.
+
+    :return: True if right-to-left, False if not.
+    '''
+    lc_messages_locale = get_effective_lc_messages()
+    if not lc_messages_locale:
+        return False
+    lang = lc_messages_locale.split('_')[0]
+    if lang in ('ar', 'arc', 'dv', 'fa', 'he', 'ps', 'syr', 'ur', 'yi'):
+        # 'ku' could be Latin script or Arabic script or even Cyrillic
+        # or Armenian script
+        #
+        # 'rhg' (Rohingya) could be written in Rohg (RTL),
+        # Arab (RTL), Mymr (LTR), Latn (LTR), Beng (LTR)
+        # There is no glibc locale yet for 'rhg'
+        #
+        # 'man' uses the Nkoo script (RTL)
+        # Ther are several varieties of 'man': 'kao', 'mlq', 'mnk',
+        # 'mwk', 'xkg', 'jad', 'rkm', 'bm', 'bam', 'mku', 'emk', 'msc'
+        # 'mzj', 'jod', 'jud', 'kfo', 'kga', 'mxx', 'dyu', 'bof', 'skq'
+        # There is no glibc locale yet for any of these.
+        #
+        # 'ff', (Fula) is written in Adlm (RTL). There is no glibc locale yet.
+        return True
+    return False
+
+# Mapping of Unicode ordinals to Unicode ordinals, strings, or None.
+# Unmapped characters are left untouched. Characters mapped to None
+# are deleted.
+
+# See also: https://www.icao.int/publications/Documents/9303_p3_cons_en.pdf
+# Section 6, Page 30.
+
+TRANS_TABLE = {
+    ord('ẞ'): 'SS',
+    ord('ß'): 'ss',
+    ord('Ø'): 'O',
+    ord('ø'): 'o',
+    ord('Æ'): 'AE',
+    ord('æ'): 'ae',
+    ord('Œ'): 'OE',
+    ord('œ'): 'oe',
+    ord('Ł'): 'L',
+    ord('ł'): 'l',
+    ord('Þ'): 'TH',
+    ord('Ħ'): 'H',
+    ord('Ŋ'): 'N',
+    ord('Ŧ'): 'T',
+}
+
+def remove_accents(text: str, keep: str = '') -> str:
+    # pylint: disable=line-too-long
+    '''Removes accents from the text
+
+    Using “from unidecode import unidecode” is maybe more
+    sophisticated, but I am not sure whether I can require
+    “unidecode”. And maybe it cannot easily keep some accents for some
+    languages.
+
+    :param text: The text to change
+    :param keep: A string of characters which should be kept unchanged
+    :return: The text with some or all accents removed
+             in NFC
+
+    Examples:
+
+    >>> remove_accents('Ångstrøm')
+    'Angstrom'
+
+    >>> remove_accents('ÅÆæŒœĳøßẞü')
+    'AAEaeOEoeijossSSu'
+
+    >>> remove_accents('abcÅøßẞüxyz')
+    'abcAossSSuxyz'
+
+    >>> unicodedata.normalize('NFC', remove_accents('abcÅøßẞüxyz', keep='åÅØø'))
+    'abcÅøssSSuxyz'
+
+    >>> unicodedata.normalize('NFC', remove_accents('alkoholförgiftning', keep='åÅÖö'))
+    'alkoholförgiftning'
+
+    '''
+    # pylint: enable=line-too-long
+    if not keep:
+        result = ''.join([
+            x for x in unicodedata.normalize('NFKD', text)
+            if unicodedata.category(x) != 'Mn']).translate(TRANS_TABLE)
+        return unicodedata.normalize('NFC', result)
+    result = ''
+    keep = unicodedata.normalize('NFC', keep)
+    for char in unicodedata.normalize('NFC', text):
+        if char in keep:
+            result += char
+            continue
+        result += ''.join([
+            x for x in unicodedata.normalize('NFKD', char)
+            if unicodedata.category(x) != 'Mn']).translate(TRANS_TABLE)
+    return unicodedata.normalize('NFC', result)
+
+def locale_text_to_match(locale_id: str) -> str:
+    '''
+    Returns a text which can be matched against typed user input
+    to check whether the user might be looking for this locale
+
+    :param locale_id: The name of the locale
+
+    Examples:
+
+    >>> old_lc_all = os.environ.get('LC_ALL')
+    >>> os.environ['LC_ALL'] = 'de_DE.UTF-8'
+
+    >> locale_text_to_match('fr_FR')
+    'fr_fr franzosisch (frankreich) francais (france) french (france)'
+
+    >>> if old_lc_all:
+    ...     os.environ['LC_ALL'] = old_lc_all
+    ... else:
+    ...     # unneeded return value assigned to variable
+    ...     _ = os.environ.pop('LC_ALL', None)
+    '''
+    effective_lc_messages = get_effective_lc_messages()
+    text_to_match = locale_id.replace(' ', '')
+    query_languages = [effective_lc_messages, locale_id, 'en']
+    for query_language in query_languages:
+        if query_language:
+            text_to_match += ' ' + langtable.language_name(
+                languageId=locale_id,
+                languageIdQuery=query_language)
+    return remove_accents(text_to_match).lower()
+
+def locale_language_description(locale_id: str) -> str:
+    '''
+    Returns a description of the language of the locale
+
+    :param locale_id: The name of the locale
+
+    Examples:
+
+    >>> old_lc_all = os.environ.get('LC_ALL')
+    >>> os.environ['LC_ALL'] = 'de_DE_IN.UTF-8'
+
+    >> locale_language_description('fr_FR')
+    'Französisch (Frankreich)'
+
+    >>> if old_lc_all:
+    ...     os.environ['LC_ALL'] = old_lc_all
+    ... else:
+    ...     # unneeded return value assigned to variable
+    ...     _ = os.environ.pop('LC_ALL', None)
+    '''
+    language_description = ''
+    effective_lc_messages = get_effective_lc_messages()
+    language_description = langtable.language_name(
+        languageId=locale_id,
+        languageIdQuery=effective_lc_messages)
+    if not language_description:
+        language_description = langtable.language_name(
+            languageId=locale_id, languageIdQuery='en')
+    if language_description:
+        language_description = (
+            language_description[0].upper() + language_description[1:])
+    return language_description
 
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, '')
