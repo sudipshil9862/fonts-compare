@@ -57,12 +57,12 @@ class FontsCompareAboutDialog(Gtk.AboutDialog): # type: ignore
         self.set_logo_icon_name('')
         self.set_title('Fonts Compare')
         self.set_program_name('Fonts Compare')
-        self.set_version('1.0.5')
+        self.set_version('1.0.6')
         self.set_comments('A tool to compare fonts.')
         self.set_copyright(
             'Copyright © 2022 Sudip Shil')
         self.set_authors([
-            'Sudip Shil <sudipshil9862@gmail.com',
+            'Sudip Shil <sudipshil9862@gmail.com>',
             ])
         self.set_translator_credits(
             # Translators: put your names here, one name per line.
@@ -71,7 +71,7 @@ class FontsCompareAboutDialog(Gtk.AboutDialog): # type: ignore
         )
         # self.set_artists('')
         self.set_documenters([
-            'Sudip Shil <sudipshil9862@gmail.com>',
+            'Sudip Shil sudipshil9862@gmail.com',
             ])
         self.set_website(
             'https://github.com/sudipshil9862/fonts-compare')
@@ -137,7 +137,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         main_menu_popover_vbox.append(self._main_menu_quit_button)
         self._main_menu_popover.set_child(main_menu_popover_vbox)
 
-        self._language_menu_button = Gtk.MenuButton(label='en')
+        self._language_menu_button = Gtk.MenuButton(label='Select language en')
         self._language_menu_button.set_has_tooltip(True)
         self._language_menu_button.set_tooltip_text('Select language')
         self._language_menu_button.set_direction(Gtk.ArrowType.DOWN)
