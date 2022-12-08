@@ -54,7 +54,7 @@ class FontsCompareAboutDialog(Gtk.AboutDialog): # type: ignore
         # An empty string in aboutdialog.set_logo_icon_name('')
         # prevents an ugly default icon to be shown. We don’t yet
         # have nice icons for Fonts Compare
-        self.set_logo_icon_name('')
+        self.set_logo_icon_name('help-about-symbolic')
         self.set_title('Fonts Compare')
         self.set_program_name('Fonts Compare')
         self.set_version('1.0.6')
@@ -212,6 +212,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.vbox.append(self.entry)
         self.vbox.append(self.label3)
 
+        '''
         self.combo = Gtk.ComboBoxText()
         self.label4 = Gtk.Label()
         self.label4.set_markup('<span font="'+self.get_default_font_family_for_language('en')
@@ -221,6 +222,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.hbox3.append(self.label4)
         self.hbox3.append(self.combo)
         self.vbox.append(self.hbox3)
+        '''
         self.label_error = Gtk.Label()
         self.vbox_error_note.append(self.label_error)
         self.vbox.append(self.vbox_error_note)
@@ -267,8 +269,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             'notify::text', self.on_entry_changed)
 
         #wrap text
-        self.label1.set_wrap(True)
-        self.label2.set_wrap(True)
+        #self.label1.set_wrap(True)
+        #self.label2.set_wrap(True)
 
         #slider for both label-font change
         self.slider = Gtk.Scale()
@@ -288,6 +290,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.vbox_last.append(self.label_slider)
         self.vbox_last.append(self.slider)
 
+        '''
         list_dropdown.sort()
         for lang in list_dropdown:
             self.combo.append_text(lang)
@@ -297,7 +300,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             if item[0] == 'en':
                 self.combo.set_active(i)
         self.combo.changed_signal_id = self.combo.connect('changed', self.on_changed)
-
+        '''
 
         text = self.label1.get_text()
         lang = self.detect_language(text)
@@ -561,12 +564,13 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.label3.set_markup('<span font="'+self.get_default_font_family_for_language(lc_messages_lang)
                                +' '+LABEL3_FONT+'"' + FALLPARAM
                                + label_lang_full_form + '</span>')
+        '''
         self.combo.handler_block(self.combo.changed_signal_id)
         for index, item in enumerate(self.combo.get_model()):
             if item[0] == language_id:
                 self.combo.set_active(index)
         self.combo.handler_unblock(self.combo.changed_signal_id)
-
+        '''
 
     def _on_language_menu_popover_show(self, popover: Gtk.Popover) -> None:
         '''Called when the language menu popover is shown'''
@@ -789,10 +793,18 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 LOGGER.info('fonts are not installed for %s language',lang)
                 #error level show no font installed
                 label_error_text = "NOTE : fonts are not installed for " + lang + " language"
-                self.label_error.set_text(label_error_text)
+                #self.label_error.set_text(label_error_text)
+                self.label_error.set_markup('<span foreground='+"'red'"+ 'font="'+self.get_default_font_family_for_language('en')
+                         +' '+'10'+'"' + FALLPARAM
+                         + '<b>' + label_error_text + '</b>'
+                         + '</span>')
                 self.label_error.show()
                 return ''
-            pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*)$')
+            #sometimes random_font doesnot contain any style then error arises
+            if random_font.find(":style") != -1:
+                pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*)$')
+            else:
+                pattern = re.compile(r'^(?P<families>.*)$')
             match = pattern.match(random_font)
             if not match:
                 LOGGER.error('Regexp did not match %s', result.stdout.strip())
@@ -1179,6 +1191,10 @@ if __name__ == '__main__':
         LOGGER.addHandler(LOG_HANDLER)
     else:
         LOG_HANDLER_NULL = logging.NullHandler()
+    #getting width, height of entire screen
+    #width = Gtk.screen_width()
+    #print('width of screen ',width)
+    #print('height of screen ',height)
     list_dropdown = sorted(list_languages())
     app = Gtk.Application(application_id='org.gtk.Example')
     app.connect('activate', on_activate)
