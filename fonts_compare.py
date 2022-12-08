@@ -740,7 +740,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         try:
             result = subprocess.run(
                     [fc_match_binary, f':lang={lang}', 'family', 'style', 'file'],
-                    encoding='utf-8', check=True, capture_output=True)
+                    encoding='utf-8', check=True, capture_output=True,
+                    env={'LC_ALL': lang.replace('-', '_')})
             pattern = re.compile(r'^(?P<families>.*):style=.*$')
             match = pattern.match(result.stdout.strip())
             if not match:
