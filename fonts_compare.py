@@ -164,6 +164,33 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             'show', self._on_language_menu_popover_show)
         self._language_menu_popover_language_ids: List[str] = []
 
+
+        #sample text toggle button in header bar
+        self._sampletext_toggle_button = Gtk.MenuButton(label='sample text')
+        #self._sampletext_toggle_button.set_has_tooltip(True)
+        #self._sampletext_toggle_button.set_tooltip_text('Select language')
+        self._sampletext_toggle_button.set_direction(Gtk.ArrowType.DOWN)
+        header_bar.pack_start(self._sampletext_toggle_button)
+        self._sampletext_toggle_button_popover = Gtk.Popover()
+        self._sampletext_toggle_button.set_popover(self._sampletext_toggle_button_popover)
+        self._sampletext_toggle_button_popover.set_autohide(True)
+        self._sampletext_toggle_button_popover.set_position(Gtk.PositionType.BOTTOM)
+        self._sampletext_toggle_button_popover.set_vexpand(True)
+        self._sampletext_toggle_button_popover.set_hexpand(True)
+        self._sampletext_toggle_button_popover_hbox = Gtk.Box()
+        self._sampletext_toggle_button_popover_hbox.set_orientation(Gtk.Orientation.HORIZONTAL)
+        self._sampletext_toggle_button_popover_hbox.set_spacing(0)
+        self.label_switch_prev_langtable = Gtk.Label(label = 'LangTable')
+        self.label_switch_next_pango = Gtk.Label(label = 'Pango')
+        self.switch_sample_text = Gtk.Switch()
+        self.switch_sample_text.set_active(False)
+        self.switch_sample_text.connect("state-set", self.switch_switched)
+        self._sampletext_toggle_button_popover_hbox.append(self.label_switch_prev_langtable)
+        self._sampletext_toggle_button_popover_hbox.append(self.switch_sample_text)
+        self._sampletext_toggle_button_popover_hbox.append(self.label_switch_next_pango)
+        self._sampletext_toggle_button_popover.set_child(self._sampletext_toggle_button_popover_hbox)
+
+
         self.set_titlebar(header_bar)
 
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
@@ -212,7 +239,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.vbox.append(self.entry)
         self.vbox.append(self.label3)
 
-        '''
         self.combo = Gtk.ComboBoxText()
         self.label4 = Gtk.Label()
         self.label4.set_markup('<span font="'+self.get_default_font_family_for_language('en')
@@ -222,12 +248,13 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.hbox3.append(self.label4)
         self.hbox3.append(self.combo)
         self.vbox.append(self.hbox3)
-        '''
+        
         self.label_error = Gtk.Label()
         self.vbox_error_note.append(self.label_error)
         self.vbox.append(self.vbox_error_note)
 
-        #switch button/toggle button - pango and langtable sample string
+        #switch button/toggle button - pango and langtable sample string - sample text
+        '''
         self.label5 = Gtk.Label()
         self.label5.set_markup('<span font="'+self.get_default_font_family_for_language('en')
                                +' '+'15'+'"' + FALLPARAM
@@ -243,6 +270,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.hbox4.append(self.switch)
         self.hbox4.append(self.label_switch_next)
         self.vbox.append(self.hbox4)
+        '''
 
         self.label1 = Gtk.Label()
         self.button1 = Gtk.FontButton.new()
@@ -290,7 +318,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.vbox_last.append(self.label_slider)
         self.vbox_last.append(self.slider)
 
-        '''
         list_dropdown.sort()
         for lang in list_dropdown:
             self.combo.append_text(lang)
@@ -300,7 +327,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             if item[0] == 'en':
                 self.combo.set_active(i)
         self.combo.changed_signal_id = self.combo.connect('changed', self.on_changed)
-        '''
 
         text = self.label1.get_text()
         lang = self.detect_language(text)
@@ -349,7 +375,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         global FONTSIZE
         if state:
             #True - sample_text by Pango.Language
-            self.switch.set_state(state)
+            self.switch_sample_text.set_state(state)
             FONTSIZE = '20'
             LOGGER.info('pango font = %s',FONTSIZE)
             #instant label1 and label2 change after switch change
@@ -367,7 +393,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         else:
             #False - sample_text by langtable.language_name
             FONTSIZE = '40'
-            self.switch.set_state(state)
+            self.switch_sample_text.set_state(state)
             LOGGER.info('langtable font = %s',FONTSIZE)
             #instant label1 and label2 change after switch change
             self.label1.set_markup('<span font="'+self.button1.get_font()
@@ -391,7 +417,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         sample text will be selected by either Pango or Langtable
         '''
-        if self.switch.get_state():
+        if self.switch_sample_text.get_state():
             #True - Pango sample text
             sample_text = str(Pango.Language.get_sample_string(
             Pango.language_from_string (lang)))
