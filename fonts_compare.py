@@ -128,6 +128,35 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         main_menu_popover_vbox = Gtk.Box()
         main_menu_popover_vbox.set_orientation(Gtk.Orientation.VERTICAL)
         main_menu_popover_vbox.set_spacing(0)
+               
+        #sample text toggle button in header bar
+        self._sampletext_toggle_button = Gtk.MenuButton(label='sample text')
+        #self._sampletext_toggle_button.set_has_tooltip(True)
+        #self._sampletext_toggle_button.set_tooltip_text('Select language')
+        self._sampletext_toggle_button.set_direction(Gtk.ArrowType.DOWN)
+        #header_bar.pack_start(self._sampletext_toggle_button)
+        main_menu_popover_vbox.append(self._sampletext_toggle_button)
+        self._sampletext_toggle_button_popover = Gtk.Popover()
+        self._sampletext_toggle_button.set_popover(self._sampletext_toggle_button_popover)
+        self._sampletext_toggle_button_popover.set_autohide(True)
+        self._sampletext_toggle_button_popover.set_position(Gtk.PositionType.BOTTOM)
+        #self._sampletext_toggle_button_popover.set_vexpand(True)
+        #self._sampletext_toggle_button_popover.set_hexpand(True)
+        self._sampletext_toggle_button_popover_hbox = Gtk.Box()
+        self._sampletext_toggle_button_popover_hbox.set_orientation(Gtk.Orientation.HORIZONTAL)
+        self._sampletext_toggle_button_popover_hbox.set_spacing(0)
+        #self.label_switch_prev_langtable = Gtk.Label(label = 'LangTable')
+        #self.label_switch_next_pango = Gtk.Label(label = 'Pango')
+        self.label_switch_select_pango_text = Gtk.Label(label = 'Use Pango Sample Text')
+        self.switch_sample_text = Gtk.Switch()
+        self.switch_sample_text.set_active(False)
+        self.switch_sample_text.connect("state-set", self.switch_switched)
+        #self._sampletext_toggle_button_popover_hbox.append(self.label_switch_prev_langtable)
+        self._sampletext_toggle_button_popover_hbox.append(self.label_switch_select_pango_text)
+        self._sampletext_toggle_button_popover_hbox.append(self.switch_sample_text)
+        #self._sampletext_toggle_button_popover_hbox.append(self.label_switch_next_pango)
+        self._sampletext_toggle_button_popover.set_child(self._sampletext_toggle_button_popover_hbox)
+
         self._main_menu_about_button = Gtk.Button(label='About')
         self._main_menu_about_button.connect(
             'clicked', self._on_about_button_clicked)
@@ -135,7 +164,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._main_menu_quit_button = Gtk.Button(label='Quit')
         self._main_menu_quit_button.connect('clicked', self._on_quit_button_clicked)
         main_menu_popover_vbox.append(self._main_menu_quit_button)
+
         self._main_menu_popover.set_child(main_menu_popover_vbox)
+
+
+
 
         self._language_menu_button = Gtk.MenuButton(label='Select language en')
         self._language_menu_button.set_has_tooltip(True)
@@ -164,7 +197,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             'show', self._on_language_menu_popover_show)
         self._language_menu_popover_language_ids: List[str] = []
 
-
+        '''
         #sample text toggle button in header bar
         self._sampletext_toggle_button = Gtk.MenuButton(label='sample text')
         #self._sampletext_toggle_button.set_has_tooltip(True)
@@ -180,16 +213,18 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._sampletext_toggle_button_popover_hbox = Gtk.Box()
         self._sampletext_toggle_button_popover_hbox.set_orientation(Gtk.Orientation.HORIZONTAL)
         self._sampletext_toggle_button_popover_hbox.set_spacing(0)
-        self.label_switch_prev_langtable = Gtk.Label(label = 'LangTable')
-        self.label_switch_next_pango = Gtk.Label(label = 'Pango')
+        #self.label_switch_prev_langtable = Gtk.Label(label = 'LangTable')
+        #self.label_switch_next_pango = Gtk.Label(label = 'Pango')
+        self.label_switch_select_pango_text = Gtk.Label(label = 'Use Pango Sample Text')
         self.switch_sample_text = Gtk.Switch()
         self.switch_sample_text.set_active(False)
         self.switch_sample_text.connect("state-set", self.switch_switched)
-        self._sampletext_toggle_button_popover_hbox.append(self.label_switch_prev_langtable)
+        #self._sampletext_toggle_button_popover_hbox.append(self.label_switch_prev_langtable)
+        self._sampletext_toggle_button_popover_hbox.append(self.label_switch_select_pango_text)
         self._sampletext_toggle_button_popover_hbox.append(self.switch_sample_text)
-        self._sampletext_toggle_button_popover_hbox.append(self.label_switch_next_pango)
+        #self._sampletext_toggle_button_popover_hbox.append(self.label_switch_next_pango)
         self._sampletext_toggle_button_popover.set_child(self._sampletext_toggle_button_popover_hbox)
-
+        '''
 
         self.set_titlebar(header_bar)
 
@@ -447,6 +482,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                + self.label2.get_text()
                                + '</span>')
         LOGGER.info('slider_changed: button{1,2} font = %s', str(int(slider.get_value())))
+        #wrapping text if font size greater than 40
+        if int(slider.get_value()) > 40:
+            self.label1.set_wrap(True)
+            self.label2.set_wrap(True)
 
     @classmethod
     def label_font_change(
