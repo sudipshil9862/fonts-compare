@@ -1,5 +1,15 @@
 # Fonts-Compare
 ## This project is all about comparing different fonts of a particular language with respect to FontWeight, FontSize and FontStyle.
+
+## Fedora Copr Repository
+[fonts-compare copr link](https://copr.fedorainfracloud.org/coprs/sshil/fonts-compare/)
+### To enable Copr repository use command:
+```
+sudo dnf copr enable sshil/fonts-compare
+```
+```
+sudo dnf install fonts-compare
+```
 ---------------------------------------------------------------------
 ### The font packages need to be installed:
 [install font packages depending upon the languages, you are going to work with]
