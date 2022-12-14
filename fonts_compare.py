@@ -160,7 +160,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self._main_menu_popover.set_child(main_menu_popover_vbox)
 
-        self._language_menu_button = Gtk.MenuButton(label='Use language en')
+        self.label_language_menu_button = Gtk.Label(label='Use Language')
+        header_bar.pack_start(self.label_language_menu_button)
+        self._language_menu_button = Gtk.MenuButton(label='en')
         self._language_menu_button.set_has_tooltip(True)
         self._language_menu_button.set_tooltip_text('Use language')
         self._language_menu_button.set_direction(Gtk.ArrowType.DOWN)
@@ -342,15 +344,17 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                               + str(self._fontsize_adjustment.get_value()))
         self.button2.set_font(button2_family + ' '
                               + str(self._fontsize_adjustment.get_value()))
+        temp_label1_text = self.label1.get_text()
+        temp_label2_text = self.label2.get_text()
         self.label1.set_markup('<span font="'+button1_family+' '
                                +str(self._fontsize_adjustment.get_value())
                                +'"' + FALLPARAM
-                               + self.label1.get_text()
+                               + temp_label1_text
                                + '</span>')
         self.label2.set_markup('<span font="'+button2_family+' '
                                +str(self._fontsize_adjustment.get_value())
                                +'"' + FALLPARAM
-                               + self.label2.get_text()
+                               + temp_label2_text
                                + '</span>')
 
         #wrapping text if font size greater than 40
@@ -403,6 +407,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                    + self.sample_text_selector(
                                        self._language_menu_button.get_label())
                                    + '</span>')
+            LOGGER.info('lang from language list: %s', self._language_menu_button.get_label())
             self.button2.set_font(self.button2.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
             self._fontsize_adjustment.set_value(int(FONTSIZE))
         else:
@@ -421,6 +426,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                    + self.sample_text_selector(
                                        self._language_menu_button.get_label())
                                    + '</span>')
+            LOGGER.info('lang from language list: %s', self._language_menu_button.get_label())
             self._fontsize_adjustment.set_value(int(FONTSIZE))
         self.entry.handler_block(self.entry.changed_signal_id)
         self.entry.set_text(self.label1.get_text())
