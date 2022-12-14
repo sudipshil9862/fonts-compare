@@ -160,8 +160,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self._main_menu_popover.set_child(main_menu_popover_vbox)
 
-        self.label_language_menu_button = Gtk.Label(label='Use Language')
-        header_bar.pack_start(self.label_language_menu_button)
+        #self.label_language_menu_button = Gtk.Label(label='Use Language')
+        #header_bar.pack_start(self.label_language_menu_button)
         self._language_menu_button = Gtk.MenuButton(label='en')
         self._language_menu_button.set_has_tooltip(True)
         self._language_menu_button.set_tooltip_text('Use language')
@@ -191,77 +191,45 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.vbox.props.halign = Gtk.Align.CENTER
-        self.vbox.set_margin_top(25)
+        self.vbox.set_margin_top(5)
+        self.vbox.set_margin_bottom(5)
 
-        self.vbox_labels = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        self.vbox_labels.props.halign = Gtk.Align.CENTER
-        self.vbox_labels.set_spacing(0)
+        self.hbox_button1 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        self.hbox_button1.set_spacing(0)
+        self.hbox_button1.props.halign = Gtk.Align.CENTER
 
         self.hbox_button2 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.hbox_button2.set_margin_top(10)
+        self.hbox_button2.set_spacing(0)
         self.hbox_button2.props.halign = Gtk.Align.CENTER
 
-        self.vbox_last = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        self.vbox_last.set_margin_top(0)
-        self.vbox_last.set_margin_bottom(20)
-        self.vbox_last.props.halign = Gtk.Align.CENTER
-
-        self.vbox_error_note = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        self.vbox_error_note.set_margin_top(20)
-        self.vbox_error_note.set_margin_bottom(20)
-        self.vbox_error_note.props.halign = Gtk.Align.CENTER
-
-        self.hbox1 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.hbox1.set_margin_top(10)
-        self.hbox1.props.halign = Gtk.Align.CENTER
-
-        self.hbox2 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.hbox2.set_margin_top(10)
-        self.hbox2.props.halign = Gtk.Align.CENTER
-
-        self.hbox3 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.hbox3.set_margin_top(10)
-        self.hbox3.props.halign = Gtk.Align.CENTER
-
-        self.hbox4 = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.hbox4.set_margin_top(10)
-        self.hbox4.props.halign = Gtk.Align.CENTER
-
         self.hbox_adjustment = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.hbox_adjustment.set_margin_top(10)
+        self.hbox_adjustment.set_spacing(0)
         self.hbox_adjustment.props.halign = Gtk.Align.CENTER
 
-
         self.hbox_entry_label = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.hbox_entry_label.set_margin_top(10)
-
+        self.hbox_entry_label.set_spacing(0)
 
         self.entry = Gtk.Entry()
-        self.label_entry_define = Gtk.Label(label="  Type Here")
-        self.label3 = Gtk.Label(label="")
+        self.label_entry_define = Gtk.Label(label="Type Here")
+        self.label_langdetect = Gtk.Label(label="")
         self.hbox_entry_label.append(self.label_entry_define)
         self.vbox.append(self.hbox_entry_label)
         self.vbox.append(self.entry)
-        self.vbox.append(self.label3)
+        self.vbox.append(self.label_langdetect)
 
         self.label_error = Gtk.Label()
-        self.vbox_error_note.append(self.label_error)
-        self.vbox.append(self.vbox_error_note)
+        self.vbox.append(self.label_error)
 
         self.label1 = Gtk.Label()
         self.button1 = Gtk.FontButton.new()
-        self.fontbutton(self.label1, self.button1, self.hbox1)
-        self.vbox.append(self.hbox1)
-        #self.vbox.append(self.label1)
-        self.vbox_labels.append(self.label1)
+        self.fontbutton(self.label1, self.button1, self.hbox_button1)
+        self.vbox.append(self.hbox_button1)
+        self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
         self.button2 = Gtk.FontButton.new()
         self.fontbutton(self.label2, self.button2, self.hbox_button2)
-        #self.vbox.append(self.label2)
-        self.vbox_labels.append(self.label2)
-        self.vbox.append(self.vbox_labels)
-        self.vbox_last.append(self.hbox_button2)
-        self.vbox.append(self.vbox_last)
+        self.vbox.append(self.label2)
+        self.vbox.append(self.hbox_button2)
         temp_random_font = self.get_random_font_family_for_language('en')
         self.label2.set_markup('<span font="'+temp_random_font
                                +' '+FONTSIZE+'"' + FALLPARAM
@@ -275,12 +243,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.entry.changed_signal_id = self.entry.connect(
             'notify::text', self.on_entry_changed)
 
-        self.label_slider = Gtk.Label()
-        self.label_slider.set_markup('<span font="'+self.get_default_font_family_for_language('en')
+        self.label_fontsize_spin_button = Gtk.Label()
+        self.label_fontsize_spin_button.set_markup('<span font="'+self.get_default_font_family_for_language('en')
                                      +' '+'12'+'"' + FALLPARAM
                                      + '\nSelect FontSize'
                                      + '</span>')
-        #self.vbox_last.append(self.slider)
 
         #jft - increment decrement widget font size
         self._fontsize_spin_button = Gtk.SpinButton()
@@ -300,8 +267,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.on_fontsize_adjustment_value_changed,
             self.button1_family, self.button2_family)
         self.hbox_adjustment.append(self._fontsize_spin_button)
-        self.vbox_last.append(self.label_slider)
-        self.vbox_last.append(self.hbox_adjustment)
+        self.vbox.append(self.label_fontsize_spin_button)
+        self.vbox.append(self.hbox_adjustment)
 
 
         text = self.label1.get_text()
@@ -313,7 +280,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             lc_messages_lang = lc_messages.split('_')[0]
         label_lang_full_form = langtable.language_name(
                 languageId=lang, languageIdQuery=lc_messages)
-        self.label3.set_markup(
+        self.label_langdetect.set_markup(
                 f'<span font="{self.get_default_font_family_for_language(lc_messages_lang)} '
                 f'{LABEL3_FONT}" {FALLPARAM}{label_lang_full_form}</span>')
 
@@ -358,7 +325,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                + '</span>')
 
         #wrapping text if font size greater than 40
-        if int(self._fontsize_adjustment.get_value()) > 50:
+        if (self.switch_sample_text.get_state()==True) and (int(self._fontsize_adjustment.get_value()) > 50):
             self.label1.set_wrap(True)
             self.label2.set_wrap(True)
 
@@ -573,9 +540,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.entry.set_position(-1)
         self.entry.grab_focus_without_selecting()
         self.entry.handler_unblock(self.entry.changed_signal_id)
-        #set_preview_text means -
-        #Setting the sample text for specific selected language
-        #into the sample text field section at the bottom of the Gtk font selection dialog
         self.button1.set_preview_text(text)
         self.button2.set_preview_text(text)
         self.set_font(language_id, text)
@@ -587,10 +551,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 languageId=language_id,
                 languageIdQuery=lc_messages)
         LOGGER.debug('label_lang_full_form=%s', label_lang_full_form)
-        LOGGER.debug('label3 local lang=%s, label3 font=%s',
+        LOGGER.debug('label_langdetect local lang=%s, label3 font=%s',
                      lc_messages_lang,
                      self.get_default_font_family_for_language(lc_messages_lang))
-        self.label3.set_markup('<span font="'+
+        self.label_langdetect.set_markup('<span font="'+
                                self.get_default_font_family_for_language(lc_messages_lang)
                                +' '+LABEL3_FONT+'"' + FALLPARAM
                                + label_lang_full_form + '</span>')
@@ -639,7 +603,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         While typing on gtk entry box, the language is detected
         automatically time and then the font family and fontsize to
-        display the text on label3 is changed accordingly.
+        display the text on label_langdetect is changed accordingly.
         '''
         text = widget.get_text()
         lang = self.detect_language(text)
@@ -651,7 +615,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         label_lang_full_form = langtable.language_name(
                 languageId=lang, languageIdQuery=lc_messages)
         LOGGER.info('label_lang full form=%s',label_lang_full_form)
-        self.label3.set_markup('<span font="'
+        self.label_langdetect.set_markup('<span font="'
                                +self.get_default_font_family_for_language(lc_messages_lang)
                                +' '+LABEL3_FONT+'"' + FALLPARAM
                                + label_lang_full_form + '</span>')
@@ -692,7 +656,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         when we select a perticular langugage from the drop-down..
         if it's bengali then take one bengali text,
         setting up bengali fonts on set_font function,
-        display the language full form in label3 depends upon
+        display the language full form in label_langdetect depends upon
         which is the default langugage for the user have
         '''
         lang = wid.get_active_text()
@@ -706,9 +670,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.entry.set_position(-1)
         self.entry.grab_focus_without_selecting()
         self.entry.handler_unblock(self.entry.changed_signal_id)
-        #set_preview_text means -
-        #Setting the sample text for specific selected language
-        #into the sample text field section at the bottom of the Gtk font selection dialog
         self.button1.set_preview_text(text)
         self.button2.set_preview_text(text)
         self.set_font(lang, text)
@@ -720,9 +681,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 languageId=lang,
                 languageIdQuery=lc_messages)
         LOGGER.debug('label_lang_full_form=%s', label_lang_full_form)
-        LOGGER.debug('label3 local lang=%s, label3 font=%s',
+        LOGGER.debug('label_langdetect local lang=%s, label3 font=%s',
                      lc_messages_lang, self.get_default_font_family_for_language(lc_messages_lang))
-        self.label3.set_markup('<span font="'
+        self.label_langdetect.set_markup('<span font="'
                                +self.get_default_font_family_for_language(lc_messages_lang)
                                +' '+LABEL3_FONT+'"' + FALLPARAM
                                + label_lang_full_form + '</span>')
@@ -814,7 +775,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 LOGGER.info('fonts are not installed for %s language',lang)
                 #error level show no font installed
                 label_error_text = "NOTE : fonts are not installed for " + lang + " language"
-                #self.label_error.set_text(label_error_text)
                 self.label_error.set_markup('<span foreground='+"'red'"+ 'font="'
                                             +self.get_default_font_family_for_language('en')
                          +' '+'10'+'"' + FALLPARAM
@@ -1007,18 +967,10 @@ def list_languages() -> List[str]:
     langtable, fontconfig, and glibc.
     '''
     languages: List[str] = []
-    #languages: []
-    #languages = list_languages_python()
     languages = list_languages_fontconfig()
-    #for lang in list_languages_fontconfig():
-    #    if lang not in languages:
-    #        languages.append(lang)
     for lang in list_languages_glibc():
         if lang not in languages:
             languages.append(lang)
-    #for lang in list_languages_python():
-    #    if lang not in languages:
-    #        languages.append(lang)
     for lang in list_languages_langtable():#jft
         if lang not in languages:
             languages.append(lang)
@@ -1213,10 +1165,6 @@ if __name__ == '__main__':
         LOGGER.addHandler(LOG_HANDLER)
     else:
         LOG_HANDLER_NULL = logging.NullHandler()
-    #getting width, height of entire screen
-    #width = Gtk.screen_width()
-    #print('width of screen ',width)
-    #print('height of screen ',height)
     list_dropdown = sorted(list_languages())
     app = Gtk.Application(application_id='org.gtk.Example')
     app.connect('activate', on_activate)
