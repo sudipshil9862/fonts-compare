@@ -543,12 +543,15 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button1.set_preview_text(text)
         self.button2.set_preview_text(text)
         self.set_font(language_id, text)
+        #detect language by langdetect
+        text = self.entry.get_text()
+        lang = self.detect_language(text)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = 'en'
         if lc_messages:
             lc_messages_lang = lc_messages.split('_')[0]
         label_lang_full_form = langtable.language_name(
-                languageId=language_id,
+                languageId=lang,
                 languageIdQuery=lc_messages)
         LOGGER.debug('label_lang_full_form=%s', label_lang_full_form)
         LOGGER.debug('label_langdetect local lang=%s, label3 font=%s',
@@ -650,43 +653,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     self.get_default_font_family_for_language(lang)
                     +' '+ FONTSIZE)
             LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
-
-    def on_changed(self, wid: Gtk.ComboBoxText) -> None:
-        '''
-        when we select a perticular langugage from the drop-down..
-        if it's bengali then take one bengali text,
-        setting up bengali fonts on set_font function,
-        display the language full form in label_langdetect depends upon
-        which is the default langugage for the user have
-        '''
-        lang = wid.get_active_text()
-        LOGGER.info('%s is selected from drop-down',lang)
-        self._language_menu_button.set_label(lang)
-        LOGGER.info('%s is selected from header bar language list',
-                    self._language_menu_button.get_label())
-        text = self.sample_text_selector(lang)
-        self.entry.handler_block(self.entry.changed_signal_id)
-        self.entry.set_text(text)
-        self.entry.set_position(-1)
-        self.entry.grab_focus_without_selecting()
-        self.entry.handler_unblock(self.entry.changed_signal_id)
-        self.button1.set_preview_text(text)
-        self.button2.set_preview_text(text)
-        self.set_font(lang, text)
-        lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
-        lc_messages_lang = 'en'
-        if lc_messages:
-            lc_messages_lang = lc_messages.split('_')[0]
-        label_lang_full_form = langtable.language_name(
-                languageId=lang,
-                languageIdQuery=lc_messages)
-        LOGGER.debug('label_lang_full_form=%s', label_lang_full_form)
-        LOGGER.debug('label_langdetect local lang=%s, label3 font=%s',
-                     lc_messages_lang, self.get_default_font_family_for_language(lc_messages_lang))
-        self.label_langdetect.set_markup('<span font="'
-                               +self.get_default_font_family_for_language(lc_messages_lang)
-                               +' '+LABEL3_FONT+'"' + FALLPARAM
-                               + label_lang_full_form + '</span>')
 
     def detect_language(self, text: str) -> str:
         '''
