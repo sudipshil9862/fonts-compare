@@ -144,6 +144,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._main_menu_quit_button = Gtk.Button(label='Quit')
         self._main_menu_quit_button.connect('clicked', self._on_quit_button_clicked)
         main_menu_popover_vbox.append(self._main_menu_quit_button)
+  
         self._main_menu_popover.set_child(main_menu_popover_vbox)
 
         #self.label_language_menu_button = Gtk.Label(label='Use Language')
@@ -197,21 +198,25 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self.entry = Gtk.Entry()
         self.label_entry_define = Gtk.Label(label="Type Here")
-        self.label_langdetect = Gtk.Label(label="")
         self.hbox_entry_label.append(self.label_entry_define)
         self.vbox.append(self.hbox_entry_label)
         self.vbox.append(self.entry)
-        self.vbox.append(self.label_langdetect)
 
         self.label_error = Gtk.Label()
         self.vbox.append(self.label_error)
 
         self.label1 = Gtk.Label()
+        self.label1.set_natural_wrap_mode(True)
+        self.label1.set_justify(Gtk.Justification.FILL)
+        self.label1.set_max_width_chars(32)
         self.button1 = Gtk.FontButton.new()
         self.fontbutton(self.label1, self.button1, self.hbox_button1)
         self.vbox.append(self.hbox_button1)
         self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
+        self.label2.set_natural_wrap_mode(True)
+        self.label2.set_justify(Gtk.Justification.FILL)
+        self.label2.set_max_width_chars(32)
         self.button2 = Gtk.FontButton.new()
         self.fontbutton(self.label2, self.button2, self.hbox_button2)
         self.vbox.append(self.label2)
@@ -256,7 +261,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.vbox.append(self.label_fontsize_spin_button)
         self.vbox.append(self.hbox_adjustment)
 
-
         text = self.label1.get_text()
         lang = self.detect_language(text)
         LOGGER.info('label1: text=%s lang=%s', text,lang)
@@ -266,10 +270,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             lc_messages_lang = lc_messages.split('_')[0]
         label_lang_full_form = langtable.language_name(
                 languageId=lang, languageIdQuery=lc_messages)
-        self.label_langdetect.set_markup(
-                f'<span font="{self.get_default_font_family_for_language(lc_messages_lang)} '
-                f'{LABEL3_FONT}" {FALLPARAM}{label_lang_full_form}</span>')
-
+        self._language_menu_button.set_tooltip_text(label_lang_full_form)
+ 
         self.set_resizable(True)
         self.set_child(self.vbox)
 
@@ -311,7 +313,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                + '</span>')
 
         #wrapping text if font size greater than 40
-        if (self.pango_sample_text_checkbox.get_active()==True) and (int(self._fontsize_adjustment.get_value()) > 50):
+        if (self.pango_sample_text_checkbox.get_active()==True) and (int(self._fontsize_adjustment.get_value()) > 40):
             self.label1.set_wrap(True)
             self.label2.set_wrap(True)
 
@@ -540,14 +542,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 languageId=lang,
                 languageIdQuery=lc_messages)
         LOGGER.debug('label_lang_full_form=%s', label_lang_full_form)
-        LOGGER.debug('label_langdetect local lang=%s, label3 font=%s',
-                     lc_messages_lang,
-                     self.get_default_font_family_for_language(lc_messages_lang))
-        self.label_langdetect.set_markup('<span font="'+
-                               self.get_default_font_family_for_language(lc_messages_lang)
-                               +' '+LABEL3_FONT+'"' + FALLPARAM
-                               + label_lang_full_form + '</span>')
-
+        self._language_menu_button.set_tooltip_text(label_lang_full_form)
+        
     def _on_language_menu_popover_show(self, popover: Gtk.Popover) -> None:
         '''Called when the language menu popover is shown'''
         LOGGER.debug('Language menu popover is shown')
@@ -604,10 +600,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         label_lang_full_form = langtable.language_name(
                 languageId=lang, languageIdQuery=lc_messages)
         LOGGER.info('label_lang full form=%s',label_lang_full_form)
-        self.label_langdetect.set_markup('<span font="'
-                               +self.get_default_font_family_for_language(lc_messages_lang)
-                               +' '+LABEL3_FONT+'"' + FALLPARAM
-                               + label_lang_full_form + '</span>')
+        self._language_menu_button.set_tooltip_text(label_lang_full_form)
         if lang in list_dropdown:
             self.button1.set_preview_text(langtable.language_name(
                 languageId=lang, languageIdQuery=lang))
@@ -870,6 +863,9 @@ def list_languages_glibc() -> List[str]:
             lang += '_' + locale_object.territory
         if lang not in languages:
             languages.append(lang)
+    languages = [x for x in languages
+                 if not ('_' in x)]
+    LOGGER.info('glibc languages:- %s',languages)
     return languages
 
 def list_languages_fontconfig() -> List[str]:
