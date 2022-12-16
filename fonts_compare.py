@@ -137,6 +137,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.pango_sample_text_checkbox.connect('toggled', self.pango_sample_text_checkbox_on_changed)
         main_menu_popover_vbox.append(self.pango_sample_text_checkbox)
 
+        #fallback in menu
+        self.fallback_checkbox = Gtk.CheckButton.new_with_label('Fallback')
+        self.fallback_checkbox.set_active(False)
+        self.fallback_checkbox.connect('toggled', self.fallback_checkbox_on_changed)
+        main_menu_popover_vbox.append(self.fallback_checkbox)
+
         self._main_menu_about_button = Gtk.Button(label='About')
         self._main_menu_about_button.connect('clicked', self._on_about_button_clicked)
         main_menu_popover_vbox.append(self._main_menu_about_button)
@@ -312,8 +318,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                + temp_label2_text
                                + '</span>')
 
-        #wrapping text if font size greater than 40
-        if (self.pango_sample_text_checkbox.get_active()==True) and (int(self._fontsize_adjustment.get_value()) > 40):
+        #wrapping text if font size greater than 60
+        if (self.pango_sample_text_checkbox.get_active()==True) and (int(self._fontsize_adjustment.get_value()) > 60):
             self.label1.set_wrap(True)
             self.label2.set_wrap(True)
 
@@ -336,6 +342,30 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         button.set_font(temp_label_button_font + ' ' + FONTSIZE)
         boxh.append(button)
 
+
+    def fallback_checkbox_on_changed(
+            self,
+            _checkbutton: Gtk.CheckButton) -> None:
+        '''
+        function to change fallback as True
+        '''
+        global FALLPARAM
+        state = self.fallback_checkbox.get_active()
+        if state:
+            FALLPARAM = 'fallback="true">'
+            LOGGER.info('fallback checked %s',state)
+        else:
+            FALLPARAM = 'fallback="false">'
+            LOGGER.info('fallback checked %s',state)
+        self.label1.set_markup('<span font="'+self.button1.get_font()
+                                   +'"' + FALLPARAM
+                                   + self.label1.get_text()
+                                   + '</span>')
+        self.label2.set_markup('<span font="'+self.button2.get_font()
+                                   +'"' + FALLPARAM
+                                   + self.label2.get_text()
+                                   + '</span>')
+
     def pango_sample_text_checkbox_on_changed(
             self,
             _checkbutton: Gtk.CheckButton) -> None:
@@ -351,38 +381,26 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             FONTSIZE = '20'
             LOGGER.info('pango font = %s',FONTSIZE)
             #instant label1 and label2 change after switch change
-            self.label1.set_markup('<span font="'+self.button1.get_font().rsplit(' ',1)[0]
-                                   +' '+FONTSIZE+'"' + FALLPARAM
-                                   + self.sample_text_selector(
-                                       self._language_menu_button.get_label())
-                                   + '</span>')
-            self.button1.set_font(self.button1.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
-            self.label2.set_markup('<span font="'+self.button2.get_font().rsplit(' ',1)[0]
-                                   +' '+FONTSIZE+'"' + FALLPARAM
-                                   + self.sample_text_selector(
-                                       self._language_menu_button.get_label())
-                                   + '</span>')
-            LOGGER.info('lang from language list: %s', self._language_menu_button.get_label())
-            self.button2.set_font(self.button2.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
-            self._fontsize_adjustment.set_value(int(FONTSIZE))
         else:
             #False - sample_text by langtable.language_name
             FONTSIZE = '40'
             #self.pango_sample_text_checkbox.set_active(state)
             LOGGER.info('langtable font = %s',FONTSIZE)
-            #instant label1 and label2 change after switch change
-            self.label1.set_markup('<span font="'+self.button1.get_font()
-                                   +' '+FONTSIZE+'"' + FALLPARAM
-                                   + self.sample_text_selector(
-                                       self._language_menu_button.get_label())
-                                   + '</span>')
-            self.label2.set_markup('<span font="'+self.button2.get_font()
-                                   +' '+FONTSIZE+'"' + FALLPARAM
-                                   + self.sample_text_selector(
-                                       self._language_menu_button.get_label())
-                                   + '</span>')
-            LOGGER.info('lang from language list: %s', self._language_menu_button.get_label())
-            self._fontsize_adjustment.set_value(int(FONTSIZE))
+        #instant label1 and label2 change after switch change
+        self.label1.set_markup('<span font="'+self.button1.get_font().rsplit(' ',1)[0]
+                               +' '+FONTSIZE+'"' + FALLPARAM
+                               + self.sample_text_selector(
+                                   self._language_menu_button.get_label())
+                               + '</span>')
+        self.button1.set_font(self.button1.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
+        self.label2.set_markup('<span font="'+self.button2.get_font().rsplit(' ',1)[0]
+                               +' '+FONTSIZE+'"' + FALLPARAM
+                               + self.sample_text_selector(
+                                   self._language_menu_button.get_label())
+                               + '</span>')
+        LOGGER.info('lang from language list: %s', self._language_menu_button.get_label())
+        self.button2.set_font(self.button2.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
+        self._fontsize_adjustment.set_value(int(FONTSIZE))
         self.entry.handler_block(self.entry.changed_signal_id)
         self.entry.set_text(self.label1.get_text())
         self.entry.set_position(-1)
