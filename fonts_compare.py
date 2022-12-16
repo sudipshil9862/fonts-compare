@@ -180,6 +180,25 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             'show', self._on_language_menu_popover_show)
         self._language_menu_popover_language_ids: List[str] = []
 
+        #spin button in menu
+        self._fontsize_spin_button = Gtk.SpinButton()
+        self._fontsize_spin_button.set_numeric(True)
+        self._fontsize_spin_button.set_can_focus(True)
+        self._fontsize_spin_button.set_tooltip_text('Set font size')
+        self._fontsize_adjustment = Gtk.Adjustment()
+        self._fontsize_adjustment.set_lower(1)
+        self._fontsize_adjustment.set_upper(100)
+        self._fontsize_adjustment.set_value(int(FONTSIZE))
+        self._fontsize_adjustment.set_step_increment(1)
+        self._fontsize_spin_button.set_adjustment(self._fontsize_adjustment)
+        self.button1_family = ''
+        self.button2_family = ''
+        self._fontsize_adjustment.connect(
+            'value-changed',
+            self.on_fontsize_adjustment_value_changed,
+            self.button1_family, self.button2_family)
+        header_bar.pack_start(self._fontsize_spin_button)
+
         self.set_titlebar(header_bar)
 
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
@@ -246,27 +265,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                      + '\nSelect FontSize'
                                      + '</span>')
 
-        #jft - increment decrement widget font size
-        self._fontsize_spin_button = Gtk.SpinButton()
-        self._fontsize_spin_button.set_numeric(True)
-        self._fontsize_spin_button.set_can_focus(True)
-        self._fontsize_spin_button.set_tooltip_text('Set font size')
-        self._fontsize_adjustment = Gtk.Adjustment()
-        self._fontsize_adjustment.set_lower(1)
-        self._fontsize_adjustment.set_upper(100)
-        self._fontsize_adjustment.set_value(int(FONTSIZE))
-        self._fontsize_adjustment.set_step_increment(1)
-        self._fontsize_spin_button.set_adjustment(self._fontsize_adjustment)
-        self.button1_family = ''
-        self.button2_family = ''
-        self._fontsize_adjustment.connect(
-            'value-changed',
-            self.on_fontsize_adjustment_value_changed,
-            self.button1_family, self.button2_family)
-        self.hbox_adjustment.append(self._fontsize_spin_button)
-        self.vbox.append(self.label_fontsize_spin_button)
-        self.vbox.append(self.hbox_adjustment)
-
+        
         text = self.label1.get_text()
         lang = self.detect_language(text)
         LOGGER.info('label1: text=%s lang=%s', text,lang)
