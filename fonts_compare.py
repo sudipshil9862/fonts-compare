@@ -214,10 +214,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.hbox_button2.set_spacing(0)
         self.hbox_button2.props.halign = Gtk.Align.CENTER
 
-        self.hbox_adjustment = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.hbox_adjustment.set_spacing(0)
-        self.hbox_adjustment.props.halign = Gtk.Align.CENTER
-
         self.hbox_entry_label = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.hbox_entry_label.set_spacing(0)
 
@@ -259,13 +255,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.entry.changed_signal_id = self.entry.connect(
             'notify::text', self.on_entry_changed)
 
-        self.label_fontsize_spin_button = Gtk.Label()
-        self.label_fontsize_spin_button.set_markup('<span font="'+self.get_default_font_family_for_language('en')
-                                     +' '+'12'+'"' + FALLPARAM
-                                     + '\nSelect FontSize'
-                                     + '</span>')
-
-        
         text = self.label1.get_text()
         lang = self.detect_language(text)
         LOGGER.info('label1: text=%s lang=%s', text,lang)
@@ -757,7 +746,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             LOGGER.info('Random font families=%s', families)
             last_family = ''
             if families:
-                last_family = families[-1:][0]
+                last_family = families[0] #take first one so that style doesn't come and actually fc-list gives the font and font-style for user's benefit
                 LOGGER.info('selected random font before confirm = %s',last_family)
             if not last_family:
                 return ''
@@ -882,7 +871,6 @@ def list_languages_glibc() -> List[str]:
             languages.append(lang)
     languages = [x for x in languages
                  if not ('_' in x)]
-    LOGGER.info('glibc languages:- %s',languages)
     return languages
 
 def list_languages_fontconfig() -> List[str]:
