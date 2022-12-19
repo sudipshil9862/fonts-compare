@@ -113,7 +113,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         init_ui contains all the containers, labels, buttons
         '''
-        self.set_title('Font Compare')
+        self.set_title('Fonts Compare')
 
         header_bar = Gtk.HeaderBar()
         header_bar.set_hexpand(True)
@@ -142,6 +142,25 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.fallback_checkbox.set_active(False)
         self.fallback_checkbox.connect('toggled', self.fallback_checkbox_on_changed)
         main_menu_popover_vbox.append(self.fallback_checkbox)
+        
+        #spin button in hamburger menu
+        self._fontsize_spin_button = Gtk.SpinButton()
+        self._fontsize_spin_button.set_numeric(True)
+        self._fontsize_spin_button.set_can_focus(True)
+        self._fontsize_spin_button.set_tooltip_text('Set font size')
+        self._fontsize_adjustment = Gtk.Adjustment()
+        self._fontsize_adjustment.set_lower(1)
+        self._fontsize_adjustment.set_upper(100)
+        self._fontsize_adjustment.set_value(int(FONTSIZE))
+        self._fontsize_adjustment.set_step_increment(1)
+        self._fontsize_spin_button.set_adjustment(self._fontsize_adjustment)
+        self.button1_family = ''
+        self.button2_family = ''
+        self._fontsize_adjustment.connect(
+            'value-changed',
+            self.on_fontsize_adjustment_value_changed,
+            self.button1_family, self.button2_family)
+        main_menu_popover_vbox.append(self._fontsize_spin_button)
 
         self._main_menu_about_button = Gtk.Button(label='About')
         self._main_menu_about_button.connect('clicked', self._on_about_button_clicked)
@@ -179,25 +198,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._language_menu_popover.connect(
             'show', self._on_language_menu_popover_show)
         self._language_menu_popover_language_ids: List[str] = []
-
-        #spin button in menu
-        self._fontsize_spin_button = Gtk.SpinButton()
-        self._fontsize_spin_button.set_numeric(True)
-        self._fontsize_spin_button.set_can_focus(True)
-        self._fontsize_spin_button.set_tooltip_text('Set font size')
-        self._fontsize_adjustment = Gtk.Adjustment()
-        self._fontsize_adjustment.set_lower(1)
-        self._fontsize_adjustment.set_upper(100)
-        self._fontsize_adjustment.set_value(int(FONTSIZE))
-        self._fontsize_adjustment.set_step_increment(1)
-        self._fontsize_spin_button.set_adjustment(self._fontsize_adjustment)
-        self.button1_family = ''
-        self.button2_family = ''
-        self._fontsize_adjustment.connect(
-            'value-changed',
-            self.on_fontsize_adjustment_value_changed,
-            self.button1_family, self.button2_family)
-        header_bar.pack_start(self._fontsize_spin_button)
 
         self.set_titlebar(header_bar)
 
