@@ -13,8 +13,8 @@ sudo dnf install fonts-compare
 --------------------------------------------------------------------
 #### Screenshot of Fonts Compare UI
 
-![fonts compare main ui screenshot](https://github.com/sudipshil9862/fonts-compare/blob/main/images/fonts_compare.png)
-![fonts compare menu options screenshot](https://github.com/sudipshil9862/fonts-compare/blob/main/images/fonts_compare_options.png)
+![fonts_compare](https://user-images.githubusercontent.com/66914502/210064749-961ae3c1-2959-4025-a000-fe9768b3ad0d.png)
+![fonts_compare_options](https://user-images.githubusercontent.com/66914502/210064754-c7b19960-3a43-4894-afec-6a75ff9754b7.png)
 
 ---------------------------------------------------------------------
 ### The font packages need to be installed:
