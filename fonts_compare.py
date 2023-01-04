@@ -195,7 +195,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         main_menu_popover_vbox.set_spacing(0)
 
         #checkbox in menu sample text
-        self.pango_sample_text_checkbox = Gtk.CheckButton.new_with_label('Pango Sample Text')
+        self.pango_sample_text_checkbox = Gtk.CheckButton.new_with_label('Pango sample text')
         self.pango_sample_text_checkbox.set_active(False)
         self.pango_sample_text_checkbox.connect('toggled',
                                                 self.pango_sample_text_checkbox_on_changed)

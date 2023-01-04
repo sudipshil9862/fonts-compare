@@ -1,6 +1,9 @@
 # Fonts-Compare
 ### This project is all about comparing different fonts of a particular language with respect to FontWeight, FontSize and FontStyle.
 
+#### Logo of fonts-compare
+![fonts-compare-logo](https://user-images.githubusercontent.com/66914502/210520747-b38b3e9a-d588-4dcd-ac71-940b485732ca.png)
+
 ### Fedora Copr Repository
 [fonts-compare copr link](https://copr.fedorainfracloud.org/coprs/sshil/fonts-compare/)
 ### To enable Copr repository use command:
@@ -10,11 +13,13 @@ sudo dnf copr enable sshil/fonts-compare
 ```
 sudo dnf install fonts-compare
 ```
---------------------------------------------------------------------
-#### Screenshot of Fonts Compare UI
+---------------------------------------------------------------------
+#### Screenshot of Fonts Compare UI and lohit vs noto fonts comparison for Indic languages
+[fonts-compare-lohit-vs-noto-comparison](https://sshil.fedorapeople.org/lohit-vs-noto-comparison.html)
 
-![fonts_compare](https://user-images.githubusercontent.com/66914502/210064749-961ae3c1-2959-4025-a000-fe9768b3ad0d.png)
-![fonts_compare_options](https://user-images.githubusercontent.com/66914502/210064754-c7b19960-3a43-4894-afec-6a75ff9754b7.png)
+---------------------------------------------------------------------
+#### Desktop entry file is also available
+Copy fonts-compare.desktop file to /usr/share/fonts-compare after enable copr repo
 
 ---------------------------------------------------------------------
 ### The font packages need to be installed:
