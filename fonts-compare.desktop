@@ -2,6 +2,9 @@
 Version=1.0.9
 Type=Application
 Terminal=false
+Comment=An program to compare fonts of different languages
 Exec=/usr/bin/fonts-compare
 Name=fonts compare
-Icon=/home/sshil/sudip/toolbox/fonts-compare/fonts-compare-logo.png
+Icon=fonts-compare
+StartupNotify=true
+Categories=GTK;Utility;
