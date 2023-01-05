@@ -1197,6 +1197,6 @@ if __name__ == '__main__':
     else:
         LOG_HANDLER_NULL = logging.NullHandler()
     list_dropdown = sorted(list_languages())
-    app = Gtk.Application(application_id='org.gtk.Example')
+    app = Gtk.Application(application_id='org.github.sudipshil9862.fonts-compare')
     app.connect('activate', on_activate)
     app.run(None)
