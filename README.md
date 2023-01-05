@@ -2,7 +2,7 @@
 ### This project is all about comparing different fonts of a particular language with respect to FontWeight, FontSize and FontStyle.
 
 #### Logo of fonts-compare
-![fonts-compare-logo](https://user-images.githubusercontent.com/66914502/210520747-b38b3e9a-d588-4dcd-ac71-940b485732ca.png)
+![fonts-compare](https://user-images.githubusercontent.com/66914502/210745953-3edfef4e-fe10-4ea4-b9f6-479f4e19a128.svg)
 
 ### Fedora Copr Repository
 [fonts-compare copr link](https://copr.fedorainfracloud.org/coprs/sshil/fonts-compare/)
