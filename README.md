@@ -4,6 +4,10 @@
 #### Logo of fonts-compare
 ![fonts-compare](https://user-images.githubusercontent.com/66914502/210745953-3edfef4e-fe10-4ea4-b9f6-479f4e19a128.svg)
 
+#### Screenshots of fonts-compare UI
+![fonts-compare](https://user-images.githubusercontent.com/66914502/210522532-a58fbb20-fed9-4017-9c8d-dc940535fa33.png)
+![fonts-compare](https://user-images.githubusercontent.com/66914502/210522535-83ac0065-43a5-4b5a-a0bc-9f14fdc61d25.png)
+
 ### Fedora Copr Repository
 [fonts-compare copr link](https://copr.fedorainfracloud.org/coprs/sshil/fonts-compare/)
 ### To enable Copr repository use command:
