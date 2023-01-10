@@ -76,6 +76,8 @@ class CustomDialog(Gtk.Dialog):
                 response_id=Gtk.ResponseType.CANCEL,
                 )
         btn_cancel.get_style_context().add_class(class_name='destructive-action')
+        
+        self.set_default_response(Gtk.ResponseType.OK)
 
         content_area = self.get_content_area()
         content_area.set_orientation(orientation=Gtk.Orientation.VERTICAL)
@@ -258,7 +260,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._language_menu_popover_scroll = Gtk.ScrolledWindow()
         self._language_menu_popover_scroll.set_policy(
                 Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        self._language_menu_popover_scroll.set_has_frame(True)
+        self._language_menu_popover_scroll.set_has_frame(False)
         self._language_menu_popover_scroll.set_hexpand(True)
         self._language_menu_popover_scroll.set_vexpand(True)
         self._language_menu_popover_scroll.set_propagate_natural_height(True)
@@ -563,8 +565,19 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             text_to_match = locale_text_to_match(language_id)
             filter_match = True
             for filter_word in filter_words:
-                if filter_word not in text_to_match:
-                    filter_match = False
+                if filter_word == filter_words[0]:
+                    a = text_to_match.split(' ')
+                    a = [ele for ele in a if ele]
+                    #print(a)
+                    count = 0
+                    for i in a:
+                        if i[0] == filter_word:
+                            count += 1
+                    if count == 0:
+                        filter_match = False
+                else:
+                    if filter_word not in text_to_match:
+                        filter_match = False
             if filter_match:
                 self._language_menu_popover_language_ids.append(language_id)
                 rows.append(
@@ -573,11 +586,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             label = Gtk.Label()
             label.set_text(row)
             label.set_xalign(0)
-            margin = 1
-            label.set_margin_start(margin)
-            label.set_margin_end(margin)
-            label.set_margin_top(margin)
-            label.set_margin_bottom(margin)
             listbox.append(label)
         listbox.connect(
                 'row-selected',
@@ -620,22 +628,16 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         if popover is None:
             LOGGER.error('popover is None, should never happen')
             return
-        vbox = Gtk.Box()
-        vbox.set_orientation(Gtk.Orientation.VERTICAL)
-        margin = 12
-        vbox.set_margin_start(margin)
-        vbox.set_margin_end(margin)
-        vbox.set_margin_top(margin)
-        vbox.set_margin_bottom(margin)
-        vbox.set_spacing(margin)
+        vbox_language_dropdown = Gtk.Box()
+        vbox_language_dropdown.set_orientation(Gtk.Orientation.VERTICAL)
         label = Gtk.Label()
-        label.set_text('Select language')
+        label.set_text('Use language')
         label.set_halign(Gtk.Align.FILL)
-        vbox.append(label)
+        vbox_language_dropdown.append(label)
         search_entry = Gtk.SearchEntry()
         search_entry.set_can_focus(True)
         search_entry.set_halign(Gtk.Align.FILL)
-        vbox.append(search_entry)
+        vbox_language_dropdown.append(search_entry)
         search_entry.connect(
                 'search-changed', self._on_language_search_entry_changed)
         self._language_menu_popover_listbox_fill('')
@@ -650,8 +652,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         hadjustment.set_value(hadjustment.get_lower())
         vadjustment = self._language_menu_popover_scroll.get_vadjustment()
         vadjustment.set_value(vadjustment.get_lower())
-        vbox.append(self._language_menu_popover_scroll)
-        popover.set_child(vbox)
+        vbox_language_dropdown.append(self._language_menu_popover_scroll)
+        popover.set_child(vbox_language_dropdown)
 
     def label_button_set_after_entry_dialog_ok(self, text:str, lang:str):
         self.label1.set_text(text)
