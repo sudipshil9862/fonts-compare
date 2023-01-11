@@ -433,6 +433,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         LOGGER.info('lang from language list: %s', self._language_menu_button.get_label())
         self.button2.set_font(self.button2.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
         self._fontsize_adjustment.set_value(int(FONTSIZE))
+        self.set_default_size(200,200)
 
     def sample_text_selector(self, lang: str) -> str:
         '''
@@ -566,14 +567,14 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             filter_match = True
             for filter_word in filter_words:
                 if filter_word == filter_words[0]:
-                    a = text_to_match.split(' ')
-                    a = [ele for ele in a if ele]
-                    #print(a)
-                    count = 0
-                    for i in a:
-                        if i[0] == filter_word:
-                            count += 1
-                    if count == 0:
+                    text_to_match_words = text_to_match.split(' ')
+                    text_to_match_words = [element for element in text_to_match_words if element]
+                    print(text_to_match_words)
+                    count_first_letter_matched = 0
+                    for text_to_match_word in text_to_match_words:
+                        if text_to_match_word[0] == filter_word:
+                            count_first_letter_matched += 1
+                    if count_first_letter_matched == 0:
                         filter_match = False
                 else:
                     if filter_word not in text_to_match:
