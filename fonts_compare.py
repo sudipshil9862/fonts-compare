@@ -104,6 +104,7 @@ class CustomDialog(Gtk.Dialog):
             text = self.entry_edit_labels.get_text()
             lang = self.class_appwindow.detect_language(text)
             self.class_appwindow.label_button_set_after_entry_dialog_ok(text,lang)
+            self.class_appwindow.set_default_size_function()
         elif response == Gtk.ResponseType.CANCEL:
             print('pressed cancel')
         dialog.close()
@@ -322,6 +323,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 languageId=lang, languageIdQuery=lc_messages)
         self._language_menu_button.set_tooltip_text(label_lang_full_form)
 
+        self.set_default_size_function()
         self.set_resizable(True)
         self.set_child(self.vbox)
 
@@ -359,6 +361,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 int(self._fontsize_adjustment.get_value()) > 60):
             self.label1.set_wrap(True)
             self.label2.set_wrap(True)
+        self.set_default_size_function()
 
 
     def fontbutton(
@@ -433,7 +436,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         LOGGER.info('lang from language list: %s', self._language_menu_button.get_label())
         self.button2.set_font(self.button2.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
         self._fontsize_adjustment.set_value(int(FONTSIZE))
-        self.set_default_size(200,200)
+        self.set_default_size_function()
+        self._main_menu_popover.popdown()
+    
+    def set_default_size_function(self):
+        self.set_default_size(300,200)
 
     def sample_text_selector(self, lang: str) -> str:
         '''
@@ -485,6 +492,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button2.set_font(temp_label2_font +' '
                               + str(int(self._fontsize_adjustment.get_value())))
         LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
+        self.set_default_size_function()
 
 
 
@@ -535,8 +543,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self, search_entry: Gtk.SearchEntry) -> None:
         '''Called when the text in the language search entry changes'''
         LOGGER.debug('Language search entry changed')
-        filter_text = search_entry.get_text()
+        filter_text = self.search_entry.get_text()
         self._language_menu_popover_listbox_fill(filter_text)
+
 
     def _language_menu_popover_listbox_fill_row(self, language_id: str) -> str:
         '''Formats the text of a line in the listbox of languages'''
@@ -565,21 +574,28 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         for language_id in sorted(list_languages()):
             text_to_match = locale_text_to_match(language_id)
             filter_match = True
-            for filter_word in filter_words:
-                if filter_word == filter_words[0]:
-                    text_to_match_words = text_to_match.split(' ')
-                    text_to_match_words = [element for element in text_to_match_words if element]
-                    print(text_to_match_words)
-                    count_first_letter_matched = 0
-                    for text_to_match_word in text_to_match_words:
-                        if text_to_match_word[0] == filter_word:
-                            count_first_letter_matched += 1
-                    if count_first_letter_matched == 0:
-                        filter_match = False
-                else:
-                    if filter_word not in text_to_match:
-                        filter_match = False
+            text_to_match_words = text_to_match.split(' ')
+            text_to_match_words = [element.replace("(","") for element in text_to_match_words if element]
+            text_to_match_words = [element.replace(")","") for element in text_to_match_words if element]
+            print(text_to_match_words)
+            str_filter_words = ' '.join([str(elem) for elem in filter_words])
+            length = len(str_filter_words)
+            make_list = []
+            for ele in text_to_match_words:
+                ele_str = ""
+                i=0
+                while (i != length and len(str(ele)) >= length):
+                    ele_str += ele[i]
+                    i += 1
+                make_list.append(ele_str)
+            if str_filter_words not in make_list:
+                filter_match = False
             if filter_match:
+                print('filter_words: ', filter_words)
+                print('str_filter_words: ', length)
+                print(make_list)
+                print('length of make_list ',len(make_list))
+                print('filter_words are in make_list')
                 self._language_menu_popover_language_ids.append(language_id)
                 rows.append(
                         self._language_menu_popover_listbox_fill_row(language_id))
@@ -592,6 +608,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 'row-selected',
                 self._on_language_menu_popover_listbox_row_selected)
         self._language_menu_popover_scroll.set_child(listbox)
+
 
     def _on_language_menu_popover_listbox_row_selected(
             self, _listbox: Gtk.ListBox, listbox_row: Gtk.ListBoxRow) -> None:
@@ -635,11 +652,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         label.set_text('Use language')
         label.set_halign(Gtk.Align.FILL)
         vbox_language_dropdown.append(label)
-        search_entry = Gtk.SearchEntry()
-        search_entry.set_can_focus(True)
-        search_entry.set_halign(Gtk.Align.FILL)
-        vbox_language_dropdown.append(search_entry)
-        search_entry.connect(
+        self.search_entry = Gtk.SearchEntry()
+        self.search_entry.set_can_focus(True)
+        self.search_entry.set_halign(Gtk.Align.FILL)
+        vbox_language_dropdown.append(self.search_entry)
+        self.search_entry.changed_signal_id = self.search_entry.connect(
                 'search-changed', self._on_language_search_entry_changed)
         self._language_menu_popover_listbox_fill('')
         if self._language_menu_popover_scroll.get_parent():
@@ -689,8 +706,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     self.get_default_font_family_for_language(lang)
                     +' '+ FONTSIZE)
             LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
-
-
+        self.set_default_size_function()
 
     def on_entry_changed(self, widget: Gtk.Entry, _property_spec: Any) -> None:
         '''Called when the text in the entry has changed.
@@ -1141,6 +1157,7 @@ def locale_text_to_match(locale_id: str) -> str:
         ...     # unneeded return value assigned to variable
     ...     _ = os.environ.pop('LC_ALL', None)
     '''
+    dic_language_alternative_names = {'bn':['Bengali', 'bn_IN', 'bn_BD'], 'bn_IN':['Bengali', 'bn_IN', 'bn_BD'], 'bn_BD':['Bengali', 'bn_IN', 'bn_BD'], 'gu':['Gujarati','Gujerati','Gujrati'], 'ja':['japanese','jp','cjk'], 'ko':['korean','ko','cjk'], 'hi':['Devanagari','hindi','hindu','Hindoostani', 'Hindostani'], 'ml':['malayalam','meera'], 'mr':['marathi','maratha','shivaji','ganesh'], 'or':['oriya','odia'], 'pa':['panjabi','punjabi','gurmukhi']}
     effective_lc_messages = get_effective_lc_messages()
     text_to_match = locale_id.replace(' ', '')
     query_languages = [effective_lc_messages, locale_id, 'en']
@@ -1149,6 +1166,8 @@ def locale_text_to_match(locale_id: str) -> str:
             text_to_match += ' ' + langtable.language_name(
                     languageId=locale_id,
                     languageIdQuery=query_language)
+    if locale_id in dic_language_alternative_names.keys():
+        text_to_match += ' ' + ' '.join([str(ele) for ele in dic_language_alternative_names[locale_id] if ele])
     return remove_accents(text_to_match).lower()
 
 def locale_language_description(locale_id: str) -> str:
