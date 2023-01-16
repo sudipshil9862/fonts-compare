@@ -290,6 +290,15 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.label_error = Gtk.Label()
         self.vbox.append(self.label_error)
 
+        self.label_jft = Gtk.Label(label="乇乂丅尺卂 丅卄工匚匚 ")
+        self.button_main_jft = Gtk.FontDialog.new()
+        self.button_chooser_jft = Gtk.FontDialogButton.new(self.button_main_jft)
+        pl = Pango.language_from_string('Japanese')
+        self.button_main_jft.set_language(pl)
+        LOGGER.info('get_language: %s',self.button_main_jft.get_language().to_string())
+        self.vbox.append(self.label_jft)
+        self.vbox.append(self.button_chooser_jft)
+        
         self.label1 = Gtk.Label()
         self.label1.set_selectable(True)
         self.label1.set_natural_wrap_mode(True)
