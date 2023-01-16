@@ -1157,7 +1157,7 @@ def locale_text_to_match(locale_id: str) -> str:
         ...     # unneeded return value assigned to variable
     ...     _ = os.environ.pop('LC_ALL', None)
     '''
-    dic_language_alternative_names = {'bn':['Bengali', 'bn_IN', 'bn_BD'], 'bn_IN':['Bengali', 'bn_IN', 'bn_BD'], 'bn_BD':['Bengali', 'bn_IN', 'bn_BD'], 'gu':['Gujarati','Gujerati','Gujrati'], 'ja':['japanese','jp','cjk'], 'ko':['korean','ko','cjk'], 'hi':['Devanagari','hindi','hindu','Hindoostani', 'Hindostani'], 'ml':['malayalam','meera'], 'mr':['marathi','maratha','shivaji','ganesh'], 'or':['oriya','odia'], 'pa':['panjabi','punjabi','gurmukhi']}
+    dic_language_alternative_names = {'bn':['Bengali', 'bn_IN', 'bn_BD','indic','india'], 'bn_IN':['Bengali', 'bn_IN', 'bn_BD','indic','india'], 'bn_BD':['Bengali', 'bn_IN', 'bn_BD','indic','india'], 'gu':['Gujarati','Gujerati','Gujrati','indic','india'], 'ja':['japanese','jp','cjk'], 'ko':['korean','ko','cjk'], 'hi':['Devanagari','hindi','hindu','Hindoostani', 'Hindostani','indic','india'], 'ml':['malayalam','meera','indic','india'], 'mr':['marathi','maratha','shivaji','ganesh','indic','india'], 'or':['oriya','odia','indic','india'], 'pa':['panjabi','punjabi','gurmukhi','indic','india'],'ks':['indic','india'],'brx':['india','indic'],'doi':['india','indic'],'kn':['india','indic'],'kok':['india','indic'],'mai':['india','indic'],'mni':['india','indic'],'ne':['india','indic'],'ta':['india','indic'],'te':['india','indic'],'sat':['india','indic'],'sd':['india','indic'],'ur':['india','indic'],'as':['india','indic']}
     effective_lc_messages = get_effective_lc_messages()
     text_to_match = locale_id.replace(' ', '')
     query_languages = [effective_lc_messages, locale_id, 'en']
