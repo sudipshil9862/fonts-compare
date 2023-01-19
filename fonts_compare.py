@@ -290,14 +290,23 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.label_error = Gtk.Label()
         self.vbox.append(self.label_error)
 
+        #---------------------------------------------------------------------------------
         self.label_jft = Gtk.Label(label="乇乂丅尺卂 丅卄工匚匚 ")
-        self.button_main_jft = Gtk.FontDialog.new()
-        self.button_chooser_jft = Gtk.FontDialogButton.new(self.button_main_jft)
+        #self.button_main_jft = Gtk.FontDialog.new()
+        font_dialog = Gtk.FontDialog()
+        self.font_button_dialog = Gtk.FontDialogButton.new(dialog=font_dialog)
         pl = Pango.language_from_string('Japanese')
-        self.button_main_jft.set_language(pl)
-        LOGGER.info('get_language: %s',self.button_main_jft.get_language().to_string())
+        self.font_button_dialog.set_language(pl)
+        LOGGER.info('get_language: %s',self.font_button_dialog.get_language().to_string())
+        
+        self.font_button_dialog.set_level(Gtk.FontLevel.FAMILY)
+        print(self.font_button_dialog.get_level())
+
+        self.font_button_dialog.set_font_desc(Pango.FontDescription("Noto Sans 12"))
+
         self.vbox.append(self.label_jft)
-        self.vbox.append(self.button_chooser_jft)
+        self.vbox.append(self.font_button_dialog)
+        #---------------------------------------------------------------------------------
         
         self.label1 = Gtk.Label()
         self.label1.set_selectable(True)
