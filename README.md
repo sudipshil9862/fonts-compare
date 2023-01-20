@@ -2,7 +2,7 @@
 ### This project is all about comparing different fonts of a particular language with respect to FontWeight, FontSize and FontStyle.
 
 #### Logo of fonts-compare
-![fonts-compare](https://user-images.githubusercontent.com/66914502/210745953-3edfef4e-fe10-4ea4-b9f6-479f4e19a128.svg)
+![fonts-compare](https://user-images.githubusercontent.com/66914502/213653980-9469d863-44dc-4765-8268-13ffa64a5906.svg)
 
 #### Screenshots of fonts-compare UI
 ![fonts-compare](https://user-images.githubusercontent.com/66914502/211294452-a07102d6-71e6-42ee-b676-4f9d31b5c7db.png)
