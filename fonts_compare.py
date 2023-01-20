@@ -317,6 +317,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         text = self.label1.get_text()
         lang = self.detect_language(text)
+        self._currently_selected_language = lang
         LOGGER.info('label1: text=%s lang=%s', text,lang)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         label_lang_full_form = langtable.language_name(
@@ -571,6 +572,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         listbox.set_activate_on_single_click(True)
         rows = []
         filter_words = remove_accents(filter_text.lower()).split()
+        currently_selected_visible = False
         for language_id in sorted(list_languages()):
             text_to_match = locale_text_to_match(language_id)
             filter_match = True
@@ -597,13 +599,19 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 print('length of make_list ',len(make_list))
                 print('filter_words are in make_list')
                 self._language_menu_popover_language_ids.append(language_id)
-                rows.append(
-                        self._language_menu_popover_listbox_fill_row(language_id))
+                if language_id != self._currently_selected_language:
+                    rows.append(
+                            self._language_menu_popover_listbox_fill_row(language_id))
+                else:
+                    rows.insert(0, self._language_menu_popover_listbox_fill_row(language_id))
+                    currently_selected_visible = True
         for row in rows:
             label = Gtk.Label()
             label.set_text(row)
             label.set_xalign(0)
             listbox.append(label)
+        if currently_selected_visible:
+            listbox.select_row(listbox.get_row_at_index(0))
         listbox.connect(
                 'row-selected',
                 self._on_language_menu_popover_listbox_row_selected)
@@ -618,6 +626,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             return
         index = listbox_row.get_index()
         language_id = self._language_menu_popover_language_ids[index]
+        self._currently_selected_language = language_id
         self._language_menu_popover.popdown()
         self._language_menu_button.set_label(language_id)
         self._language_menu_popover_language_ids = []
