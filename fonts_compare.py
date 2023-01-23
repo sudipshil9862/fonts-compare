@@ -331,7 +331,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.font_dialog_button1.set_dialog(self.button1)
         self.font_dialog_button1.connect('notify::font-desc', self.label_font_change, self.label1)
         self.fontbutton(self.label1, self.font_dialog_button1, self.hbox_button1)
-        self.font_dialog_button1.set_level(Gtk.FontLevel.FAMILY)
         self.font_dialog_button1.set_level(Gtk.FontLevel.FONT)
         self.custom_filter = GTKCustomFilter('en')
         self.button1.set_filter(self.custom_filter)
@@ -347,7 +346,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.font_dialog_button2.set_dialog(self.button1)
         self.font_dialog_button2.connect('notify::font-desc', self.label_font_change, self.label2)
         self.fontbutton(self.label2, self.font_dialog_button2, self.hbox_button2)
-        self.font_dialog_button2.set_level(Gtk.FontLevel.FAMILY)
         self.font_dialog_button2.set_level(Gtk.FontLevel.FONT)
         self.button2.set_filter(self.custom_filter)
         self.vbox.append(self.label2)
@@ -358,6 +356,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                +' '+FONTSIZE+'"' + FALLPARAM
                                + self.sample_text_selector('en')
                                + '</span>')
+        print(self.font_dialog_button2.get_font_desc().to_string())
         self.font_dialog_button2.set_font_desc(Pango.font_description_from_string(temp_random_font + ' ' + FONTSIZE))
         
         self.button1.set_title(self.font_dialog_button1.get_font_desc().to_string())
