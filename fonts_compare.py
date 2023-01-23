@@ -165,6 +165,30 @@ class FontsCompareAboutDialog(Gtk.AboutDialog): # type: ignore
         '''
         self.destroy()
 
+#custom filter
+class GTKCustomFilter(Gtk.CustomFilter):
+    def __init__(self, language_code):
+        super().__init__()
+        self.language_code = language_code
+        self.set_filter_func(self.font_filter)
+    #def filter_func(self, font_face):
+    #    print(font_face.describe().to_string())
+    def font_filter(self, font_face):
+        #font_pango_font_description = font_family.get_name()
+        font_pango_font_description = font_face.describe().to_string()
+        #current_lang = self._language_menu_button.get_label()
+        return self.font_support_language_filter(font_pango_font_description, self.language_code)
+    #font_support_language_filter
+    def font_support_language_filter(self, font, lang):
+        result = subprocess.run(["fc-list", font, "lang"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        output = ""
+        output = result.stdout
+        if not output.startswith(':lang='):
+            return False
+        langs = output.split('=')[1].split('|')
+        if lang in langs:
+            return True
+        return False
 
 class AppWindow(Gtk.ApplicationWindow): # type: ignore
     '''
@@ -313,7 +337,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.fontbutton(self.label1, self.font_dialog_button1, self.hbox_button1)
         self.font_dialog_button1.set_level(Gtk.FontLevel.FAMILY)
         self.font_dialog_button1.set_level(Gtk.FontLevel.FONT)
-        #self.button1.set_filter_func(self.font_filter)#jft
+        self.custom_filter = GTKCustomFilter('en')
+        self.button1.set_filter(self.custom_filter)
         self.vbox.append(self.hbox_button1)
         self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
@@ -328,7 +353,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.fontbutton(self.label2, self.font_dialog_button2, self.hbox_button2)
         self.font_dialog_button2.set_level(Gtk.FontLevel.FAMILY)
         self.font_dialog_button2.set_level(Gtk.FontLevel.FONT)
-        #self.button2.set_filter_func(self.font_filter)#jft
+        self.button2.set_filter(self.custom_filter)
         self.vbox.append(self.label2)
         self.vbox.append(self.hbox_button2)
 
@@ -354,26 +379,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.set_resizable(True)
         self.set_child(self.vbox)
 
-    #font_filter
-    def font_filter(self, font_family,font_face):
-        font_pango_font_description = font_family.get_name()
-        #print(font_pango_font_description)
-        current_lang = self._language_menu_button.get_label()
-        return self.font_support_language_filter(font_pango_font_description, current_lang)
-    #font_support_language_filter
-    def font_support_language_filter(self, font, lang):
-        result = subprocess.run(["fc-list", font, "lang"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        output = ""
-        output = result.stdout
-        langupdated = ""
-        langupdated = lang + "|"  #to know difference between 'ko' and 'kok'
-        if langupdated in output:
-            #LOGGER.info('%s support %s font',lang, font)
-            return True
-        else:
-            #LOGGER.info('%s dont support %s font',lang, font)
-            return False
-                
     #spin button font size change by adjustment increment decrement
     def on_fontsize_adjustment_value_changed(
             self,
@@ -435,6 +440,27 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                          + '</span>')
         dialogButton.set_font_desc(Pango.font_description_from_string(temp_label_button_font + ' ' + FONTSIZE))
         boxh.append(dialogButton)
+
+    @classmethod
+    def label_font_change(
+            self, dialogButton: Gtk.FontDialogButton, _param_spec: Any, label: Gtk.Label) -> None:
+        '''
+        font family and font size changes by font-button dialog
+        '''
+        pango_font_description = dialogButton.get_font_desc()
+        family = pango_font_description.get_family()
+        gravity = pango_font_description.get_gravity()
+        size = pango_font_description.get_size()
+        size_is_absolute = pango_font_description.get_size_is_absolute()
+        stretch = pango_font_description.get_stretch()
+        style = pango_font_description.get_style()
+        variant = pango_font_description.get_variant()
+        variations = pango_font_description.get_variations()
+        weight = pango_font_description.get_weight()
+        pango_attr_font_description = Pango.AttrFontDesc.new(pango_font_description)
+        pango_attr_list = Pango.AttrList.new()
+        pango_attr_list.insert(attr=pango_attr_font_description)
+        label.set_attributes(attrs=pango_attr_list)
 
 
     def fallback_checkbox_on_changed(
@@ -546,27 +572,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         sample_text = str(langtable.language_name(
             languageId=lang, languageIdQuery=lang))
         return sample_text
-
-    @classmethod
-    def label_font_change(
-            self, dialogButton: Gtk.FontDialogButton, _param_spec: Any, label: Gtk.Label) -> None:
-        '''
-        font family and font size changes by font-button dialog
-        '''
-        pango_font_description = dialogButton.get_font_desc()
-        family = pango_font_description.get_family()
-        gravity = pango_font_description.get_gravity()
-        size = pango_font_description.get_size()
-        size_is_absolute = pango_font_description.get_size_is_absolute()
-        stretch = pango_font_description.get_stretch()
-        style = pango_font_description.get_style()
-        variant = pango_font_description.get_variant()
-        variations = pango_font_description.get_variations()
-        weight = pango_font_description.get_weight()
-        pango_attr_font_description = Pango.AttrFontDesc.new(pango_font_description)
-        pango_attr_list = Pango.AttrList.new()
-        pango_attr_list.insert(attr=pango_attr_font_description)
-        label.set_attributes(attrs=pango_attr_list)
 
     def set_font(self, detect_lang: str, set_text: str) -> None:
         '''
@@ -680,7 +685,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             text_to_match_words = text_to_match.split(' ')
             text_to_match_words = [element.replace("(","") for element in text_to_match_words if element]
             text_to_match_words = [element.replace(")","") for element in text_to_match_words if element]
-            print(text_to_match_words)
             str_filter_words = ' '.join([str(elem) for elem in filter_words])
             length = len(str_filter_words)
             make_list = []
@@ -694,11 +698,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             if str_filter_words not in make_list:
                 filter_match = False
             if filter_match:
-                print('filter_words: ', filter_words)
-                print('str_filter_words: ', length)
-                print(make_list)
-                print('length of make_list ',len(make_list))
-                print('filter_words are in make_list')
                 self._language_menu_popover_language_ids.append(language_id)
                 if language_id != self._currently_selected_language:
                     rows.append(
@@ -731,8 +730,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._currently_selected_language = language_id
         self._language_menu_popover.popdown()
         self._language_menu_button.set_label(language_id)
-        #self.button1.set_filter_func(self.font_filter)
-        #self.button2.set_filter_func(self.font_filter)
+        current_lang = self._language_menu_button.get_label()
+        self.custom_filter = GTKCustomFilter(current_lang)
+        self.button1.set_filter(self.custom_filter)
+        self.button2.set_filter(self.custom_filter)
         self._language_menu_popover_language_ids = []
         LOGGER.info('language selected from menu = %s', language_id)
         text = self.sample_text_selector(language_id)
@@ -797,8 +798,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             #    languageId=lang, languageIdQuery=lang))
             self.set_font(lang, text)
             self._language_menu_button.set_label(lang)
-            #self.button1.set_filter_func(self.font_filter)
-            #self.button2.set_filter_func(self.font_filter)
+            current_lang = self._language_menu_button.get_label()
+            self.custom_filter = GTKCustomFilter(current_lang)
+            self.button1.set_filter(self.custom_filter)
+            self.button2.set_filter(self.custom_filter)
         elif not lang in list_dropdown:
             self.label1.set_markup('<span font="'
                                    +self.get_default_font_family_for_language(lang)
@@ -1283,20 +1286,20 @@ def locale_text_to_match(locale_id: str) -> str:
             'mr':['marathi','maratha','shivaji','ganesh','indic','india'],
             'or':['oriya','odia','indic','india'],
             'pa':['panjabi','punjabi','gurmukhi','indic','india'],
-            'ks':['indic','india'],
-            'brx':['india','indic'],
-            'doi':['india','indic'],
-            'kn':['india','indic'],
-            'kok':['india','indic'],
-            'mai':['india','indic'],
-            'mni':['india','indic'],
-            'ne':['india','indic'],
-            'ta':['india','indic'],
-            'te':['india','indic'],
-            'sat':['india','indic'],
-            'sd':['india','indic'],
-            'ur':['india','indic'],
-            'as':['india','indic']}
+            'ks':['Kashmiri','Kashmir','indic','india'],
+            'brx':['BODO','india','indic'],
+            'doi':['Dogri','india','indic'],
+            'kn':['Kannada','india','indic'],
+            'kok':['Konkani','india','indic'],
+            'mai':['Maithili','india','indic'],
+            'mni':['Manipuri','india','indic'],
+            'ne':['Nepali','india','indic'],
+            'ta':['Tamil','india','indic'],
+            'te':['Telugu','india','indic'],
+            'sat':['Santali','india','indic'],
+            'sd':['Sindhi','india','indic'],
+            'ur':['Urdu','india','indic'],
+            'as':['Assamese','Assam','india','indic']}
     effective_lc_messages = get_effective_lc_messages()
     text_to_match = locale_id.replace(' ', '')
     query_languages = [effective_lc_messages, locale_id, 'en']
