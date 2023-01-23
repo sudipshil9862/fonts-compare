@@ -171,12 +171,8 @@ class GTKCustomFilter(Gtk.CustomFilter):
         super().__init__()
         self.language_code = language_code
         self.set_filter_func(self.font_filter)
-    #def filter_func(self, font_face):
-    #    print(font_face.describe().to_string())
     def font_filter(self, font_face):
-        #font_pango_font_description = font_family.get_name()
         font_pango_font_description = font_face.describe().to_string()
-        #current_lang = self._language_menu_button.get_label()
         return self.font_support_language_filter(font_pango_font_description, self.language_code)
     #font_support_language_filter
     def font_support_language_filter(self, font, lang):
@@ -363,7 +359,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                + self.sample_text_selector('en')
                                + '</span>')
         self.font_dialog_button2.set_font_desc(Pango.font_description_from_string(temp_random_font + ' ' + FONTSIZE))
-        print(self.font_dialog_button2.get_font_desc().to_string())
+        
+        self.button1.set_title(self.font_dialog_button1.get_font_desc().to_string())
         self.button2.set_title(self.font_dialog_button2.get_font_desc().to_string())
 
         text = self.label1.get_text()
@@ -461,7 +458,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         pango_attr_list = Pango.AttrList.new()
         pango_attr_list.insert(attr=pango_attr_font_description)
         label.set_attributes(attrs=pango_attr_list)
-
 
     def fallback_checkbox_on_changed(
             self,
