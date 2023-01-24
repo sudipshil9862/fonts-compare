@@ -681,6 +681,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         vadjustment.set_value(vadjustment.get_lower())
         vbox_language_dropdown.append(self._language_menu_popover_scroll)
         popover.set_child(vbox_language_dropdown)
+        self.search_entry.grab_focus()
 
     def label_button_set_after_entry_dialog_ok(self, text:str, lang:str):
         self.label1.set_text(text)
