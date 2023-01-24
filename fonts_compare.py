@@ -210,6 +210,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.fallback_checkbox.connect('toggled', self.fallback_checkbox_on_changed)
         main_menu_popover_vbox.append(self.fallback_checkbox)
 
+        #dark theme in menu
+        self.darktheme_checkbox = Gtk.CheckButton.new_with_label('Dark theme')
+        self.darktheme_checkbox.set_active(False)
+        self.darktheme_checkbox.connect('toggled', self.darktheme_checkbox_on_changed)
+        main_menu_popover_vbox.append(self.darktheme_checkbox)
+
         #spin button in hamburger menu
         self._fontsize_spin_button = Gtk.SpinButton()
         self._fontsize_spin_button.set_numeric(True)
@@ -406,6 +412,22 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                +'"' + FALLPARAM
                                + self.label2.get_text()
                                + '</span>')
+    def darktheme_checkbox_on_changed(
+            self,
+            _checkbutton: Gtk.CheckButton) -> None:
+        '''
+        function to enable dark theme as True
+        '''
+        state = self.darktheme_checkbox.get_active()
+        if state:
+            LOGGER.info("Dark Theme enabled")
+            settings = Gtk.Settings.get_default()
+            settings.set_property("gtk-application-prefer-dark-theme", True)
+        else:
+            LOGGER.info("Dark Theme disabled")
+            settings = Gtk.Settings.get_default()
+            settings.set_property("gtk-application-prefer-dark-theme", False)
+        self._main_menu_popover.popdown()
 
     def pango_sample_text_checkbox_on_changed(
             self,
