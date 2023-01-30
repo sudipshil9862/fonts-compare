@@ -519,7 +519,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
         self.set_default_size_function()
 
-
+    def on_entry_activate_enter_pressed_ok_signal(self, widget, custom_dialog):
+        custom_dialog.response(Gtk.ResponseType.OK)
 
     def _on_edit_label_button_clicked(self, _button: Gtk.Button) -> None:
         '''The “Edit Label” button has been clicked'''
@@ -528,6 +529,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.custom_dialog = CustomDialog(self, transient_for=self, use_header_bar=True)
         self.custom_dialog.entry_edit_labels.changed_signal_id = self.custom_dialog.entry_edit_labels.connect(
                 'notify::text', self.on_entry_changed)
+        self.custom_dialog.entry_edit_labels.connect("activate", self.on_entry_activate_enter_pressed_ok_signal, self.custom_dialog)
         self.custom_dialog.entry_edit_labels.set_text(self.label1.get_text())
         self.custom_dialog.entry_edit_labels.set_position(-1)
         self.custom_dialog.entry_edit_labels.grab_focus_without_selecting()
