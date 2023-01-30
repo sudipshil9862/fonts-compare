@@ -23,6 +23,7 @@ from gi.repository import Gtk # type: ignore
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
 # pylint: enable=wrong-import-position
+from gi.repository import Gdk
 
 LOGGER = logging.getLogger('fonts-compare')
 
@@ -44,7 +45,6 @@ FALLPARAM = 'fallback="false">'
 FONTSIZE = '40'
 LABEL3_FONT = '20'
 
-
 class CustomDialog(Gtk.Dialog):
     '''
     this class is used for displaying custom dialog window for editing labels
@@ -55,7 +55,7 @@ class CustomDialog(Gtk.Dialog):
 
         self.set_title(title='Dialog Box')
         self.use_header_bar = True
-        self.connect('response', self.dialog_response)
+        self.connect('response', self.dialog_response, parent)
 
 
         self.set_width = 683
@@ -87,27 +87,28 @@ class CustomDialog(Gtk.Dialog):
         content_area.set_margin_bottom(margin=12)
         content_area.set_margin_start(margin=12)
 
-        self.class_appwindow = self.parent
         self.entry_edit_labels = Gtk.Entry()
         self.label_entry_edit_labels = Gtk.Label(label="Type Here")
         self.langdetect_edit_labels = Gtk.Label(label="")
         content_area.append(self.label_entry_edit_labels)
         content_area.append(self.entry_edit_labels)
         content_area.append(self.langdetect_edit_labels)
+        self.show()
 
-    def dialog_response(self, dialog, response):
+    def dialog_response(self, dialog, response, parent):
         '''
         when we click on ok and cancek in dialog window
         '''
         if response == Gtk.ResponseType.OK:
             print('pressed ok')
             text = self.entry_edit_labels.get_text()
-            lang = self.class_appwindow.detect_language(text)
-            self.class_appwindow.label_button_set_after_entry_dialog_ok(text,lang)
-            self.class_appwindow.set_default_size_function()
+            lang = parent.detect_language(text)
+            parent.label_button_set_after_entry_dialog_ok(text,lang)
+            parent.set_default_size(300,200)
+
         elif response == Gtk.ResponseType.CANCEL:
             print('pressed cancel')
-        dialog.close()
+            dialog.close()
 
 
 class FontsCompareAboutDialog(Gtk.AboutDialog): # type: ignore
@@ -329,10 +330,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         label_lang_full_form = langtable.language_name(
                 languageId=lang, languageIdQuery=lc_messages)
         self._language_menu_button.set_tooltip_text(label_lang_full_form)
-
+        
         self.set_default_size_function()
         self.set_resizable(True)
         self.set_child(self.vbox)
+
 
     #spin button font size change by adjustment increment decrement
     def on_fontsize_adjustment_value_changed(
@@ -738,7 +740,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     self.get_default_font_family_for_language(lang)
                     +' '+ FONTSIZE)
             LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
-        self.set_default_size_function()
 
     def on_entry_changed(self, widget: Gtk.Entry, _property_spec: Any) -> None:
         '''Called when the text in the entry has changed.
