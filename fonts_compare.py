@@ -23,7 +23,6 @@ from gi.repository import Gtk # type: ignore
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
 # pylint: enable=wrong-import-position
-from gi.repository import Gdk
 
 LOGGER = logging.getLogger('fonts-compare')
 
@@ -76,7 +75,7 @@ class CustomDialog(Gtk.Dialog):
                 response_id=Gtk.ResponseType.CANCEL,
                 )
         btn_cancel.get_style_context().add_class(class_name='destructive-action')
-        
+
         self.set_default_response(Gtk.ResponseType.OK)
 
         content_area = self.get_content_area()
@@ -93,7 +92,6 @@ class CustomDialog(Gtk.Dialog):
         content_area.append(self.label_entry_edit_labels)
         content_area.append(self.entry_edit_labels)
         content_area.append(self.langdetect_edit_labels)
-        self.show()
 
     def dialog_response(self, dialog, response, parent):
         '''
@@ -304,6 +302,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.label1.set_max_width_chars(32)
         self.button1 = Gtk.FontButton.new()
         self.fontbutton(self.label1, self.button1, self.hbox_button1)
+        self.button1.set_level(Gtk.FontChooserLevel.FAMILY)
         self.vbox.append(self.hbox_button1)
         self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
@@ -313,6 +312,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.label2.set_max_width_chars(32)
         self.button2 = Gtk.FontButton.new()
         self.fontbutton(self.label2, self.button2, self.hbox_button2)
+        self.button2.set_level(Gtk.FontChooserLevel.FAMILY)
         self.vbox.append(self.label2)
         self.vbox.append(self.hbox_button2)
         temp_random_font = self.get_random_font_family_for_language('en')
@@ -330,7 +330,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         label_lang_full_form = langtable.language_name(
                 languageId=lang, languageIdQuery=lc_messages)
         self._language_menu_button.set_tooltip_text(label_lang_full_form)
-        
+
         self.set_default_size_function()
         self.set_resizable(True)
         self.set_child(self.vbox)
@@ -463,7 +463,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._fontsize_adjustment.set_value(int(FONTSIZE))
         self.set_default_size_function()
         self._main_menu_popover.popdown()
-    
+
     def set_default_size_function(self):
         self.set_default_size(300,200)
 
@@ -1192,7 +1192,31 @@ def locale_text_to_match(locale_id: str) -> str:
         ...     # unneeded return value assigned to variable
     ...     _ = os.environ.pop('LC_ALL', None)
     '''
-    dic_language_alternative_names = {'bn':['Bengali', 'bn_IN', 'bn_BD','indic','india'], 'bn_IN':['Bengali', 'bn_IN', 'bn_BD','indic','india'], 'bn_BD':['Bengali', 'bn_IN', 'bn_BD','indic','india'], 'gu':['Gujarati','Gujerati','Gujrati','indic','india'], 'ja':['japanese','jp','cjk'], 'ko':['korean','ko','cjk'], 'hi':['Devanagari','hindi','hindu','Hindoostani', 'Hindostani','indic','india'], 'ml':['malayalam','meera','indic','india'], 'mr':['marathi','maratha','shivaji','ganesh','indic','india'], 'or':['oriya','odia','indic','india'], 'pa':['panjabi','punjabi','gurmukhi','indic','india'],'ks':['indic','india'],'brx':['india','indic'],'doi':['india','indic'],'kn':['india','indic'],'kok':['india','indic'],'mai':['india','indic'],'mni':['india','indic'],'ne':['india','indic'],'ta':['india','indic'],'te':['india','indic'],'sat':['india','indic'],'sd':['india','indic'],'ur':['india','indic'],'as':['india','indic']}
+    dic_language_alternative_names = {
+            'bn':['Bengali', 'bn_IN', 'bn_BD','indic','india'],
+            'bn_IN':['Bengali', 'bn_IN', 'bn_BD','indic','india'],
+            'bn_BD':['Bengali', 'bn_IN', 'bn_BD','indic','india'],
+            'gu':['Gujarati','Gujerati','Gujrati','indic','india'],
+            'ja':['japanese','jp','cjk'], 'ko':['korean','ko','cjk'],
+            'hi':['Devanagari','hindi','hindu','Hindoostani', 'Hindostani','indic','india'],
+            'ml':['malayalam','meera','indic','india'],
+            'mr':['marathi','maratha','shivaji','ganesh','indic','india'],
+            'or':['oriya','odia','indic','india'],
+            'pa':['panjabi','punjabi','gurmukhi','indic','india'],
+            'ks':['indic','india'],
+            'brx':['india','indic'],
+            'doi':['india','indic'],
+            'kn':['india','indic'],
+            'kok':['india','indic'],
+            'mai':['india','indic'],
+            'mni':['india','indic'],
+            'ne':['india','indic'],
+            'ta':['india','indic'],
+            'te':['india','indic'],
+            'sat':['india','indic'],
+            'sd':['india','indic'],
+            'ur':['india','indic'],
+            'as':['india','indic']}
     effective_lc_messages = get_effective_lc_messages()
     text_to_match = locale_id.replace(' ', '')
     query_languages = [effective_lc_messages, locale_id, 'en']
