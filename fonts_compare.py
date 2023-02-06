@@ -209,6 +209,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.fallback_checkbox.connect('toggled', self.fallback_checkbox_on_changed)
         main_menu_popover_vbox.append(self.fallback_checkbox)
 
+        #wrap toggle/checkbox in menu
+        self.wrap_checkbox = Gtk.CheckButton.new_with_label('Wrap labels')
+        self.wrap_checkbox.set_active(False)
+        self.wrap_checkbox.connect('toggled', self.wrap_checkbox_on_changed)
+        main_menu_popover_vbox.append(self.wrap_checkbox)
+
         #dark theme in menu
         self.darktheme_checkbox = Gtk.CheckButton.new_with_label('Dark theme')
         self.darktheme_checkbox.set_active(False)
@@ -315,6 +321,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button2.set_level(Gtk.FontChooserLevel.FAMILY)
         self.vbox.append(self.label2)
         self.vbox.append(self.hbox_button2)
+
         temp_random_font = self.get_random_font_family_for_language('en')
         self.label2.set_markup('<span font="'+temp_random_font
                                +' '+FONTSIZE+'"' + FALLPARAM
@@ -334,7 +341,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.set_default_size_function()
         self.set_resizable(True)
         self.set_child(self.vbox)
-
 
     #spin button font size change by adjustment increment decrement
     def on_fontsize_adjustment_value_changed(
@@ -370,7 +376,16 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 int(self._fontsize_adjustment.get_value()) > 60):
             self.label1.set_wrap(True)
             self.label2.set_wrap(True)
-        self.set_default_size_function()
+            self.wrap_checkbox.set_active(True)
+        elif (int(self._fontsize_adjustment.get_value()) > 30) and (len(self.label1.get_text()) > 45):
+            self.label1.set_wrap(True)
+            self.label2.set_wrap(True)
+            self.wrap_checkbox.set_active(True)
+        else:
+            self.label1.set_wrap(False)
+            self.label2.set_wrap(False)
+            self.wrap_checkbox.set_active(False)
+            self.set_default_size_function()
 
 
     def fontbutton(
@@ -414,6 +429,27 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                +'"' + FALLPARAM
                                + self.label2.get_text()
                                + '</span>')
+   
+    def wrap_checkbox_on_changed(
+            self,
+            _checkbutton: Gtk.CheckButton) -> None:
+        '''
+        function to wrap labels as True
+        '''
+        #LOGGER.info('before checkbox label1 get wrap %d',self.label1.get_wrap())
+        #LOGGER.info('before checkbox label2 get wrap %d',self.label2.get_wrap())
+        state = self.wrap_checkbox.get_active()
+        if state:
+            LOGGER.info('wrap checked %s',state)
+            self.label1.set_wrap(True)
+            self.label2.set_wrap(True)
+        else:
+            LOGGER.info('wrap checked %s',state)
+            self.label1.set_wrap(False)
+            self.label2.set_wrap(False)
+        #LOGGER.info('after checkbox label1 get wrap %d',self.label1.get_wrap())
+        #LOGGER.info('after checkbox label2 get wrap %d',self.label1.get_wrap())
+
     def darktheme_checkbox_on_changed(
             self,
             _checkbutton: Gtk.CheckButton) -> None:
@@ -742,7 +778,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     self.get_default_font_family_for_language(lang)
                     +' '+ FONTSIZE)
             LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
-
+        
     def on_entry_changed(self, widget: Gtk.Entry, _property_spec: Any) -> None:
         '''Called when the text in the entry has changed.
 
