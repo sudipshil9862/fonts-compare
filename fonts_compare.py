@@ -309,6 +309,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button1 = Gtk.FontButton.new()
         self.fontbutton(self.label1, self.button1, self.hbox_button1)
         self.button1.set_level(Gtk.FontChooserLevel.FAMILY)
+        self.button1.set_filter_func(self.font_filter)#jft
         self.vbox.append(self.hbox_button1)
         self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
@@ -319,6 +320,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button2 = Gtk.FontButton.new()
         self.fontbutton(self.label2, self.button2, self.hbox_button2)
         self.button2.set_level(Gtk.FontChooserLevel.FAMILY)
+        self.button2.set_filter_func(self.font_filter)#jft
         self.vbox.append(self.label2)
         self.vbox.append(self.hbox_button2)
 
@@ -340,8 +342,42 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self.set_default_size_function()
         self.set_resizable(True)
+        '''
+        self.scroll = Gtk.ScrolledWindow()
+        self.scroll.set_policy(
+                Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        self.scroll.set_has_frame(False)
+        self.scroll.set_hexpand(True)
+        self.scroll.set_vexpand(True)
+        self.scroll.set_propagate_natural_height(True)
+        self.scroll.set_valign(Gtk.Align.FILL)
+        self.scroll.set_kinetic_scrolling(False)
+        self.scroll.set_overlay_scrolling(True)
+        self.scroll.set_child(self.vbox)
+        self.set_child(self.scroll)
+        '''
         self.set_child(self.vbox)
 
+    #font_filter
+    def font_filter(self, font_family,font_face):
+        font_pango_font_description = font_family.get_name()
+        #print(font_pango_font_description)
+        current_lang = self._language_menu_button.get_label()
+        return self.font_support_language_filter(font_pango_font_description, current_lang)
+    #font_support_language_filter
+    def font_support_language_filter(self, font, lang):
+        result = subprocess.run(["fc-list", font, "lang"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        output = ""
+        output = result.stdout
+        langupdated = ""
+        langupdated = lang + "|"  #to know difference between 'ko' and 'kok'
+        if langupdated in output:
+            #LOGGER.info('%s support %s font',lang, font)
+            return True
+        else:
+            #LOGGER.info('%s dont support %s font',lang, font)
+            return False
+                
     #spin button font size change by adjustment increment decrement
     def on_fontsize_adjustment_value_changed(
             self,
@@ -680,6 +716,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._language_menu_popover_scroll.set_child(listbox)
 
 
+
     def _on_language_menu_popover_listbox_row_selected(
             self, _listbox: Gtk.ListBox, listbox_row: Gtk.ListBoxRow) -> None:
         '''Called when a language is selected'''
@@ -691,6 +728,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._currently_selected_language = language_id
         self._language_menu_popover.popdown()
         self._language_menu_button.set_label(language_id)
+        self.button1.set_filter_func(self.font_filter)
+        self.button2.set_filter_func(self.font_filter)
         self._language_menu_popover_language_ids = []
         LOGGER.info('language selected from menu = %s', language_id)
         text = self.sample_text_selector(language_id)
@@ -755,6 +794,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 languageId=lang, languageIdQuery=lang))
             self.set_font(lang, text)
             self._language_menu_button.set_label(lang)
+            self.button1.set_filter_func(self.font_filter)
+            self.button2.set_filter_func(self.font_filter)
         elif not lang in list_dropdown:
             self.label1.set_markup('<span font="'
                                    +self.get_default_font_family_for_language(lang)
