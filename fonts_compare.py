@@ -342,20 +342,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self.set_default_size_function()
         self.set_resizable(True)
-        '''
-        self.scroll = Gtk.ScrolledWindow()
-        self.scroll.set_policy(
-                Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        self.scroll.set_has_frame(False)
-        self.scroll.set_hexpand(True)
-        self.scroll.set_vexpand(True)
-        self.scroll.set_propagate_natural_height(True)
-        self.scroll.set_valign(Gtk.Align.FILL)
-        self.scroll.set_kinetic_scrolling(False)
-        self.scroll.set_overlay_scrolling(True)
-        self.scroll.set_child(self.vbox)
-        self.set_child(self.scroll)
-        '''
         self.set_child(self.vbox)
 
     #font_filter
