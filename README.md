@@ -6,7 +6,7 @@
 
 #### Screenshots of fonts-compare UI
 ![fonts-compare](https://user-images.githubusercontent.com/66914502/211294452-a07102d6-71e6-42ee-b676-4f9d31b5c7db.png)
-![fonts-compare-ui](https://user-images.githubusercontent.com/66914502/211295930-80fee08e-f7bc-44cc-a4fc-096d1e990f71.png)
+![fonts-compare-ui](https://user-images.githubusercontent.com/66914502/217479215-1f196b5d-4e1d-4363-8c33-a6a620bcfabd.png)
 
 ### Fedora Copr Repository
 [fonts-compare copr link](https://copr.fedorainfracloud.org/coprs/sshil/fonts-compare/)
