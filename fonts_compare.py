@@ -309,7 +309,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button1 = Gtk.FontButton.new()
         self.fontbutton(self.label1, self.button1, self.hbox_button1)
         self.button1.set_level(Gtk.FontChooserLevel.FAMILY)
-        self.button1.set_filter_func(self.font_filter)#jft
+        self.button1.set_level(Gtk.FontChooserLevel.SIZE)
+        self.button1.set_filter_func(self.font_filter)
         self.vbox.append(self.hbox_button1)
         self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
@@ -320,7 +321,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.button2 = Gtk.FontButton.new()
         self.fontbutton(self.label2, self.button2, self.hbox_button2)
         self.button2.set_level(Gtk.FontChooserLevel.FAMILY)
-        self.button2.set_filter_func(self.font_filter)#jft
+        self.button2.set_level(Gtk.FontChooserLevel.SIZE)
+        self.button2.set_filter_func(self.font_filter)
         self.vbox.append(self.label2)
         self.vbox.append(self.hbox_button2)
 
@@ -347,7 +349,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
     #font_filter
     def font_filter(self, font_family,font_face):
         font_pango_font_description = font_family.get_name()
-        #print(font_pango_font_description)
         current_lang = self._language_menu_button.get_label()
         return self.font_support_language_filter(font_pango_font_description, current_lang)
     #font_support_language_filter
@@ -358,12 +359,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         langupdated = ""
         langupdated = lang + "|"  #to know difference between 'ko' and 'kok'
         if langupdated in output:
-            #LOGGER.info('%s support %s font',lang, font)
             return True
-        else:
-            #LOGGER.info('%s dont support %s font',lang, font)
-            return False
-                
+        return False
+           
     #spin button font size change by adjustment increment decrement
     def on_fontsize_adjustment_value_changed(
             self,
@@ -1266,20 +1264,20 @@ def locale_text_to_match(locale_id: str) -> str:
             'mr':['marathi','maratha','shivaji','ganesh','indic','india'],
             'or':['oriya','odia','indic','india'],
             'pa':['panjabi','punjabi','gurmukhi','indic','india'],
-            'ks':['indic','india'],
-            'brx':['india','indic'],
-            'doi':['india','indic'],
-            'kn':['india','indic'],
-            'kok':['india','indic'],
-            'mai':['india','indic'],
-            'mni':['india','indic'],
-            'ne':['india','indic'],
-            'ta':['india','indic'],
-            'te':['india','indic'],
-            'sat':['india','indic'],
-            'sd':['india','indic'],
-            'ur':['india','indic'],
-            'as':['india','indic']}
+            'ks':['Kashmiri','Kashmir','indic','india'],
+            'brx':['BODO','india','indic'],
+            'doi':['Dogri','india','indic'],
+            'kn':['Kannada','india','indic'],
+            'kok':['Konkani','india','indic'],
+            'mai':['Maithili','india','indic'],
+            'mni':['Manipuri','india','indic'],
+            'ne':['Nepali','india','indic'],
+            'ta':['Tamil','india','indic'],
+            'te':['Telugu','india','indic'],
+            'sat':['Santali','india','indic'],
+            'sd':['Sindhi','india','indic'],
+            'ur':['Urdu','india','indic'],
+            'as':['Assamese','Assam','india','indic']}
     effective_lc_messages = get_effective_lc_messages()
     text_to_match = locale_id.replace(' ', '')
     query_languages = [effective_lc_messages, locale_id, 'en']
