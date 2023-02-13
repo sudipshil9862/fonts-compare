@@ -356,9 +356,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         result = subprocess.run(["fc-list", font, "lang"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         output = ""
         output = result.stdout
-        langupdated = ""
-        langupdated = lang + "|"  #to know difference between 'ko' and 'kok'
-        if langupdated in output:
+        if not output.startswith(':lang='):
+            return False
+        langs = output.split('=')[1].split('|')
+        if lang in langs:
             return True
         return False
            
@@ -425,6 +426,17 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         button.set_hexpand(False)
         button.set_font(temp_label_button_font + ' ' + FONTSIZE)
         boxh.append(button)
+
+    @classmethod
+    def label_font_change(
+            cls, button: Gtk.FontButton, label: Gtk.Label) -> None:
+        '''
+        font family and font size changes by font-button dialog
+        '''
+        label.set_markup('<span font="'+button.get_font().rsplit(' ',1)[0]
+                               +' '+FONTSIZE+'"' + FALLPARAM
+                               + label.get_text()
+                               + '</span>')
 
 
     def fallback_checkbox_on_changed(
@@ -537,17 +549,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             languageId=lang, languageIdQuery=lang))
         return sample_text
 
-    @classmethod
-    def label_font_change(
-            cls, button: Gtk.FontButton, label: Gtk.Label) -> None:
-        '''
-        font family and font size changes by font-button dialog
-        '''
-        pango_font_description = Pango.FontDescription.from_string(str=button.get_font(),)
-        pango_attr_font_desc = Pango.AttrFontDesc.new(desc=pango_font_description,)
-        pango_attr_list = Pango.AttrList.new()
-        pango_attr_list.insert(attr=pango_attr_font_desc)
-        label.set_attributes(attrs=pango_attr_list)
 
     def set_font(self, detect_lang: str, set_text: str) -> None:
         '''
@@ -661,7 +662,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             text_to_match_words = text_to_match.split(' ')
             text_to_match_words = [element.replace("(","") for element in text_to_match_words if element]
             text_to_match_words = [element.replace(")","") for element in text_to_match_words if element]
-            print(text_to_match_words)
             str_filter_words = ' '.join([str(elem) for elem in filter_words])
             length = len(str_filter_words)
             make_list = []
@@ -675,11 +675,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             if str_filter_words not in make_list:
                 filter_match = False
             if filter_match:
-                print('filter_words: ', filter_words)
-                print('str_filter_words: ', length)
-                print(make_list)
-                print('length of make_list ',len(make_list))
-                print('filter_words are in make_list')
                 self._language_menu_popover_language_ids.append(language_id)
                 if language_id != self._currently_selected_language:
                     rows.append(
