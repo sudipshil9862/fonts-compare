@@ -346,21 +346,30 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
     #font_filter
     def font_filter(self, font_family,font_face):
+        '''
+        function to filter fonts depending upon selected language
+        '''
         font_pango_font_description = font_family.get_name()
         current_lang = self._language_menu_button.get_label()
-        return self.font_support_language_filter(font_pango_font_description, current_lang)
-    #font_support_language_filter
-    def font_support_language_filter(self, font, lang):
-        result = subprocess.run(["fc-list", font, "lang"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        output = ""
-        output = result.stdout
-        if not output.startswith(':lang='):
+        try:
+            result = subprocess.run(["fc-list", font_pango_font_description, "lang"], encoding='utf-8', check=True, capture_output=True)
+            output = ""
+            output = result.stdout
+            if not output.startswith(':lang='):
+                return False
+            langs = output.split('=')[1].split('|')
+            if current_lang in langs:
+                return True
             return False
-        langs = output.split('=')[1].split('|')
-        if lang in langs:
-            return True
-        return False
-           
+        except subprocess.CalledProcessError as error:
+            LOGGER.exception('Exception when calling %s: %s stderr: %s',
+                             error.__class__.__name__, error, error.stderr)
+            return False
+        except Exception as error: # pylint: disable=broad-except
+            LOGGER.exception('Exception when calling %s: %s',
+                             error.__class__.__name__, error)
+            return False
+
     #spin button font size change by adjustment increment decrement
     def on_fontsize_adjustment_value_changed(
             self,
@@ -459,7 +468,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                +'"' + FALLPARAM
                                + self.label2.get_text()
                                + '</span>')
-   
+
     def wrap_checkbox_on_changed(
             self,
             _checkbutton: Gtk.CheckButton) -> None:
@@ -531,6 +540,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._main_menu_popover.popdown()
 
     def set_default_size_function(self):
+        '''
+        setting gtk window size change with content
+        '''
         self.set_default_size(300,200)
 
     def sample_text_selector(self, lang: str) -> str:
@@ -575,6 +587,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.set_default_size_function()
 
     def on_entry_activate_enter_pressed_ok_signal(self, widget, custom_dialog):
+        '''
+        when enter key pressed after editing  entry then ok button automatically will be pressed
+        '''
         custom_dialog.response(Gtk.ResponseType.OK)
 
     def _on_edit_label_button_clicked(self, _button: Gtk.Button) -> None:
@@ -796,7 +811,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     self.get_default_font_family_for_language(lang)
                     +' '+ FONTSIZE)
             LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
-        
+
     def on_entry_changed(self, widget: Gtk.Entry, _property_spec: Any) -> None:
         '''Called when the text in the entry has changed.
 
