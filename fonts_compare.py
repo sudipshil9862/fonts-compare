@@ -98,14 +98,18 @@ class CustomDialog(Gtk.Dialog):
         when we click on ok and cancek in dialog window
         '''
         if response == Gtk.ResponseType.OK:
-            print('pressed ok')
+            LOGGER.info('pressed ok')
             text = self.entry_edit_labels.get_text()
             lang = parent.detect_language(text)
-            parent.label_button_set_after_entry_dialog_ok(text,lang)
+            if GTK_VERSION >= (4, 9, 3):
+                parent.label_button_set_after_entry_dialog_ok_newversion(text,lang)
+ 
+            else:
+                parent.label_button_set_after_entry_dialog_ok(text,lang)
             parent.set_default_size(300,200)
 
         elif response == Gtk.ResponseType.CANCEL:
-            print('pressed cancel')
+            LOGGER.info('pressed cancel')
             dialog.close()
 
 
@@ -165,6 +169,35 @@ class FontsCompareAboutDialog(Gtk.AboutDialog): # type: ignore
         '''
         self.destroy()
 
+#custom filter
+class GTKCustomFilter(Gtk.CustomFilter):
+    '''
+    class to filter fonts against language for gtk version 4.9.3 and above
+    '''
+    def __init__(self, language_code):
+        super().__init__()
+        self.language_code = language_code
+        self.set_filter_func(self.font_filter)
+    def font_filter(self, font_face):
+        '''
+        function to filter fonts for set_filter_func
+        '''
+        font_pango_font_description = font_face.describe().to_string()
+        return self.font_support_language_filter(font_pango_font_description, self.language_code)
+    #font_support_language_filter
+    def font_support_language_filter(self, font, lang):
+        '''
+        function returns boolean value for font_filter function
+        '''
+        result = subprocess.run(["fc-list", font, "lang"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8', check=True, capture_output=True)
+        output = ""
+        output = result.stdout
+        if not output.startswith(':lang='):
+            return False
+        langs = output.split('=')[1].split('|')
+        if lang in langs:
+            return True
+        return False
 
 class AppWindow(Gtk.ApplicationWindow): # type: ignore
     '''
@@ -306,10 +339,20 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.label1.set_natural_wrap_mode(True)
         self.label1.set_justify(Gtk.Justification.FILL)
         self.label1.set_max_width_chars(32)
-        self.button1 = Gtk.FontButton.new()
-        self.fontbutton(self.label1, self.button1, self.hbox_button1)
-        self.button1.set_level(Gtk.FontChooserLevel.SIZE)
-        self.button1.set_filter_func(self.font_filter)
+        if GTK_VERSION >= (4,9,3):
+            self.button1 = Gtk.FontDialog()
+            self.font_dialog_button1 = Gtk.FontDialogButton()
+            self.font_dialog_button1.set_dialog(self.button1)
+            self.font_dialog_button1.connect('notify::font-desc', self.label_font_change_newversion, self.label1)
+            self.fontbutton_newversion(self.label1, self.font_dialog_button1, self.hbox_button1)
+            self.font_dialog_button1.set_level(Gtk.FontLevel.FONT)
+            self.custom_filter = GTKCustomFilter('en')
+            self.button1.set_filter(self.custom_filter)
+        else:
+            self.button1 = Gtk.FontButton.new()
+            self.fontbutton(self.label1, self.button1, self.hbox_button1)
+            self.button1.set_level(Gtk.FontChooserLevel.SIZE)
+            self.button1.set_filter_func(self.font_filter)
         self.vbox.append(self.hbox_button1)
         self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
@@ -317,10 +360,19 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.label2.set_natural_wrap_mode(True)
         self.label2.set_justify(Gtk.Justification.FILL)
         self.label2.set_max_width_chars(32)
-        self.button2 = Gtk.FontButton.new()
-        self.fontbutton(self.label2, self.button2, self.hbox_button2)
-        self.button2.set_level(Gtk.FontChooserLevel.SIZE)
-        self.button2.set_filter_func(self.font_filter)
+        if GTK_VERSION >= (4,9,3):
+            self.button2 = Gtk.FontDialog()
+            self.font_dialog_button2 = Gtk.FontDialogButton()
+            self.font_dialog_button2.set_dialog(self.button1)
+            self.font_dialog_button2.connect('notify::font-desc', self.label_font_change_newversion, self.label2)
+            self.fontbutton_newversion(self.label2, self.font_dialog_button2, self.hbox_button2)
+            self.font_dialog_button2.set_level(Gtk.FontLevel.FONT)
+            self.button2.set_filter(self.custom_filter)
+        else:
+            self.button2 = Gtk.FontButton.new()
+            self.fontbutton(self.label2, self.button2, self.hbox_button2)
+            self.button2.set_level(Gtk.FontChooserLevel.SIZE)
+            self.button2.set_filter_func(self.font_filter)
         self.vbox.append(self.label2)
         self.vbox.append(self.hbox_button2)
 
@@ -329,8 +381,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                +' '+FONTSIZE+'"' + FALLPARAM
                                + self.sample_text_selector('en')
                                + '</span>')
-        self.button2.set_font(temp_random_font + ' ' + FONTSIZE)
-
+        if GTK_VERSION >= (4,9,3):
+            self.font_dialog_button2.set_font_desc(Pango.font_description_from_string(temp_random_font + ' ' + FONTSIZE))
+            self.button1.set_title(self.font_dialog_button1.get_font_desc().to_string())
+            self.button2.set_title(self.font_dialog_button2.get_font_desc().to_string())
+        else:
+            self.button2.set_font(temp_random_font + ' ' + FONTSIZE)
         text = self.label1.get_text()
         lang = self.detect_language(text)
         self._currently_selected_language = lang
@@ -380,12 +436,20 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         spin button adjustment button used for
         increase and decrease of font size of label1 and label2
         '''
-        button1_family = self.button1.get_font().rsplit(' ',1)[0]
-        button2_family = self.button2.get_font().rsplit(' ',1)[0]
-        self.button1.set_font(button1_family + ' '
-                              + str(self._fontsize_adjustment.get_value()))
-        self.button2.set_font(button2_family + ' '
-                              + str(self._fontsize_adjustment.get_value()))
+        if GTK_VERSION >= (4, 9, 3):
+            button1_family = self.font_dialog_button1.get_font_desc().to_string().rsplit(' ',1)[0]
+            button2_family = self.font_dialog_button2.get_font_desc().to_string().rsplit(' ',1)[0]
+            self.font_dialog_button1.set_font_desc(Pango.font_description_from_string(button1_family + ' '
+                                  + str(self._fontsize_adjustment.get_value())))
+            self.font_dialog_button2.set_font_desc(Pango.font_description_from_string(button2_family + ' '
+                                  + str(self._fontsize_adjustment.get_value())))
+        else:
+            button1_family = self.button1.get_font().rsplit(' ',1)[0]
+            button2_family = self.button2.get_font().rsplit(' ',1)[0]
+            self.button1.set_font(button1_family + ' '
+                                  + str(self._fontsize_adjustment.get_value()))
+            self.button2.set_font(button2_family + ' '
+                                  + str(self._fontsize_adjustment.get_value()))
         temp_label1_text = self.label1.get_text()
         temp_label2_text = self.label2.get_text()
         self.label1.set_markup('<span font="'+button1_family+' '
@@ -445,6 +509,33 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                + label.get_text()
                                + '</span>')
 
+    def fontbutton_newversion(
+            self,
+            label: Gtk.Label,
+            dialogButton,
+            boxh: Gtk.Box) -> None:
+        '''
+        setting up initial font and text for labels and font button text updated
+        '''
+        temp_label_button_font = self.get_default_font_family_for_language('en')
+        label.set_markup('<span font="'+temp_label_button_font
+                         +' '+FONTSIZE+'"' + FALLPARAM
+                         + self.sample_text_selector('en')
+                         + '</span>')
+        dialogButton.set_font_desc(Pango.font_description_from_string(temp_label_button_font + ' ' + FONTSIZE))
+        boxh.append(dialogButton)
+
+    @classmethod
+    def label_font_change_newversion(
+            self, dialogButton, _param_spec: Any, label: Gtk.Label) -> None:
+        '''
+        font family and font size changes by font-button dialog
+        '''
+        pango_font_description = dialogButton.get_font_desc()
+        pango_attr_font_description = Pango.AttrFontDesc.new(pango_font_description)
+        pango_attr_list = Pango.AttrList.new()
+        pango_attr_list.insert(attr=pango_attr_font_description)
+        label.set_attributes(attrs=pango_attr_list)
 
     def fallback_checkbox_on_changed(
             self,
@@ -460,14 +551,25 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         else:
             FALLPARAM = 'fallback="false">'
             LOGGER.info('fallback checked %s',state)
-        self.label1.set_markup('<span font="'+self.button1.get_font()
+        LOGGER.info('version check and continue to next line')
+        if GTK_VERSION >= (4, 9, 3):
+            self.label1.set_markup('<span font="'+self.font_dialog_button1.get_font_desc().to_string()
                                +'"' + FALLPARAM
                                + self.label1.get_text()
                                + '</span>')
-        self.label2.set_markup('<span font="'+self.button2.get_font()
-                               +'"' + FALLPARAM
-                               + self.label2.get_text()
-                               + '</span>')
+            self.label2.set_markup('<span font="'+self.font_dialog_button2.get_font_desc().to_string()
+                                   +'"' + FALLPARAM
+                                   + self.label2.get_text()
+                                   + '</span>')
+        else:
+            self.label1.set_markup('<span font="'+self.button1.get_font()
+                                   +'"' + FALLPARAM
+                                   + self.label1.get_text()
+                                   + '</span>')
+            self.label2.set_markup('<span font="'+self.button2.get_font()
+                                   +'"' + FALLPARAM
+                                   + self.label2.get_text()
+                                   + '</span>')
 
     def wrap_checkbox_on_changed(
             self,
@@ -522,19 +624,35 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             FONTSIZE = '40'
             LOGGER.info('langtable font = %s',FONTSIZE)
         #instant label1 and label2 change after switch change
-        self.label1.set_markup('<span font="'+self.button1.get_font().rsplit(' ',1)[0]
-                               +' '+FONTSIZE+'"' + FALLPARAM
-                               + self.sample_text_selector(
-                                   self._language_menu_button.get_label())
-                               + '</span>')
-        self.button1.set_font(self.button1.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
-        self.label2.set_markup('<span font="'+self.button2.get_font().rsplit(' ',1)[0]
-                               +' '+FONTSIZE+'"' + FALLPARAM
-                               + self.sample_text_selector(
-                                   self._language_menu_button.get_label())
-                               + '</span>')
-        LOGGER.info('lang from language list: %s', self._language_menu_button.get_label())
-        self.button2.set_font(self.button2.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
+        if GTK_VERSION >= (4, 9, 3):
+            self.label1.set_markup('<span font="'+self.font_dialog_button1.get_font_desc().to_string().rsplit(' ',1)[0]
+                                   +' '+FONTSIZE+'"' + FALLPARAM
+                                   + self.sample_text_selector(
+                                       self._language_menu_button.get_label())
+                                   + '</span>')
+            self.font_dialog_button1.set_font_desc(Pango.font_description_from_string(self.font_dialog_button1.get_font_desc().to_string().rsplit(' ',1)[0] + ' ' + FONTSIZE))
+            self.label2.set_markup('<span font="'+self.font_dialog_button2.get_font_desc().to_string().rsplit(' ',1)[0]
+                                   +' '+FONTSIZE+'"' + FALLPARAM
+                                   + self.sample_text_selector(
+                                       self._language_menu_button.get_label())
+                                   + '</span>')
+            LOGGER.info('lang from language list: %s', self._language_menu_button.get_label())
+            self.font_dialog_button2.set_font_desc(Pango.font_description_from_string(self.font_dialog_button2.get_font_desc().to_string().rsplit(' ',1)[0] + ' ' + FONTSIZE))
+        else:
+            self.label1.set_markup('<span font="'+self.button1.get_font().rsplit(' ',1)[0]
+                                   +' '+FONTSIZE+'"' + FALLPARAM
+                                   + self.sample_text_selector(
+                                       self._language_menu_button.get_label())
+                                   + '</span>')
+            self.button1.set_font(self.button1.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
+            self.label2.set_markup('<span font="'+self.button2.get_font().rsplit(' ',1)[0]
+                                   +' '+FONTSIZE+'"' + FALLPARAM
+                                   + self.sample_text_selector(
+                                       self._language_menu_button.get_label())
+                                   + '</span>')
+            LOGGER.info('lang from language list: %s', self._language_menu_button.get_label())
+            self.button2.set_font(self.button2.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
+ 
         self._fontsize_adjustment.set_value(int(FONTSIZE))
         self.set_default_size_function()
         self._main_menu_popover.popdown()
@@ -570,20 +688,36 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                +' '+str(int(self._fontsize_adjustment.get_value()))+'"' + FALLPARAM
                                + set_text + '</span>')
         LOGGER.info('label1 text now: %s',self.label1.get_text())
-        LOGGER.info('self.button1.set_font(%s)',
-                    temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value())))
-        self.button1.set_font(temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value())))
-        LOGGER.info('self.button1.get_font(%s)',self.button1.get_font())
-        temp_label2_font = self.get_random_font_family_for_language(detect_lang)
-        self.label2.set_markup('<span font="'+temp_label2_font
-                               +' '+str(int(self._fontsize_adjustment.get_value()))+'"' + FALLPARAM
-                               + set_text + '</span>')
-        LOGGER.info('label2 text now: %s',self.label2.get_text())
-        LOGGER.info('self.button2.set_font(%s)',
-                    temp_label2_font +' '+ str(int(self._fontsize_adjustment.get_value())))
-        self.button2.set_font(temp_label2_font +' '
-                              + str(int(self._fontsize_adjustment.get_value())))
-        LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
+        if GTK_VERSION >= (4, 9, 3):
+            LOGGER.info('self.font_dialog_button1.set_font(%s)',
+                        temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value())))
+            self.font_dialog_button1.set_font_desc(Pango.font_description_from_string(temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value()))))
+            LOGGER.info('self.font_dialog_button1.get_font(%s)',self.font_dialog_button1.get_font_desc().to_string())
+            temp_label2_font = self.get_random_font_family_for_language(detect_lang)
+            self.label2.set_markup('<span font="'+temp_label2_font
+                                   +' '+str(int(self._fontsize_adjustment.get_value()))+'"' + FALLPARAM
+                                   + set_text + '</span>')
+            LOGGER.info('label2 text now: %s',self.label2.get_text())
+            LOGGER.info('self.font_dialog_button2.set_font(%s)',
+                        temp_label2_font +' '+ str(int(self._fontsize_adjustment.get_value())))
+            self.font_dialog_button2.set_font_desc(Pango.font_description_from_string(temp_label2_font +' '
+                                  + str(int(self._fontsize_adjustment.get_value()))))
+            LOGGER.info('self.font_dialog_button2.get_font(%s)',self.font_dialog_button2.get_font_desc().to_string())
+        else:
+            LOGGER.info('self.button1.set_font(%s)',
+                        temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value())))
+            self.button1.set_font(temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value())))
+            LOGGER.info('self.button1.get_font(%s)',self.button1.get_font())
+            temp_label2_font = self.get_random_font_family_for_language(detect_lang)
+            self.label2.set_markup('<span font="'+temp_label2_font
+                                   +' '+str(int(self._fontsize_adjustment.get_value()))+'"' + FALLPARAM
+                                   + set_text + '</span>')
+            LOGGER.info('label2 text now: %s',self.label2.get_text())
+            LOGGER.info('self.button2.set_font(%s)',
+                        temp_label2_font +' '+ str(int(self._fontsize_adjustment.get_value())))
+            self.button2.set_font(temp_label2_font +' '
+                                  + str(int(self._fontsize_adjustment.get_value())))
+            LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
         self.set_default_size_function()
 
     def on_entry_activate_enter_pressed_ok_signal(self, widget, custom_dialog):
@@ -720,8 +854,14 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._currently_selected_language = language_id
         self._language_menu_popover.popdown()
         self._language_menu_button.set_label(language_id)
-        self.button1.set_filter_func(self.font_filter)
-        self.button2.set_filter_func(self.font_filter)
+        if GTK_VERSION >= (4, 9, 3):
+            current_lang = self._language_menu_button.get_label()
+            self.custom_filter = GTKCustomFilter(current_lang)
+            self.button1.set_filter(self.custom_filter)
+            self.button2.set_filter(self.custom_filter)
+        else:
+            self.button1.set_filter_func(self.font_filter)
+            self.button2.set_filter_func(self.font_filter)
         self._language_menu_popover_language_ids = []
         LOGGER.info('language selected from menu = %s', language_id)
         text = self.sample_text_selector(language_id)
@@ -729,8 +869,13 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.custom_dialog.entry_edit_labels.set_text(text)
         self.custom_dialog.entry_edit_labels.set_position(-1)
         self.custom_dialog.entry_edit_labels.grab_focus_without_selecting()
-        self.button1.set_preview_text(text)
-        self.button2.set_preview_text(text)
+        if GTK_VERSION >= (4, 9, 3):
+            LOGGER.info('no set_preview function for font_dialog')
+            #self.button1.set_preview_text(text)
+            #self.button2.set_preview_text(text)
+        else:
+            self.button1.set_preview_text(text)
+            self.button2.set_preview_text(text)
         self.set_font(language_id, text)
         #detect language by langdetect
         text = self.custom_dialog.entry_edit_labels.get_text()
@@ -811,6 +956,44 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     self.get_default_font_family_for_language(lang)
                     +' '+ FONTSIZE)
             LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
+
+    def label_button_set_after_entry_dialog_ok_newversion(self, text:str, lang:str):
+        self.label1.set_text(text)
+        self.label2.set_text(text)
+        if lang in list_dropdown:
+            #self.button1.set_preview_text(langtable.language_name(
+            #    languageId=lang, languageIdQuery=lang))
+            #self.button2.set_preview_text(langtable.language_name(
+            #    languageId=lang, languageIdQuery=lang))
+            self.set_font(lang, text)
+            self._language_menu_button.set_label(lang)
+            current_lang = self._language_menu_button.get_label()
+            self.custom_filter = GTKCustomFilter(current_lang)
+            self.button1.set_filter(self.custom_filter)
+            self.button2.set_filter(self.custom_filter)
+        elif not lang in list_dropdown:
+            self.label1.set_markup('<span font="'
+                                   +self.get_default_font_family_for_language(lang)
+                                   +' '+FONTSIZE+'"' + FALLPARAM
+                                   + text + '</span>')
+            LOGGER.info('self.font_dialog_button1.set_font(%s)',
+                        self.get_default_font_family_for_language(lang)
+                        +' '+FONTSIZE)
+            self.font_dialog_button1.set_font_desc(Pango.font_description_from_string(
+                    self.get_default_font_family_for_language(lang)
+                    +' '+FONTSIZE))
+            LOGGER.info('self.font_dialog_button1.get_font(%s)',self.font_dialog_button1.get_font().to_string())
+            self.label2.set_markup('<span font="'
+                                   +self.get_default_font_family_for_language(lang)
+                                   +' '+FONTSIZE+'"' + FALLPARAM
+                                   + text + '</span>')
+            LOGGER.info('self.font_dialog_button2.set_font_desc(%s)',
+                        self.get_default_font_family_for_language(lang)
+                        +' '+ FONTSIZE)
+            self.font_dialog_button2.set_font_desc(Pango.font_description_from_string(
+                    self.get_default_font_family_for_language(lang)
+                    +' '+ FONTSIZE))
+            LOGGER.info('self.font_dialog_button2.get_font_desc(%s)',self.font_dialog_button2.get_font_desc().to_string())
 
     def on_entry_changed(self, widget: Gtk.Entry, _property_spec: Any) -> None:
         '''Called when the text in the entry has changed.
@@ -920,7 +1103,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             LOGGER.info('selected random list from fc-list = %s',random_font)
             if random_font:
                 #diable error label when font available
-                self.label_error.hide()
+                if GTK_VERSION >= (4, 9, 3):
+                    self.label_error.set_property("visible", False)
+                else:
+                    self.label_error.hide()
             else:
                 LOGGER.info('fonts are not installed for %s language',lang)
                 #error level show no font installed
@@ -1346,6 +1532,9 @@ if __name__ == '__main__':
         LOGGER.addHandler(LOG_HANDLER)
     else:
         LOG_HANDLER_NULL = logging.NullHandler()
+    GTK_VERSION =   (Gtk.get_major_version(),
+                    Gtk.get_minor_version(),
+                    Gtk.get_micro_version())
     list_dropdown = sorted(list_languages())
     app = Gtk.Application(application_id='org.github.sudipshil9862.fonts-compare')
     app.connect('activate', on_activate)
