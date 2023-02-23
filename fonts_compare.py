@@ -22,6 +22,7 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk # type: ignore
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
+from gi.repository import GLib
 # pylint: enable=wrong-import-position
 
 LOGGER = logging.getLogger('fonts-compare')
@@ -107,6 +108,8 @@ class CustomDialog(Gtk.Dialog):
             else:
                 parent.label_button_set_after_entry_dialog_ok(text,lang)
             parent.set_default_size(300,200)
+            #schedule dialog.close() to be called later
+            GLib.idle_add(dialog.close)
 
         elif response == Gtk.ResponseType.CANCEL:
             LOGGER.info('pressed cancel')
