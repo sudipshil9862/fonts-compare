@@ -192,7 +192,7 @@ class GTKCustomFilter(Gtk.CustomFilter):
         '''
         function returns boolean value for font_filter function
         '''
-        result = subprocess.run(["fc-list", font, "lang"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8', check=True, capture_output=True)
+        result = subprocess.run(["fc-list", font, "lang"], encoding='utf-8', check=True, capture_output=True)
         output = ""
         output = result.stdout
         if not output.startswith(':lang='):
