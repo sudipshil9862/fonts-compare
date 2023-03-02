@@ -1056,20 +1056,38 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             return ''
         try:
             result = subprocess.run(
-                    [fc_match_binary, f':lang={lang}', 'family', 'style', 'file'],
+                    [fc_match_binary, f':lang={lang}', 'family', 'style', 'file', 'familylang'],
                     encoding='utf-8', check=True, capture_output=True,
                     env={'LC_ALL': lang.replace('-', '_')})
-            pattern = re.compile(r'^(?P<families>.*):style=.*$')
+            #pattern = re.compile(r'^(?P<families>.*)(?:familylang=(?P<familylang>.*?))?:style=.*$')
+            pattern = re.compile(r'^(?P<families>.*?(?=:familylang=|$))(?::familylang=(?P<familylang>.*?))?:style=.*$')
             match = pattern.match(result.stdout.strip())
             if not match:
                 LOGGER.error('Regexp did not match')
                 return ''
             families = match.group('families').split(',')
+            familylang = match.group('familylang').split(',') if match.group('familylang') else []
             LOGGER.info('default font families=%s', families)
+            LOGGER.info('default familylang=%s', familylang)
+            last_family = ''
             if families:
-                last_family = families[-1:][0]
-                LOGGER.info('selected default font = %s',last_family)
-                return last_family
+                current_lang = self._language_menu_button.get_label()
+                if current_lang in str(locale.getlocale(locale.LC_MESSAGES)[0]):
+                    count=0
+                    for i in familylang:
+                        if str(i) in str(locale.getlocale(locale.LC_MESSAGES)[0]):
+                            last_family = families[count]
+                            LOGGER.info('locale lang = %s',locale.getlocale(locale.LC_MESSAGES)[0])
+                            LOGGER.info('selected default font = %s',last_family)
+                            return last_family
+                    if last_family == '':
+                        last_family = families[-1:][0]
+                        LOGGER.info('selected default font = %s',last_family)
+                        return last_family
+                else:
+                    last_family = families[-1:][0]
+                    LOGGER.info('selected default font = %s',last_family)
+                    return last_family
             return ''
         except FileNotFoundError as error:
             LOGGER.exception('Exception when calling %s: %s: %s',
@@ -1097,7 +1115,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             return ''
         try:
             result = subprocess.run(
-                    [fc_list_binary, f':lang={lang}', 'family', 'style'],
+                    [fc_list_binary, f':lang={lang}', 'family', 'style', 'familylang'],
                     encoding='utf-8', check=True, capture_output=True)
             fonts_listed = result.stdout.strip().split('\n')
             list_unfilter_random_font = [x for x in fonts_listed
@@ -1123,19 +1141,37 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 return ''
             #sometimes random_font doesnot contain any style then error arises
             if random_font.find(":style") != -1:
-                pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*)$')
+                #pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*)$')
+                pattern = re.compile(r'^(?P<families>.*?(?=:familylang=|$))(?::familylang=(?P<familylang>.*?))?:style=.*$')
             else:
-                pattern = re.compile(r'^(?P<families>.*)$')
+                #pattern = re.compile(r'^(?P<families>.*)$')
+                pattern = re.compile(r'^(?P<families>.*?(?=:familylang=|$))(?::familylang=(?P<familylang>.*?))')
             match = pattern.match(random_font)
             if not match:
                 LOGGER.error('Regexp did not match %s', result.stdout.strip())
                 return ''
             families = match.group('families').split(',')
+            familylang = match.group('familylang').split(',')
             LOGGER.info('Random font families=%s', families)
+            LOGGER.info('Random font familylang=%s', familylang)
             last_family = ''
             if families:
-                last_family = families[0]
-                LOGGER.info('selected random font before confirm = %s',last_family)
+                current_lang = self._language_menu_button.get_label()
+                if current_lang in str(locale.getlocale(locale.LC_MESSAGES)[0]):
+                    count=0
+                    for i in familylang:
+                        if str(i) in str(locale.getlocale(locale.LC_MESSAGES)[0]):
+                            last_family = families[count]
+                            LOGGER.info('locale lang = %s',locale.getlocale(locale.LC_MESSAGES)[0])
+                            LOGGER.info('selected default font = %s',last_family)
+                            return last_family
+                    if last_family == '':
+                        last_family = families[-1:][0]
+                        LOGGER.info('selected default font = %s',last_family)
+                        return last_family
+                else:
+                    last_family = families[0]
+                    LOGGER.info('selected random font before confirm = %s',last_family)
             if not last_family:
                 return ''
             LOGGER.info('selected random font confirm = %s',last_family)
