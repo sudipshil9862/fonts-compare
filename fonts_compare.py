@@ -1059,7 +1059,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     [fc_match_binary, f':lang={lang}', 'family', 'style', 'file', 'familylang'],
                     encoding='utf-8', check=True, capture_output=True,
                     env={'LC_ALL': lang.replace('-', '_')})
-            #pattern = re.compile(r'^(?P<families>.*)(?:familylang=(?P<familylang>.*?))?:style=.*$')
             pattern = re.compile(r'^(?P<families>.*?(?=:familylang=|$))(?::familylang=(?P<familylang>.*?))?:style=.*$')
             match = pattern.match(result.stdout.strip())
             if not match:
@@ -1118,8 +1117,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     [fc_list_binary, f':lang={lang}', 'family', 'style', 'familylang'],
                     encoding='utf-8', check=True, capture_output=True)
             fonts_listed = result.stdout.strip().split('\n')
+            result_unscalable_fonts_listed = result = subprocess.run(
+                    [fc_list_binary, f':scalable=false', 'family'],
+                    encoding='utf-8', check=True, capture_output=True)
+            unscalable_fonts_listed = result_unscalable_fonts_listed.stdout.strip().split('\n')
             list_unfilter_random_font = [x for x in fonts_listed
-                                         if not ('Droid' in x or 'STIX' in x)]
+                                         if not ('Droid' in x or 'STIX' in x or 'Bitstream Charter' in x or 'PCF' in x or 'fontformat' in x or any(i in x for i in unscalable_fonts_listed))]
             random_font = random.choice(list_unfilter_random_font)
             LOGGER.info('selected random list from fc-list = %s',random_font)
             if random_font:
@@ -1141,10 +1144,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 return ''
             #sometimes random_font doesnot contain any style then error arises
             if random_font.find(":style") != -1:
-                #pattern = re.compile(r'^(?P<families>.*):style=(?P<style>.*)$')
                 pattern = re.compile(r'^(?P<families>.*?(?=:familylang=|$))(?::familylang=(?P<familylang>.*?))?:style=.*$')
             else:
-                #pattern = re.compile(r'^(?P<families>.*)$')
                 pattern = re.compile(r'^(?P<families>.*?(?=:familylang=|$))(?::familylang=(?P<familylang>.*?))')
             match = pattern.match(random_font)
             if not match:
