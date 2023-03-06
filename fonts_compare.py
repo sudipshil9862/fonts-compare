@@ -1114,15 +1114,15 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             return ''
         try:
             result = subprocess.run(
-                    [fc_list_binary, f':lang={lang}', 'family', 'style', 'familylang'],
+                    [fc_list_binary, f':lang={lang}:scalable=true', 'family', 'style', 'familylang'],
                     encoding='utf-8', check=True, capture_output=True)
             fonts_listed = result.stdout.strip().split('\n')
             result_unscalable_fonts_listed = result = subprocess.run(
-                    [fc_list_binary, f':scalable=false', 'family'],
+                    [fc_list_binary, f':fontformat=PCF', 'family'],
                     encoding='utf-8', check=True, capture_output=True)
             unscalable_fonts_listed = result_unscalable_fonts_listed.stdout.strip().split('\n')
             list_unfilter_random_font = [x for x in fonts_listed
-                                         if not ('Droid' in x or 'STIX' in x or 'Bitstream Charter' in x or 'PCF' in x or 'fontformat' in x or any(i in x for i in unscalable_fonts_listed))]
+                                         if not ('Droid' in x or 'STIX' in x or 'Bitstream Charter' in x or any(i in x for i in unscalable_fonts_listed))]
             random_font = random.choice(list_unfilter_random_font)
             LOGGER.info('selected random list from fc-list = %s',random_font)
             if random_font:
