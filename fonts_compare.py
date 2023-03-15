@@ -1113,12 +1113,18 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         if not fc_list_binary:
             return ''
         try:
-            result = subprocess.run(
-                    [fc_list_binary, f':lang={lang}:scalable=true', 'family', 'style', 'familylang'],
+            result1 = subprocess.run(
+                    [fc_list_binary, f':lang={lang}:fontformat=TrueType', 'family', 'style', 'familylang'],
                     encoding='utf-8', check=True, capture_output=True)
-            fonts_listed = result.stdout.strip().split('\n')
+            fonts_listed1 = result1.stdout.strip().split('\n')
+            result2 = subprocess.run(
+                    [fc_list_binary, f':lang={lang}:fontformat=CFF', 'family', 'style', 'familylang'],
+                    encoding='utf-8', check=True, capture_output=True)
+            fonts_listed2 = result2.stdout.strip().split('\n')
+            fonts_listed = fonts_listed1 + fonts_listed2
+            LOGGER.info('%s',fonts_listed)
             list_unfilter_random_font = [x for x in fonts_listed 
-                                         if not ('Droid' in x or 'STIX' in x or 'Bitstream Charter' in x or 'Courier 10 Pitch' in x or 'Utopia' in x)]
+                                         if not ('Droid' in x or 'STIX' in x)]
             random_font = random.choice(list_unfilter_random_font)
             LOGGER.info('selected random list from fc-list = %s',random_font)
             if random_font:
