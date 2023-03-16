@@ -37,6 +37,12 @@ def parse_args() -> Any:
             default=False,
             help=('Print debug output '
                   'default: %(default)s'))
+    parser.add_argument(
+            '--nofonts',
+            action='store_true',
+            default=False,
+            help=('Print debug output '
+                  'default: %(default)s'))
     return parser.parse_args()
 
 _ARGS = parse_args()
@@ -1122,7 +1128,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     encoding='utf-8', check=True, capture_output=True)
             fonts_listed2 = result2.stdout.strip().split('\n')
             fonts_listed = fonts_listed1 + fonts_listed2
-            LOGGER.info('%s',fonts_listed)
             list_unfilter_random_font = [x for x in fonts_listed 
                                          if not ('Droid' in x or 'STIX' in x)]
             random_font = random.choice(list_unfilter_random_font)
@@ -1572,6 +1577,48 @@ if __name__ == '__main__':
         LOG_HANDLER.setFormatter(LOG_FORMATTER)
         LOGGER.setLevel(logging.DEBUG)
         LOGGER.addHandler(LOG_HANDLER)
+    elif _ARGS.nofonts:
+        #call nofonts function
+        print('Fonts of these languages are not installed in your system')
+        print('checking...please wait...')
+        list_dropdown = sorted(list_languages())
+        lang_with_nofonts_installed = []
+        for i in list_dropdown:
+            lang = i.replace('_','-')
+            fc_list_binary = shutil.which('fc-list')
+            if not fc_list_binary:
+                sys.exit()
+            try:
+                result1 = subprocess.run(
+                        [fc_list_binary, f':lang={lang}:fontformat=TrueType', 'family', 'style', 'familylang'],
+                        encoding='utf-8', check=True, capture_output=True)
+                fonts_listed1 = result1.stdout.strip().split('\n')
+                result2 = subprocess.run(
+                        [fc_list_binary, f':lang={lang}:fontformat=CFF', 'family', 'style', 'familylang'],
+                        encoding='utf-8', check=True, capture_output=True)
+                fonts_listed2 = result2.stdout.strip().split('\n')
+                fonts_listed = fonts_listed1 + fonts_listed2
+                list_unfilter_random_font = [x for x in fonts_listed
+                                             if not ('Droid' in x or 'STIX' in x)]
+                random_font = random.choice(list_unfilter_random_font)
+                if not random_font:
+                    #print('fonts are not installed for %s language',lang)
+                    lang_with_nofonts_installed.append(lang)
+            except FileNotFoundError as error:
+                LOGGER.exception('Exception when calling %s: %s: %s',
+                                 fc_list_binary, error.__class__.__name__, error)
+                sys.exit()
+            except subprocess.CalledProcessError as error:
+                LOGGER.exception('Exception when calling %s: %s: %s stderr: %s',
+                                 fc_list_binary,
+                                 error.__class__.__name__, error, error.stderr)
+                sys.exit()
+            except Exception as error: # pylint: disable=broad-except
+                LOGGER.exception('Exception when calling %s: %s: %s',
+                                 fc_list_binary, error.__class__.__name__, error)
+                sys.exit()
+        print(lang_with_nofonts_installed)
+        sys.exit()
     else:
         LOG_HANDLER_NULL = logging.NullHandler()
     GTK_VERSION =   (Gtk.get_major_version(),
