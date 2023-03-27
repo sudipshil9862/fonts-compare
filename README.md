@@ -1,5 +1,5 @@
 # Fonts-Compare
-### This project is all about comparing different fonts of a particular language with respect to FontWeight, FontSize and FontStyle.
+### Fonts-Compare is a project that allows users to compare different fonts of a specific language, based on their FontWeight, FontSize, and FontStyle. The project is designed to help users choose the best font for their needs, whether they are creating a document or designing a website. The project uses the Gtk4 toolkit and requires the installation of font packages for the specific languages users wish to work with. The project is available on Fedora Copr and can also be installed by downloading the Git repository and installing the necessary dependencies.
 
 #### Logo of fonts-compare
 ![fonts-compare](https://user-images.githubusercontent.com/66914502/213653980-9469d863-44dc-4765-8268-13ffa64a5906.svg)
@@ -8,105 +8,68 @@
 ![fonts-compare](https://user-images.githubusercontent.com/66914502/211294452-a07102d6-71e6-42ee-b676-4f9d31b5c7db.png)
 ![fonts-compare-ui](https://user-images.githubusercontent.com/66914502/217479215-1f196b5d-4e1d-4363-8c33-a6a620bcfabd.png)
 
-### Fedora Copr Repository
+#### Fedora Copr Repository
+You can access the Fonts-Compare Copr repository through the following link:
 [fonts-compare copr link](https://copr.fedorainfracloud.org/coprs/sshil/fonts-compare/)
-### To enable Copr repository use command:
-```
-sudo dnf copr enable sshil/fonts-compare
-```
-```
-sudo dnf install fonts-compare
-```
----------------------------------------------------------------------
-#### Screenshot of Fonts Compare UI and lohit vs noto fonts comparison for Indic languages
+
+#### Enabling the Copr Repository
+To enable the Copr repository, run the following command:
+
+        ```
+        sudo dnf copr enable sshil/fonts-compare
+        ```
+After enabling the Copr repository, you can install Fonts-Compare with the following command:
+
+        ```
+        sudo dnf install fonts-compare
+        ```
+
+#### If you are not using Copr, you can download the git repo and install the following packages:
+        `pip3 install langtable`
+        `sudo dnf install python3-langdetect`
+        `sudo dnf install gtk4`
+        `sudo dnf install gtk4-devel`
+
+The code is compatible with all versions of below and above gtk4.8, including gtk4.10.
+
+#### Here is a screenshot of Fonts-Compare UI comparing Lohit and Noto fonts for Indic languages:
 [fonts-compare-lohit-vs-noto-comparison](https://sshil.fedorapeople.org/lohit-vs-noto-comparison.html)
 
 ---------------------------------------------------------------------
-#### Desktop entry file is also available
-Copy fonts-compare.desktop file to /usr/share/fonts-compare after enable copr repo
+#### Required Font Packages
+[Please install font packages based on the languages you need to use]
 
----------------------------------------------------------------------
-### The font packages need to be installed:
-[install font packages depending upon the languages, you are going to work with]
+- You can install the 'ttc' package, which combines multiple font files into a single bundle, instead of manually installing each font package
+- To search for language-specific font packages, use the command:
 
-### In Command Line type this command and Search for noto-sans-cjk fonts
-```
-$ sudo dnf search noto-sans-cjk
-```
-#### Traditional Chinese Multilingual Sans OTF font files
-```
-sudo dnf install google-noto-sans-cjk-hk-fonts.noarch
-```
-#### Japanese Multilingual Sans OTF font files for google-noto-cjk-fonts
-```
-sudo dnf install google-noto-sans-cjk-jp-fonts.noarch
-```
-#### Korean Multilingual Sans OTF font files for google-noto-cjk-fonts
-```
-sudo dnf install google-noto-sans-cjk-kr-fonts.noarch
-```
-#### Simplified Chinese Multilingual Sans OTF font files for google-noto-cjk-fonts
-```
-sudo dnf install google-noto-sans-cjk-sc-fonts.noarch
-```
-#### Traditional Chinese Multilingual Sans OTF font files for google-noto-cjk-fonts
-```
-sudo dnf install google-noto-sans-cjk-tc-fonts.noarch
-```
-#### Sans OTC font files for google-noto-cjk-fonts
-```
-sudo dnf install google-noto-sans-cjk-ttc-fonts.noarch
-```
-### [NOTE]:
-- You can either install every font's packages manually or you can directly install 'ttc'
-- TTC file can combine the multiple font files into a single bundle
+        ```
+        sudo dnf search any_language_name
+        ```
+- You can download fonts for various languages, such as Hindi (Devanagari), Marathi, Gujarati, Odia, Tamil, Telugu, Arabic, and more, by running the following command:
 
------------------------------------------------------------------------
-
-### install fonts for other languages
-```
-sudo dnf install @fonts
-```
-- This will download fonts for languages like hindi(Devanagari), maratha, gujarati, odia, tamil, telegu,, arabic etc.
-- if you are still facing problem with fonts then download individual packages mentioned below
+        ```
+        sudo dnf install @fonts
+        ```
 ----------------------------------------------------------------------
+#### Get languages whose Fonts are not installed in your system
+    Run following commands: 
 
-### install devanagari fonts for hindi
-```
-sudo dnf install google-noto-sans-devanagari-fonts.noarch
-```
-```
-sudo dnf install google-noto-serif-devanagari-fonts.noarch
-```
+        ```
+        python3 fonts_compare.py --nofonts
+        ```
+        or
 
-### install Gujarati fonts
-```
-sudo dnf install google-noto-sans-gujarati-fonts.noarch
-```
-
-### install Tamil fonts
-```
-sudo dnf install google-noto-sans-tamil-fonts.noarch
-```
-
-### install Japanese fonts
-```
-sudo dnf install google-noto-sans-cjk-jp-fonts.noarch
-```
-```
-sudo dnf install google-noto-serif-jp-fonts.noarch
-```
-
-### install Arabic fonts
-```
-sudo dnf install google-noto-sans-arabic-fonts.noarch
-```
+        ```
+        ./fonts_compare.py --nofonts
+        ```
 -----------------------------------------------------------
-### Debug with Logs
-```
-python3 fonts_compare.py -d
-```
-or
-```
-python3 fonts_compare.py --debug
-```
+#### Debugging with Logs
+You can enable debug mode to generate logs by running either of the following commands:
+
+        ```
+        python3 fonts_compare.py -d
+        ```
+        or
+        ```
+        python3 fonts_compare.py --debug
+        ```
