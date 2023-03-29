@@ -422,7 +422,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             output = result.stdout
             if not output.startswith(':lang='):
                 return False
-            langs = output.split('=')[1].split('|')
+            #langs = output.split('=')[1].split('|')
+            if output and not output.startswith(':lang='):
+                return False
+            langs = output.split('=')[1].split('|') if output else []
             if current_lang in langs:
                 return True
             return False
