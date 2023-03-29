@@ -405,7 +405,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 languageId=lang, languageIdQuery=lc_messages)
         self._language_menu_button.set_tooltip_text(label_lang_full_form)
 
-        self.set_default_size_function()
+        self.set_default_size(300,200)
         self.set_resizable(True)
         self.set_child(self.vbox)
 
@@ -489,7 +489,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.label1.set_wrap(False)
             self.label2.set_wrap(False)
             self.wrap_checkbox.set_active(False)
-            self.set_default_size_function()
+            self.set_default_size(300,200)
 
 
     def fontbutton(
@@ -589,8 +589,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         function to wrap labels as True
         '''
-        #LOGGER.info('before checkbox label1 get wrap %d',self.label1.get_wrap())
-        #LOGGER.info('before checkbox label2 get wrap %d',self.label2.get_wrap())
         state = self.wrap_checkbox.get_active()
         if state:
             LOGGER.info('wrap checked %s',state)
@@ -600,8 +598,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             LOGGER.info('wrap checked %s',state)
             self.label1.set_wrap(False)
             self.label2.set_wrap(False)
-        #LOGGER.info('after checkbox label1 get wrap %d',self.label1.get_wrap())
-        #LOGGER.info('after checkbox label2 get wrap %d',self.label1.get_wrap())
 
     def darktheme_checkbox_on_changed(
             self,
@@ -666,14 +662,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.button2.set_font(self.button2.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
  
         self._fontsize_adjustment.set_value(int(FONTSIZE))
-        self.set_default_size_function()
-        self._main_menu_popover.popdown()
-
-    def set_default_size_function(self):
-        '''
-        setting gtk window size change with content
-        '''
         self.set_default_size(300,200)
+        self._main_menu_popover.popdown()
 
     def sample_text_selector(self, lang: str) -> str:
         '''
@@ -730,7 +720,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.button2.set_font(temp_label2_font +' '
                                   + str(int(self._fontsize_adjustment.get_value())))
             LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
-        self.set_default_size_function()
+        self.set_default_size(300,200)
 
     def on_entry_activate_enter_pressed_ok_signal(self, widget, custom_dialog):
         '''
