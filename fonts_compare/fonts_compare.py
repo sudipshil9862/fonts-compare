@@ -50,6 +50,9 @@ _ARGS = parse_args()
 FALLPARAM = 'fallback="false">'
 FONTSIZE = '40'
 LABEL3_FONT = '20'
+GTK_VERSION =   (Gtk.get_major_version(),
+                    Gtk.get_minor_version(),
+                    Gtk.get_micro_version())
 
 class CustomDialog(Gtk.Dialog):
     '''
@@ -1559,7 +1562,8 @@ def locale_language_description(locale_id: str) -> str:
 
 
 
-if __name__ == '__main__':
+
+def fonts_compare() -> None:
     locale.setlocale(locale.LC_ALL, '')
     if _ARGS.debug:
         LOG_HANDLER = logging.StreamHandler(stream=sys.stderr)
@@ -1614,10 +1618,10 @@ if __name__ == '__main__':
         sys.exit()
     else:
         LOG_HANDLER_NULL = logging.NullHandler()
-    GTK_VERSION =   (Gtk.get_major_version(),
-                    Gtk.get_minor_version(),
-                    Gtk.get_micro_version())
     list_dropdown = sorted(list_languages())
     app = Gtk.Application(application_id='org.github.sudipshil9862.fonts-compare')
     app.connect('activate', on_activate)
     app.run(None)
+
+if __name__ == '__main__':
+    fonts_compare()
