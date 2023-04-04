@@ -1563,7 +1563,7 @@ def locale_language_description(locale_id: str) -> str:
 
 
 
-def fonts_compare() -> None:
+def main() -> None:
     locale.setlocale(locale.LC_ALL, '')
     if _ARGS.debug:
         LOG_HANDLER = logging.StreamHandler(stream=sys.stderr)
@@ -1624,4 +1624,4 @@ def fonts_compare() -> None:
     app.run(None)
 
 if __name__ == '__main__':
-    fonts_compare()
+    main()
