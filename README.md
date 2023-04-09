@@ -30,10 +30,12 @@ After enabling the Copr repository, you can install fonts-compare with the follo
         ```
         git clone https://github.com/sudipshil9862/fonts-compare.git`
         ```        
-        ```
-        pip install .
-        ```
-make sure you have pip updated `pip install --upgrade pip` and python devel is installed `sudo dnf install python3-devel1`
+        `pip3 install langtable`
+        `sudo dnf install python3-langdetect`
+        `sudo dnf install gtk4`
+        `sudo dnf install gtk4-devel`
+
+make sure you have pip updated `pip install --upgrade pip` and python devel is installed `sudo dnf install python3-devel`
 
 
 #### Here is a screenshot of fonts-compare UI comparing Lohit and Noto fonts for Indic languages:
@@ -45,7 +47,6 @@ make sure you have pip updated `pip install --upgrade pip` and python devel is i
 
 - You can install the 'ttc' package, which combines multiple font files into a single bundle, instead of manually installing each font package
 - To search for language-specific font packages, use the command:
-
         ```
         sudo dnf search any_language_name
         ```
