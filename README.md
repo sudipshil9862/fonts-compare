@@ -1,20 +1,20 @@
 # fonts-compare
 ### fonts-compare is a project that allows users to compare different fonts of a specific language, based on their FontWeight, FontSize, and FontStyle. The project is designed to help users choose the best font for their needs, whether they are creating a document or designing a website. The project uses the Gtk4 toolkit and requires the installation of font packages for the specific languages users wish to work with. The project is available on Fedora Copr and can also be installed by downloading the Git repository and installing the necessary dependencies.
 
-#### NOTE: `fonts-compare` package is compatible with all GTK versions
+### NOTE: `fonts-compare` package is compatible with all GTK versions
 
-#### Logo of fonts-compare
+### Logo of fonts-compare
 ![fonts-compare](https://user-images.githubusercontent.com/66914502/213653980-9469d863-44dc-4765-8268-13ffa64a5906.svg)
 
-#### Screenshots of fonts-compare UI
+### Screenshots of fonts-compare UI
 ![fonts-compare](https://user-images.githubusercontent.com/66914502/211294452-a07102d6-71e6-42ee-b676-4f9d31b5c7db.png)
 ![fonts-compare-ui](https://user-images.githubusercontent.com/66914502/217479215-1f196b5d-4e1d-4363-8c33-a6a620bcfabd.png)
 
-#### Fedora Copr Repository
+### Fedora Copr Repository
 You can access the fonts-compare Copr repository through the following link:
 [fonts-compare copr link](https://copr.fedorainfracloud.org/coprs/sshil/fonts-compare/)
 
-#### Enabling the Copr Repository
+### Enabling the Copr Repository
 To enable the Copr repository, run the following command:
 
         ```
@@ -26,7 +26,7 @@ After enabling the Copr repository, you can install fonts-compare with the follo
         sudo dnf install fonts-compare
         ```
 
-#### If you are not using Copr, you can download the git repo and install the following packages:
+### If you are not using Copr, you can download the git repo and install the following packages:
         ```
         git clone https://github.com/sudipshil9862/fonts-compare.git`
         ```        
@@ -38,11 +38,11 @@ After enabling the Copr repository, you can install fonts-compare with the follo
 make sure you have pip updated `pip install --upgrade pip` and python devel is installed `sudo dnf install python3-devel`
 
 
-#### Here is a screenshot of fonts-compare UI comparing Lohit and Noto fonts for Indic languages:
+### Here is a screenshot of fonts-compare UI comparing Lohit and Noto fonts for Indic languages:
 [fonts-compare-lohit-vs-noto-comparison](https://sshil.fedorapeople.org/lohit-vs-noto-comparison.html)
 
 ---------------------------------------------------------------------
-#### Required Font Packages
+### Required Font Packages
 [Please install font packages based on the languages you need to use]
 
 - You can install the 'ttc' package, which combines multiple font files into a single bundle, instead of manually installing each font package
@@ -56,7 +56,7 @@ make sure you have pip updated `pip install --upgrade pip` and python devel is i
         sudo dnf install @fonts
         ```
 ----------------------------------------------------------------------
-#### Get languages whose Fonts are not installed in your system
+### Get languages whose Fonts are not installed in your system
     Run following commands: 
 
         ```
@@ -68,7 +68,7 @@ make sure you have pip updated `pip install --upgrade pip` and python devel is i
         ./fonts_compare.py --nofonts
         ```
 -----------------------------------------------------------
-#### Debugging with Logs
+### Debugging with Logs
 You can enable debug mode to generate logs by running either of the following commands:
 
         ```
