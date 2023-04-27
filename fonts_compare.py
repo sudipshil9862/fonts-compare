@@ -30,6 +30,7 @@ LOGGER = logging.getLogger('fonts-compare')
 def parse_args() -> Any:
     '''Parse the command line arguments'''
     parser = argparse.ArgumentParser(
+            add_help=False,
             description='fonts-compare program')
     parser.add_argument(
             '-d', '--debug',
@@ -38,7 +39,13 @@ def parse_args() -> Any:
             help=('Print debug output '
                   'default: %(default)s'))
     parser.add_argument(
-            '--nofonts',
+            '-nf', '--nofonts',
+            action='store_true',
+            default=False,
+            help=('Print debug output '
+                  'default: %(default)s'))
+    parser.add_argument(
+           '-h', '--help',
             action='store_true',
             default=False,
             help=('Print debug output '
@@ -1611,6 +1618,14 @@ if __name__ == '__main__':
                                  fc_list_binary, error.__class__.__name__, error)
                 sys.exit()
         print(lang_with_nofonts_installed)
+        sys.exit()
+    elif _ARGS.help:
+        print('Usage: fonts-compare [OPTIONS]')
+        print('[Options]:')
+        print(' -d          --debug         debug fonts-compare with logs')
+        print(' -nf         --nofonts       display those languages whose fonts are not installed in your system')
+        print(' -h          --help          display this help and exit')
+        print('Learn more about fonts-compare:https://github.com/sudipshil9862/fonts-compare/blob/main/README.md')
         sys.exit()
     else:
         LOG_HANDLER_NULL = logging.NullHandler()
