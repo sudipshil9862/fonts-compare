@@ -258,6 +258,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.fallback_checkbox.connect('toggled', self.fallback_checkbox_on_changed)
         main_menu_popover_vbox.append(self.fallback_checkbox)
 
+        #fontversion in menu
+        self.fontversion_checkbox = Gtk.CheckButton.new_with_label('Fontversion')
+        self.fontversion_checkbox.set_active(False)
+        self.fontversion_checkbox.connect('toggled', self.fontversion_checkbox_on_changed)
+        main_menu_popover_vbox.append(self.fontversion_checkbox)
+
         #wrap toggle/checkbox in menu
         self.wrap_checkbox = Gtk.CheckButton.new_with_label('Wrap labels')
         self.wrap_checkbox.set_active(False)
@@ -370,6 +376,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.button1.set_level(Gtk.FontChooserLevel.SIZE)
             self.button1.set_filter_func(self.font_filter)
         self.vbox.append(self.hbox_button1)
+        #fontversion label1
+        self.fv_label1 = Gtk.Label()
+        self.vbox.append(self.fv_label1)
         self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
         self.label2.set_selectable(True)
@@ -390,6 +399,15 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.button2.set_level(Gtk.FontChooserLevel.SIZE)
             self.button2.set_filter_func(self.font_filter)
         self.vbox.append(self.label2)
+        #fontversion label2
+        self.fv_label2 = Gtk.Label()
+        self.vbox.append(self.fv_label2)
+        if GTK_VERSION >= (4, 9, 3):
+            self.fv_label1.set_property("visible", False)
+            self.fv_label2.set_property("visible", False)
+        else:
+            self.fv_label1.hide()
+            self.fv_label2.hide()
         self.vbox.append(self.hbox_button2)
 
         temp_random_font = self.get_random_font_family_for_language('en')
@@ -589,6 +607,91 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                    +'"' + FALLPARAM
                                    + self.label2.get_text()
                                    + '</span>')
+
+    def fontversion_checkbox_on_changed(
+            self,
+            _checkbutton: Gtk.CheckButton) -> None:
+        '''                   
+        function to display the fontverison of a font
+        '''
+        state = self.fontversion_checkbox.get_active()
+        if state:
+            LOGGER.info('fontversion checkbox checked')
+            if GTK_VERSION >= (4, 9, 3):
+                font_name_button1 = self.font_dialog_button1.get_font_desc().to_string().rsplit(maxsplit=1)[0]
+                LOGGER.info('button1 font : %s',font_name_button1)
+                font_name_button2 = self.font_dialog_button2.get_font_desc().to_string().rsplit(maxsplit=1)[0]
+                LOGGER.info('button2 font : %s',font_name_button2)
+                font_version_font1 = self.get_font_version(font_name_button1)
+                font_version_font2 = self.get_font_version(font_name_button2)
+                LOGGER.info('font_version_font1: %s',font_version_font1)
+                LOGGER.info('font_version_font2: %s',font_version_font2)
+
+                self.fv_label1.set_markup('<span foreground='+"'green'"+ 'font="'
+                                          +self.get_default_font_family_for_language('en')
+                                          +' '+'8'+'"' + FALLPARAM
+                                          + '<b>' + font_version_font1 + '</b>'
+                                          + '</span>')
+                self.fv_label2.set_markup('<span foreground='+"'green'"+ 'font="'
+                                          +self.get_default_font_family_for_language('en')
+                                          +' '+'8'+'"' + FALLPARAM
+                                          + '<b>' + font_version_font2 + '</b>'
+                                          + '</span>')
+            else:
+                fontname_button1 = self.button1.get_font().rsplit(maxsplit=1)[0]
+                LOGGER.info('button1 font : %s',fontname_button1)
+                fontname_button2 = self.button2.get_font().rsplit(maxsplit=1)[0]
+                LOGGER.info('button2 font : %s',fontname_button2)
+                fontversion_font1 = self.get_font_version(fontname_button1)
+                fontversion_font2 = self.get_font_version(fontname_button2)
+                LOGGER.info('font_version_font1: %s',fontversion_font1)
+                LOGGER.info('font_version_font2: %s',fontversion_font2)
+
+                self.fv_label1.set_markup('<span foreground='+"'green'"+ 'font="'
+                                          +self.get_default_font_family_for_language('en')
+                                          +' '+'8'+'"' + FALLPARAM
+                                          + '<b>' + fontversion_font1 + '</b>'
+                                          + '</span>')
+                self.fv_label2.set_markup('<span foreground='+"'green'"+ 'font="'
+                                          +self.get_default_font_family_for_language('en')
+                                          +' '+'8'+'"' + FALLPARAM
+                                          + '<b>' + fontversion_font2 + '</b>'
+                                          + '</span>')
+            self.fv_label1.show()
+            self.fv_label2.show()
+        else:
+            LOGGER.info('fontversion checkbox unchecked')
+            if GTK_VERSION >= (4, 9, 3):
+                self.fv_label1.set_property("visible", False)
+                self.fv_label2.set_property("visible", False)
+            else:
+                self.fv_label1.hide()
+                self.fv_label2.hide()
+            self.fv_label1.set_property("visible", False)
+            self.fv_label2.set_property("visible", False)
+        self.set_default_size(300,200)
+    
+    def get_font_version(self, font_name): 
+        #getting fontpath from fontfamily
+        fc_list_command = ['fc-list', font_name, 'file']
+        result = subprocess.run(fc_list_command, capture_output=True, text=True)
+        output_line = result.stdout.strip()
+        if len(output_line) == 0:
+            print("Fontpath not found")
+            return 'No fontversion found'
+        font_file_path = output_line.split(':')[0]
+        LOGGER.info('font_path: %s',font_file_path)
+
+        #getting font version using otfinfo
+        otfinfo_command = ['otfinfo', '-i', font_file_path]
+        result = subprocess.run(otfinfo_command, capture_output=True, text=True)
+        version_line = [line for line in result.stdout.strip().split('\n') if 'Version:' in line]
+        if len(version_line) == 0:
+            print("Font version not found")
+            return 'no fontversion found'
+        font_version = version_line[0].split(':')[1].strip()
+        return font_version
+
 
     def wrap_checkbox_on_changed(
             self,
