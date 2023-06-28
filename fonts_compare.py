@@ -1130,7 +1130,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             fonts_listed = fonts_listed1 + fonts_listed2
             list_unfilter_random_font = [x for x in fonts_listed 
                                          if not ('Droid' in x or 'STIX' in x)]
-            random_font = random.choice(list_unfilter_random_font)
+            #selecting second font from fc-list
+            random_font = list_unfilter_random_font[1]
             LOGGER.info('selected random list from fc-list = %s',random_font)
             if random_font:
                 #diable error label when font available
