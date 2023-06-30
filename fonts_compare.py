@@ -998,6 +998,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 languageIdQuery=lc_messages)
         LOGGER.debug('label_lang_full_form=%s', label_lang_full_form)
         self._language_menu_button.set_tooltip_text(label_lang_full_form)
+        if self.fontversion_checkbox.get_active() is True:
+            self.fontversion_checkbox.set_active(False)
+            self.fontversion_checkbox.set_active(True)
 
     def _on_language_menu_popover_show(self, popover: Gtk.Popover) -> None:
         '''Called when the language menu popover is shown'''
