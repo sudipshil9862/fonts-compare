@@ -1231,10 +1231,16 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     encoding='utf-8', check=True, capture_output=True)
             fonts_listed2 = result2.stdout.strip().split('\n')
             fonts_listed = fonts_listed1 + fonts_listed2
-            list_unfilter_random_font = [x for x in fonts_listed 
-                                         if not ('Droid' in x or 'STIX' in x)]
+            if GTK_VERSION >= (4, 9, 3):
+                    list_unfilter_random_font = [x for x in fonts_listed]
+            else:
+                    list_unfilter_random_font = [x for x in fonts_listed
+                                                 if not ('Droid' in x or 'STIX' in x)]
             #selecting second font from fc-list
-            random_font = list_unfilter_random_font[1]
+            if len(list_unfilter_random_font) > 1:
+                random_font = list_unfilter_random_font[1]
+            elif len(list_unfilter_random_font) == 1:
+                random_font = list_unfilter_random_font[0]
             LOGGER.info('selected random list from fc-list = %s',random_font)
             if random_font:
                 #diable error label when font available
@@ -1702,9 +1708,17 @@ if __name__ == '__main__':
                         encoding='utf-8', check=True, capture_output=True)
                 fonts_listed2 = result2.stdout.strip().split('\n')
                 fonts_listed = fonts_listed1 + fonts_listed2
-                list_unfilter_random_font = [x for x in fonts_listed
+                if GTK_VERSION >= (4, 9, 3):
+                    list_unfilter_random_font = [x for x in fonts_listed]
+                else:
+                    list_unfilter_random_font = [x for x in fonts_listed
                                              if not ('Droid' in x or 'STIX' in x)]
-                random_font = random.choice(list_unfilter_random_font)
+
+                #selecting second font from fc-list
+                if len(list_unfilter_random_font) > 1:
+                    random_font = list_unfilter_random_font[1]
+                elif len(list_unfilter_random_font) == 1:
+                    random_font = list_unfilter_random_font[0]
                 if not random_font:
                     #print('fonts are not installed for %s language',lang)
                     lang_with_nofonts_installed.append(lang)
