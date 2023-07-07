@@ -368,7 +368,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self.label1 = Gtk.Label()
         self.label1.set_selectable(True)
-        self.label1.set_natural_wrap_mode(True)
         self.label1.set_justify(Gtk.Justification.FILL)
         self.label1.set_max_width_chars(32)
         if GTK_VERSION >= (4,9,3):
@@ -392,7 +391,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
         self.label2.set_selectable(True)
-        self.label2.set_natural_wrap_mode(True)
         self.label2.set_justify(Gtk.Justification.FILL)
         self.label2.set_max_width_chars(32)
         if GTK_VERSION >= (4,9,3):
