@@ -57,7 +57,7 @@ _ARGS = parse_args()
 FALLPARAM = 'fallback="false">'
 FONTSIZE = '40'
 LABEL3_FONT = '20'
-HIDEWEIGHTBOOL = False
+SHOWSTYLEBOOL = False
 
 class CustomDialog(Gtk.Dialog):
     '''
@@ -199,10 +199,10 @@ class GTKCustomFilter(Gtk.CustomFilter):
         '''
         function to filter fonts for set_filter_func
         '''
-        if HIDEWEIGHTBOOL:
-            font_pango_font_description = font_face.get_name()
-        else:
+        if SHOWSTYLEBOOL:
             font_pango_font_description = font_face.describe().to_string()
+        else:
+            font_pango_font_description = font_face.get_name()
         return self.font_support_language_filter(font_pango_font_description, self.language_code)
     #font_support_language_filter
     def font_support_language_filter(self, font, lang):
@@ -269,10 +269,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         main_menu_popover_vbox.append(self.fontversion_checkbox)
 
         #hide style in menu
-        self.hidestyle_checkbox = Gtk.CheckButton.new_with_label('Hide style')
-        self.hidestyle_checkbox.set_active(False)
-        self.hidestyle_checkbox.connect('toggled', self.hidestyle_checkbox_on_changed)
-        main_menu_popover_vbox.append(self.hidestyle_checkbox)
+        self.showstyle_checkbox = Gtk.CheckButton.new_with_label('Show style')
+        self.showstyle_checkbox.set_active(False)
+        self.showstyle_checkbox.connect('toggled', self.showstyle_checkbox_on_changed)
+        main_menu_popover_vbox.append(self.showstyle_checkbox)
 
         #wrap toggle/checkbox in menu
         self.wrap_checkbox = Gtk.CheckButton.new_with_label('Wrap labels')
@@ -377,13 +377,13 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.font_dialog_button1.set_dialog(self.button1)
             self.font_dialog_button1.connect('notify::font-desc', self.label_font_change_newversion, self.label1)
             self.fontbutton_newversion(self.label1, self.font_dialog_button1, self.hbox_button1)
-            self.font_dialog_button1.set_level(Gtk.FontLevel.FONT)
+            self.font_dialog_button1.set_level(Gtk.FontLevel.FAMILY)
             self.custom_filter = GTKCustomFilter('en')
             self.button1.set_filter(self.custom_filter)
         else:
             self.button1 = Gtk.FontButton.new()
             self.fontbutton(self.label1, self.button1, self.hbox_button1)
-            self.button1.set_level(Gtk.FontChooserLevel.SIZE)
+            self.button1.set_level(Gtk.FontChooserLevel.FAMILY)
             self.button1.set_filter_func(self.font_filter)
         self.vbox.append(self.hbox_button1)
         #fontversion label1
@@ -401,12 +401,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.font_dialog_button2.set_dialog(self.button1)
             self.font_dialog_button2.connect('notify::font-desc', self.label_font_change_newversion, self.label2)
             self.fontbutton_newversion(self.label2, self.font_dialog_button2, self.hbox_button2)
-            self.font_dialog_button2.set_level(Gtk.FontLevel.FONT)
+            self.font_dialog_button2.set_level(Gtk.FontLevel.FAMILY)
             self.button2.set_filter(self.custom_filter)
         else:
             self.button2 = Gtk.FontButton.new()
             self.fontbutton(self.label2, self.button2, self.hbox_button2)
-            self.button2.set_level(Gtk.FontChooserLevel.SIZE)
+            self.button2.set_level(Gtk.FontChooserLevel.FAMILY)
             self.button2.set_filter_func(self.font_filter)
         self.vbox.append(self.label2)
         #fontversion label2
@@ -704,32 +704,32 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         font_version = version_line[0].split(':')[1].strip()
         return font_version
 
-    def hidestyle_checkbox_on_changed(
+    def showstyle_checkbox_on_changed(
             self,
             _checkbutton: Gtk.CheckButton) -> None:
         '''
         function to wrap labels as True
         '''
-        state = self.hidestyle_checkbox.get_active()
-        global HIDEWEIGHTBOOL
+        state = self.showstyle_checkbox.get_active()
+        global SHOWSTYLEBOOL
         if state:
-            LOGGER.info('hidestyle checked %s',state)
-            HIDEWEIGHTBOOL = True
-            if GTK_VERSION >= (4,9,3):
-                self.font_dialog_button1.set_level(Gtk.FontLevel.FAMILY)
-                self.font_dialog_button2.set_level(Gtk.FontLevel.FAMILY)
-            else:
-                self.button1.set_level(Gtk.FontChooserLevel.FAMILY)
-                self.button2.set_level(Gtk.FontChooserLevel.FAMILY)
-        else:
-            HIDEWEIGHTBOOL = False
-            LOGGER.info('hidestyle unchecked %s',state)
+            LOGGER.info('showstyle checked %s',state)
+            SHOWSTYLEBOOL = True
             if GTK_VERSION >= (4,9,3):
                 self.font_dialog_button1.set_level(Gtk.FontLevel.FONT)
                 self.font_dialog_button2.set_level(Gtk.FontLevel.FONT)
             else:
                 self.button1.set_level(Gtk.FontChooserLevel.SIZE)
                 self.button2.set_level(Gtk.FontChooserLevel.SIZE)
+        else:
+            SHOWSTYLEBOOL = False
+            LOGGER.info('showstyle unchecked %s',state)
+            if GTK_VERSION >= (4,9,3):
+                self.font_dialog_button1.set_level(Gtk.FontLevel.FAMILY)
+                self.font_dialog_button2.set_level(Gtk.FontLevel.FAMILY)
+            else:
+                self.button1.set_level(Gtk.FontChooserLevel.FAMILY)
+                self.button2.set_level(Gtk.FontChooserLevel.FAMILY)
 
 
     def wrap_checkbox_on_changed(
