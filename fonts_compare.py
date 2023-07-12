@@ -952,7 +952,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         listbox = Gtk.ListBox()
         listbox.set_vexpand(True)
         listbox.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        listbox.set_activate_on_single_click(True)
+        listbox.set_activate_on_single_click(False)
         rows = []
         filter_words = remove_accents(filter_text.lower()).split()
         currently_selected_visible = False
@@ -993,8 +993,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 'row-selected',
                 self._on_language_menu_popover_listbox_row_selected)
         self._language_menu_popover_scroll.set_child(listbox)
-
-
 
     def _on_language_menu_popover_listbox_row_selected(
             self, _listbox: Gtk.ListBox, listbox_row: Gtk.ListBoxRow) -> None:
