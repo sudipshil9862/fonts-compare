@@ -34,6 +34,7 @@ After enabling the Copr repository, you can install fonts-compare with the follo
         `sudo dnf install python3-langdetect`
         `sudo dnf install gtk4`
         `sudo dnf install gtk4-devel`
+        `sudo dnf install lcdf-typetools`
 
 make sure you have pip updated `pip install --upgrade pip` and python devel is installed `sudo dnf install python3-devel`
 
