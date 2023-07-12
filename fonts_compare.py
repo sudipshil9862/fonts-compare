@@ -4,6 +4,7 @@ This is my fonts-compare program for font rendering and comparing
 '''
 from typing import Any
 from typing import List
+from typing import Set
 import sys
 import os
 import random
@@ -194,6 +195,22 @@ class GTKCustomFilter(Gtk.CustomFilter):
     def __init__(self, language_code):
         super().__init__()
         self.language_code = language_code
+        self._fonts_supporting_language: Set[str] = set()
+        if SHOWSTYLEBOOL:
+            output = subprocess.check_output(["fc-list", ":lang=" + language_code, "family", "style"]).decode("utf-8")
+            font_families = set(output.splitlines())
+            for font_entry in font_families:
+                font_name = font_entry.split(":")[0]
+                self._fonts_supporting_language.add(font_name)
+            LOGGER.info('style included')
+        else:
+            output = subprocess.check_output(["fc-list", ":lang=" + language_code, "family"]).decode("utf-8")
+            font_families = set(output.splitlines())
+            for fontname in font_families:
+                self._fonts_supporting_language.add(fontname)
+            LOGGER.info('family included')
+        for font in self._fonts_supporting_language:
+                print(font)
         self.set_filter_func(self.font_filter)
     def font_filter(self, font_face):
         '''
@@ -209,15 +226,7 @@ class GTKCustomFilter(Gtk.CustomFilter):
         '''
         function returns boolean value for font_filter function
         '''
-        result = subprocess.run(["fc-list", font, "lang"], encoding='utf-8', check=True, capture_output=True)
-        output = ""
-        output = result.stdout
-        if not output.startswith(':lang='):
-            return False
-        langs = output.split('=')[1].split('|')
-        if lang in langs:
-            return True
-        return False
+        return font in self._fonts_supporting_language
 
 class AppWindow(Gtk.ApplicationWindow): # type: ignore
     '''
