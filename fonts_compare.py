@@ -278,10 +278,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         main_menu_popover_vbox.append(self.fontversion_checkbox)
 
         #hide style in menu
-        self.showstyle_checkbox = Gtk.CheckButton.new_with_label('Show style')
-        self.showstyle_checkbox.set_active(False)
-        self.showstyle_checkbox.connect('toggled', self.showstyle_checkbox_on_changed)
-        main_menu_popover_vbox.append(self.showstyle_checkbox)
+        if GTK_VERSION >= (4,9,3):
+            self.showstyle_checkbox = Gtk.CheckButton.new_with_label('Show style')
+            self.showstyle_checkbox.set_active(False)
+            self.showstyle_checkbox.connect('toggled', self.showstyle_checkbox_on_changed)
+            main_menu_popover_vbox.append(self.showstyle_checkbox)
 
         #wrap toggle/checkbox in menu
         self.wrap_checkbox = Gtk.CheckButton.new_with_label('Wrap labels')
@@ -391,7 +392,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         else:
             self.button1 = Gtk.FontButton.new()
             self.fontbutton(self.label1, self.button1, self.hbox_button1)
-            self.button1.set_level(Gtk.FontChooserLevel.FAMILY)
+            self.button1.set_level(Gtk.FontChooserLevel.SIZE)
             self.button1.set_filter_func(self.font_filter)
         self.vbox.append(self.hbox_button1)
         #fontversion label1
@@ -413,7 +414,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         else:
             self.button2 = Gtk.FontButton.new()
             self.fontbutton(self.label2, self.button2, self.hbox_button2)
-            self.button2.set_level(Gtk.FontChooserLevel.FAMILY)
+            self.button2.set_level(Gtk.FontChooserLevel.SIZE)
             self.button2.set_filter_func(self.font_filter)
         self.vbox.append(self.label2)
         #fontversion label2
@@ -725,18 +726,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             if GTK_VERSION >= (4,9,3):
                 self.font_dialog_button1.set_level(Gtk.FontLevel.FONT)
                 self.font_dialog_button2.set_level(Gtk.FontLevel.FONT)
-            else:
-                self.button1.set_level(Gtk.FontChooserLevel.SIZE)
-                self.button2.set_level(Gtk.FontChooserLevel.SIZE)
         else:
             SHOWSTYLEBOOL = False
             LOGGER.info('showstyle unchecked %s',state)
             if GTK_VERSION >= (4,9,3):
                 self.font_dialog_button1.set_level(Gtk.FontLevel.FAMILY)
                 self.font_dialog_button2.set_level(Gtk.FontLevel.FAMILY)
-            else:
-                self.button1.set_level(Gtk.FontChooserLevel.FAMILY)
-                self.button2.set_level(Gtk.FontChooserLevel.FAMILY)
 
 
     def wrap_checkbox_on_changed(
