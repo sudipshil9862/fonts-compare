@@ -975,11 +975,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             if str_filter_words not in make_list:
                 filter_match = False
             if filter_match:
-                self._language_menu_popover_language_ids.append(language_id)
                 if language_id != self._currently_selected_language:
+                    self._language_menu_popover_language_ids.append(language_id)
                     rows.append(
                             self._language_menu_popover_listbox_fill_row(language_id))
                 else:
+                    self._language_menu_popover_language_ids.insert(0, language_id)
                     rows.insert(0, self._language_menu_popover_listbox_fill_row(language_id))
                     currently_selected_visible = True
         for row in rows:
