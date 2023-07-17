@@ -507,16 +507,22 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                   + str(self._fontsize_adjustment.get_value()))
         temp_label1_text = self.label1.get_text()
         temp_label2_text = self.label2.get_text()
-        self.label1.set_markup('<span font="'+button1_family+' '
-                               +str(self._fontsize_adjustment.get_value())
-                               +'"' + FALLPARAM
-                               + temp_label1_text
-                               + '</span>')
-        self.label2.set_markup('<span font="'+button2_family+' '
-                               +str(self._fontsize_adjustment.get_value())
-                               +'"' + FALLPARAM
-                               + temp_label2_text
-                               + '</span>')
+        
+        #setting family-style-size to label1
+        pango_font_description1 = self.font_dialog_button1.get_font_desc()
+        pango_font_description1.set_size(int(self._fontsize_adjustment.get_value()) * Pango.SCALE)
+        pango_attr_font_description1 = Pango.AttrFontDesc.new(pango_font_description1)
+        pango_attr_list = Pango.AttrList.new()
+        pango_attr_list.insert(attr=pango_attr_font_description1)
+        self.label1.set_attributes(attrs=pango_attr_list)
+        
+        #setting family-style-size to label2
+        pango_font_description2 = self.font_dialog_button2.get_font_desc()
+        pango_font_description2.set_size(int(self._fontsize_adjustment.get_value()) * Pango.SCALE)
+        pango_attr_font_description2 = Pango.AttrFontDesc.new(pango_font_description2)
+        pango_attr_list = Pango.AttrList.new()
+        pango_attr_list.insert(attr=pango_attr_font_description2)
+        self.label2.set_attributes(attrs=pango_attr_list)
 
         #wrapping text if font size greater than 60
         if (self.pango_sample_text_checkbox.get_active() is True) and (
