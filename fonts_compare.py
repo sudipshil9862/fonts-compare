@@ -5,6 +5,7 @@ This is my fonts-compare program for font rendering and comparing
 from typing import Any
 from typing import List
 from typing import Set
+import freetype
 import sys
 import os
 import random
@@ -24,6 +25,7 @@ from gi.repository import Gtk # type: ignore
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
 from gi.repository import GLib
+from fontTools.ttLib import TTFont
 # pylint: enable=wrong-import-position
 
 LOGGER = logging.getLogger('fonts-compare')
@@ -656,12 +658,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 self.fv_label1.set_markup('<span foreground='+"'green'"+ 'font="'
                                           +self.get_default_font_family_for_language('en')
                                           +' '+'8'+'"' + FALLPARAM
-                                          + '<b>' + font_version_font1 + '</b>'
+                                          + '<b>' + str(font_version_font1) + '</b>'
                                           + '</span>')
                 self.fv_label2.set_markup('<span foreground='+"'green'"+ 'font="'
                                           +self.get_default_font_family_for_language('en')
                                           +' '+'8'+'"' + FALLPARAM
-                                          + '<b>' + font_version_font2 + '</b>'
+                                          + '<b>' + str(font_version_font2) + '</b>'
                                           + '</span>')
             else:
                 fontname_button1 = self.button1.get_font().rsplit(maxsplit=1)[0]
@@ -708,15 +710,16 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         font_file_path = output_line.split(':')[0]
         LOGGER.info('font_path: %s',font_file_path)
 
-        #getting font version using otfinfo
-        otfinfo_command = ['otfinfo', '-i', font_file_path]
-        result = subprocess.run(otfinfo_command, capture_output=True, text=True)
-        version_line = [line for line in result.stdout.strip().split('\n') if 'Version:' in line]
-        if len(version_line) == 0:
-            print("Font version not found")
-            return 'no fontversion found'
-        font_version = version_line[0].split(':')[1].strip()
-        return font_version
+        #getting font version using freetype
+        face = freetype.Face(font_file_path)
+        num_name_strings = face.sfnt_name_count
+        version_string = None
+        for index in range(num_name_strings):
+            name_string = face.get_sfnt_name(index)
+            if name_string.name_id == 5:  # Font version name ID
+                version_string = name_string.string.decode('utf-8')
+                break
+        return version_string
 
     def showstyle_checkbox_on_changed(
             self,
