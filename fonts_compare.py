@@ -408,7 +408,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         if GTK_VERSION >= (4,9,3):
             self.button2 = Gtk.FontDialog()
             self.font_dialog_button2 = Gtk.FontDialogButton()
-            self.font_dialog_button2.set_dialog(self.button1)
+            self.font_dialog_button2.set_dialog(self.button2)
             self.font_dialog_button2.connect('notify::font-desc', self.label_font_change_newversion, self.label2)
             self.fontbutton_newversion(self.label2, self.font_dialog_button2, self.hbox_button2)
             self.font_dialog_button2.set_level(Gtk.FontLevel.FAMILY)
