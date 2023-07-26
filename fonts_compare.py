@@ -85,14 +85,10 @@ class CustomDialog(Gtk.Dialog):
                 '_OK', Gtk.ResponseType.OK,
                 )
 
-        btn_ok = self.get_widget_for_response(
-                response_id=Gtk.ResponseType.OK,
-                )
-        btn_ok.get_style_context().add_class(class_name='suggested-action')
-        btn_cancel = self.get_widget_for_response(
-                response_id=Gtk.ResponseType.CANCEL,
-                )
-        btn_cancel.get_style_context().add_class(class_name='destructive-action')
+        self.btn_ok = self.get_widget_for_response(Gtk.ResponseType.OK)
+        self.btn_cancel = self.get_widget_for_response(Gtk.ResponseType.CANCEL)
+        self.btn_ok.get_style_context().add_class('suggested-action')
+        self.btn_cancel.get_style_context().add_class('destructive-action')
 
         self.set_default_response(Gtk.ResponseType.OK)
 
