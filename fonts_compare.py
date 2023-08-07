@@ -488,6 +488,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         spin button adjustment button used for
         increase and decrease of font size of label1 and label2
         '''
+        temp_label1_text = self.label1.get_text()
+        temp_label2_text = self.label2.get_text(
         if GTK_VERSION >= (4, 9, 3):
             button1_family = self.font_dialog_button1.get_font_desc().to_string().rsplit(' ',1)[0]
             button2_family = self.font_dialog_button2.get_font_desc().to_string().rsplit(' ',1)[0]
@@ -502,25 +504,33 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                   + str(self._fontsize_adjustment.get_value()))
             self.button2.set_font(button2_family + ' '
                                   + str(self._fontsize_adjustment.get_value()))
-        temp_label1_text = self.label1.get_text()
-        temp_label2_text = self.label2.get_text()
         
-        #setting family-style-size to label1
-        pango_font_description1 = self.font_dialog_button1.get_font_desc()
-        pango_font_description1.set_size(int(self._fontsize_adjustment.get_value()) * Pango.SCALE)
-        pango_attr_font_description1 = Pango.AttrFontDesc.new(pango_font_description1)
-        pango_attr_list = Pango.AttrList.new()
-        pango_attr_list.insert(attr=pango_attr_font_description1)
-        self.label1.set_attributes(attrs=pango_attr_list)
-        
-        #setting family-style-size to label2
-        pango_font_description2 = self.font_dialog_button2.get_font_desc()
-        pango_font_description2.set_size(int(self._fontsize_adjustment.get_value()) * Pango.SCALE)
-        pango_attr_font_description2 = Pango.AttrFontDesc.new(pango_font_description2)
-        pango_attr_list = Pango.AttrList.new()
-        pango_attr_list.insert(attr=pango_attr_font_description2)
-        self.label2.set_attributes(attrs=pango_attr_list)
-
+        if GTK_VERSION >= (4, 9, 3): 
+            #setting family-style-size to label1
+            pango_font_description1 = self.font_dialog_button1.get_font_desc()
+            pango_font_description1.set_size(int(self._fontsize_adjustment.get_value()) * Pango.SCALE)
+            pango_attr_font_description1 = Pango.AttrFontDesc.new(pango_font_description1)
+            pango_attr_list = Pango.AttrList.new()
+            pango_attr_list.insert(attr=pango_attr_font_description1)
+            self.label1.set_attributes(attrs=pango_attr_list)
+            #setting family-style-size to label2
+            pango_font_description2 = self.font_dialog_button2.get_font_desc()
+            pango_font_description2.set_size(int(self._fontsize_adjustment.get_value()) * Pango.SCALE)
+            pango_attr_font_description2 = Pango.AttrFontDesc.new(pango_font_description2)
+            pango_attr_list = Pango.AttrList.new()
+            pango_attr_list.insert(attr=pango_attr_font_description2)
+            self.label2.set_attributes(attrs=pango_attr_list)
+        else:
+            self.label1.set_markup('<span font="'+button1_family+' '
+                                   +str(self._fontsize_adjustment.get_value())
+                                   +'"' + FALLPARAM
+                                   + temp_label1_text
+                                   + '</span>')
+            self.label2.set_markup('<span font="'+button2_family+' '
+                                   +str(self._fontsize_adjustment.get_value())
+                                   +'"' + FALLPARAM
+                                   + temp_label2_text
+                                   + '</span>')
         #wrapping text if font size greater than 60
         if (self.pango_sample_text_checkbox.get_active() is True) and (
                 int(self._fontsize_adjustment.get_value()) > 60):
