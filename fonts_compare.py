@@ -489,7 +489,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         increase and decrease of font size of label1 and label2
         '''
         temp_label1_text = self.label1.get_text()
-        temp_label2_text = self.label2.get_text(
+        temp_label2_text = self.label2.get_text()
         if GTK_VERSION >= (4, 9, 3):
             button1_family = self.font_dialog_button1.get_font_desc().to_string().rsplit(' ',1)[0]
             button2_family = self.font_dialog_button2.get_font_desc().to_string().rsplit(' ',1)[0]
