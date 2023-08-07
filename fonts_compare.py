@@ -5,7 +5,6 @@ This is my fonts-compare program for font rendering and comparing
 from typing import Any
 from typing import List
 from typing import Set
-import freetype
 import sys
 import os
 import random
@@ -19,13 +18,14 @@ import unicodedata
 import langtable # type: ignore
 import langdetect # type: ignore
 import gi # type: ignore
+import freetype
+from fontTools.ttLib import TTFont
 # pylint: disable=wrong-import-position
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk # type: ignore
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
 from gi.repository import GLib
-from fontTools.ttLib import TTFont
 # pylint: enable=wrong-import-position
 
 LOGGER = logging.getLogger('fonts-compare')
@@ -84,12 +84,10 @@ class CustomDialog(Gtk.Dialog):
                 '_Cancel', Gtk.ResponseType.CANCEL,
                 '_OK', Gtk.ResponseType.OK,
                 )
-
         self.btn_ok = self.get_widget_for_response(Gtk.ResponseType.OK)
         self.btn_cancel = self.get_widget_for_response(Gtk.ResponseType.CANCEL)
         self.btn_ok.get_style_context().add_class('suggested-action')
         self.btn_cancel.get_style_context().add_class('destructive-action')
-
         self.set_default_response(Gtk.ResponseType.OK)
 
         content_area = self.get_content_area()
@@ -207,8 +205,6 @@ class GTKCustomFilter(Gtk.CustomFilter):
             for fontname in font_families:
                 self._fonts_supporting_language.add(fontname)
             LOGGER.info('family included')
-        for font in self._fonts_supporting_language:
-                print(font)
         self.set_filter_func(self.font_filter)
     def font_filter(self, font_face):
         '''
@@ -446,6 +442,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 languageId=lang, languageIdQuery=lc_messages)
         self._language_menu_button.set_tooltip_text(label_lang_full_form)
 
+        self.pango_sample_text_checkbox.set_active(True)
+        self.pango_sample_text_checkbox.set_active(False)
+
         self.set_default_size(300,200)
         self.set_resizable(True)
         self.set_child(self.vbox)
@@ -654,12 +653,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 self.fv_label1.set_markup('<span foreground='+"'green'"+ 'font="'
                                           +self.get_default_font_family_for_language('en')
                                           +' '+'8'+'"' + FALLPARAM
-                                          + '<b>' + str(font_version_font1) + '</b>'
+                                          + '<b>' + font_version_font1 + '</b>'
                                           + '</span>')
                 self.fv_label2.set_markup('<span foreground='+"'green'"+ 'font="'
                                           +self.get_default_font_family_for_language('en')
                                           +' '+'8'+'"' + FALLPARAM
-                                          + '<b>' + str(font_version_font2) + '</b>'
+                                          + '<b>' + font_version_font2 + '</b>'
                                           + '</span>')
             else:
                 fontname_button1 = self.button1.get_font().rsplit(maxsplit=1)[0]
@@ -670,7 +669,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 fontversion_font2 = self.get_font_version(fontname_button2)
                 LOGGER.info('font_version_font1: %s',fontversion_font1)
                 LOGGER.info('font_version_font2: %s',fontversion_font2)
-
                 self.fv_label1.set_markup('<span foreground='+"'green'"+ 'font="'
                                           +self.get_default_font_family_for_language('en')
                                           +' '+'8'+'"' + FALLPARAM
@@ -705,8 +703,18 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             return 'No fontversion found'
         font_file_path = output_line.split(':')[0]
         LOGGER.info('font_path: %s',font_file_path)
-
-        #getting font version using freetype
+        
+        #getting font version using otfinfo
+        #'''
+        otfinfo_command = ['otfinfo', '-i', font_file_path]
+        result = subprocess.run(otfinfo_command, capture_output=True, text=True)
+        version_line = [line for line in result.stdout.strip().split('\n') if 'Version:' in line]
+        if len(version_line) == 0:
+            print("Font version not found")
+            return 'no fontversion found'
+        font_version = version_line[0].split(':')[1].strip()
+        return font_version
+        '''
         face = freetype.Face(font_file_path)
         num_name_strings = face.sfnt_name_count
         version_string = None
@@ -715,8 +723,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             if name_string.name_id == 5:  # Font version name ID
                 version_string = name_string.string.decode('utf-8')
                 break
-        return version_string
-
+        print(type(version_string))
+        return ''+str(version_string)
+        '''
     def showstyle_checkbox_on_changed(
             self,
             _checkbutton: Gtk.CheckButton) -> None:
@@ -737,7 +746,13 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             if GTK_VERSION >= (4,9,3):
                 self.font_dialog_button1.set_level(Gtk.FontLevel.FAMILY)
                 self.font_dialog_button2.set_level(Gtk.FontLevel.FAMILY)
-
+            
+        if self.pango_sample_text_checkbox.get_active() is False: 
+            self.pango_sample_text_checkbox.set_active(True)
+            self.pango_sample_text_checkbox.set_active(False)
+        else:
+            self.pango_sample_text_checkbox.set_active(False)
+            self.pango_sample_text_checkbox.set_active(True)
 
     def wrap_checkbox_on_changed(
             self,
