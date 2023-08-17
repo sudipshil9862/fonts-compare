@@ -19,6 +19,7 @@ import langtable # type: ignore
 import langdetect # type: ignore
 import gi # type: ignore
 import freetype
+import string
 from fontTools.ttLib import TTFont
 # pylint: disable=wrong-import-position
 gi.require_version('Gtk', '4.0')
@@ -266,10 +267,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         main_menu_popover_vbox.append(self.fallback_checkbox)
 
         #fontversion in menu
-        self.fontversion_checkbox = Gtk.CheckButton.new_with_label('Fontversion')
-        self.fontversion_checkbox.set_active(False)
-        self.fontversion_checkbox.connect('toggled', self.fontversion_checkbox_on_changed)
-        main_menu_popover_vbox.append(self.fontversion_checkbox)
+        if GTK_VERSION >= (4,9,3):
+            self.fontversion_checkbox = Gtk.CheckButton.new_with_label('Fontversion')
+            self.fontversion_checkbox.set_active(False)
+            self.fontversion_checkbox.connect('toggled', self.fontversion_checkbox_on_changed)
+            main_menu_popover_vbox.append(self.fontversion_checkbox)
 
         #hide style in menu
         if GTK_VERSION >= (4,9,3):
@@ -390,8 +392,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.button1.set_filter_func(self.font_filter)
         self.vbox.append(self.hbox_button1)
         #fontversion label1
-        self.fv_label1 = Gtk.Label()
-        self.vbox.append(self.fv_label1)
+        if GTK_VERSION >= (4,9,3):
+            self.fv_label1 = Gtk.Label()
+            self.vbox.append(self.fv_label1)
         self.vbox.append(self.label1)
         self.label2 = Gtk.Label()
         self.label2.set_selectable(True)
@@ -412,14 +415,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.button2.set_filter_func(self.font_filter)
         self.vbox.append(self.label2)
         #fontversion label2
-        self.fv_label2 = Gtk.Label()
-        self.vbox.append(self.fv_label2)
-        if GTK_VERSION >= (4, 9, 3):
+        if GTK_VERSION >= (4,9,3):
+            self.fv_label2 = Gtk.Label()
+            self.vbox.append(self.fv_label2)
             self.fv_label1.set_property("visible", False)
             self.fv_label2.set_property("visible", False)
-        else:
-            self.fv_label1.hide()
-            self.fv_label2.hide()
         self.vbox.append(self.hbox_button2)
 
         temp_random_font = self.get_random_font_family_for_language('en')
@@ -593,7 +593,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         dialogButton.set_font_desc(Pango.font_description_from_string(temp_label_button_font + ' ' + FONTSIZE))
         boxh.append(dialogButton)
 
-    @classmethod
     def label_font_change_newversion(
             self, dialogButton, _param_spec: Any, label: Gtk.Label) -> None:
         '''
@@ -606,6 +605,40 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         pango_attr_list = Pango.AttrList.new()
         pango_attr_list.insert(attr=pango_attr_font_description)
         label.set_attributes(attrs=pango_attr_list)
+        
+        if self.fontversion_checkbox.get_active() is True:
+            word1 = self.font_dialog_button1.get_font_desc().to_string().split()
+            last_word1 = word1[-1]
+            if last_word1.isdigit():
+                self.fv_label1.set_markup('<span foreground='+"'green'"+ 'font="'
+                                          +self.get_default_font_family_for_language('en')
+                                          +' '+'8'+'"' + FALLPARAM
+                                          + '<b>' + self.get_font_version(self.font_dialog_button1.get_font_desc().to_string().rsplit(' ',1)[0]) + '</b>'
+                                          + '</span>')
+            else:
+                self.fv_label1.set_markup('<span foreground='+"'green'"+ 'font="'
+                                          +self.get_default_font_family_for_language('en')
+                                          +' '+'8'+'"' + FALLPARAM
+                                          + '<b>' + self.get_font_version(self.font_dialog_button1.get_font_desc().to_string()) + '</b>'
+                                          + '</span>')
+            word2 = self.font_dialog_button2.get_font_desc().to_string().split()
+            last_word2 = word2[-1]
+            if last_word2.isdigit():
+                self.fv_label2.set_markup('<span foreground='+"'green'"+ 'font="'
+                                          +self.get_default_font_family_for_language('en')
+                                          +' '+'8'+'"' + FALLPARAM
+                                          + '<b>' + self.get_font_version(self.font_dialog_button2.get_font_desc().to_string().rsplit(' ',1)[0]) + '</b>'
+                                          + '</span>')
+            else:
+                self.fv_label2.set_markup('<span foreground='+"'green'"+ 'font="'
+                                          +self.get_default_font_family_for_language('en')
+                                          +' '+'8'+'"' + FALLPARAM
+                                          + '<b>' + self.get_font_version(self.font_dialog_button2.get_font_desc().to_string()) + '</b>'
+                                          + '</span>')
+            LOGGER.info('button1_family %s:',self.font_dialog_button1.get_font_desc().to_string())
+            LOGGER.info('button1_family_version: %s',self.get_font_version(self.font_dialog_button1.get_font_desc().to_string()))
+            LOGGER.info('button2_family %s:',self.font_dialog_button2.get_font_desc().to_string())
+            LOGGER.info('button2_family_version: %s',self.get_font_version(self.font_dialog_button2.get_font_desc().to_string()))
 
     def fallback_checkbox_on_changed(
             self,
@@ -651,44 +684,22 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         if state:
             LOGGER.info('fontversion checkbox checked')
             if GTK_VERSION >= (4, 9, 3):
-                font_name_button1 = self.font_dialog_button1.get_font_desc().to_string().rsplit(maxsplit=1)[0]
-                LOGGER.info('button1 font : %s',font_name_button1)
-                font_name_button2 = self.font_dialog_button2.get_font_desc().to_string().rsplit(maxsplit=1)[0]
-                LOGGER.info('button2 font : %s',font_name_button2)
-                font_version_font1 = self.get_font_version(font_name_button1)
-                font_version_font2 = self.get_font_version(font_name_button2)
-                LOGGER.info('font_version_font1: %s',font_version_font1)
-                LOGGER.info('font_version_font2: %s',font_version_font2)
+                print(self.font_dialog_button1.get_font_desc().to_string())
+                print(self.font_dialog_button2.get_font_desc().to_string())
+                self.fv_label1.set_markup('<span foreground='+"'green'"+ 'font="'
+                                          +self.get_default_font_family_for_language('en')
+                                          +' '+'8'+'"' + FALLPARAM
+                                          + '<b>' + self.get_font_version(self.font_dialog_button1.get_font_desc().to_string().rsplit(' ',1)[0]) + '</b>'
+                                          + '</span>')
 
-                self.fv_label1.set_markup('<span foreground='+"'green'"+ 'font="'
-                                          +self.get_default_font_family_for_language('en')
-                                          +' '+'8'+'"' + FALLPARAM
-                                          + '<b>' + font_version_font1 + '</b>'
-                                          + '</span>')
                 self.fv_label2.set_markup('<span foreground='+"'green'"+ 'font="'
                                           +self.get_default_font_family_for_language('en')
                                           +' '+'8'+'"' + FALLPARAM
-                                          + '<b>' + font_version_font2 + '</b>'
+                                          + '<b>' + self.get_font_version(self.font_dialog_button2.get_font_desc().to_string().rsplit(' ',1)[0]) + '</b>'
                                           + '</span>')
-            else:
-                fontname_button1 = self.button1.get_font().rsplit(maxsplit=1)[0]
-                LOGGER.info('button1 font : %s',fontname_button1)
-                fontname_button2 = self.button2.get_font().rsplit(maxsplit=1)[0]
-                LOGGER.info('button2 font : %s',fontname_button2)
-                fontversion_font1 = self.get_font_version(fontname_button1)
-                fontversion_font2 = self.get_font_version(fontname_button2)
-                LOGGER.info('font_version_font1: %s',fontversion_font1)
-                LOGGER.info('font_version_font2: %s',fontversion_font2)
-                self.fv_label1.set_markup('<span foreground='+"'green'"+ 'font="'
-                                          +self.get_default_font_family_for_language('en')
-                                          +' '+'8'+'"' + FALLPARAM
-                                          + '<b>' + fontversion_font1 + '</b>'
-                                          + '</span>')
-                self.fv_label2.set_markup('<span foreground='+"'green'"+ 'font="'
-                                          +self.get_default_font_family_for_language('en')
-                                          +' '+'8'+'"' + FALLPARAM
-                                          + '<b>' + fontversion_font2 + '</b>'
-                                          + '</span>')
+
+                #self.fv_label1.set_text(self.get_font_version(self.font_dialog_button1.get_font_desc().to_string().rsplit(' ',1)[0]))
+                #self.fv_label2.set_text(self.get_font_version(self.font_dialog_button2.get_font_desc().to_string().rsplit(' ',1)[0])) 
             self.fv_label1.show()
             self.fv_label2.show()
         else:
@@ -696,11 +707,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             if GTK_VERSION >= (4, 9, 3):
                 self.fv_label1.set_property("visible", False)
                 self.fv_label2.set_property("visible", False)
-            else:
-                self.fv_label1.hide()
-                self.fv_label2.hide()
-            self.fv_label1.set_property("visible", False)
-            self.fv_label2.set_property("visible", False)
+        self._main_menu_popover.popdown()
         self.set_default_size(300,200)
     
     def get_font_version(self, font_name): 
@@ -714,17 +721,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         font_file_path = output_line.split(':')[0]
         LOGGER.info('font_path: %s',font_file_path)
         
-        #getting font version using otfinfo
-        #'''
-        otfinfo_command = ['otfinfo', '-i', font_file_path]
-        result = subprocess.run(otfinfo_command, capture_output=True, text=True)
-        version_line = [line for line in result.stdout.strip().split('\n') if 'Version:' in line]
-        if len(version_line) == 0:
-            print("Font version not found")
-            return 'no fontversion found'
-        font_version = version_line[0].split(':')[1].strip()
-        return font_version
-        '''
+        # Getting font version using Freetype
         face = freetype.Face(font_file_path)
         num_name_strings = face.sfnt_name_count
         version_string = None
@@ -732,10 +729,16 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             name_string = face.get_sfnt_name(index)
             if name_string.name_id == 5:  # Font version name ID
                 version_string = name_string.string.decode('utf-8')
+                version_string = version_string.strip()
                 break
-        print(type(version_string))
-        return ''+str(version_string)
-        '''
+        cleaned_version_string = self.clean_string(version_string)
+        print('freetype_version: ',cleaned_version_string)
+        return cleaned_version_string
+
+    #clean non-printable letters from freetype returned string
+    def clean_string(self,s):
+        return ''.join(filter(lambda x: x in string.printable, s)).strip()
+
     def showstyle_checkbox_on_changed(
             self,
             _checkbutton: Gtk.CheckButton) -> None:
