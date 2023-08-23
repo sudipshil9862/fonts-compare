@@ -116,7 +116,6 @@ class CustomDialog(Gtk.Dialog):
             lang = parent.detect_language(text)
             if GTK_VERSION >= (4, 9, 3):
                 parent.label_button_set_after_entry_dialog_ok_newversion(text,lang)
- 
             else:
                 parent.label_button_set_after_entry_dialog_ok(text,lang)
             parent.set_default_size(300,200)
@@ -504,8 +503,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                   + str(self._fontsize_adjustment.get_value()))
             self.button2.set_font(button2_family + ' '
                                   + str(self._fontsize_adjustment.get_value()))
-        
-        if GTK_VERSION >= (4, 9, 3): 
+
+        if GTK_VERSION >= (4, 9, 3):
             #setting family-style-size to label1
             pango_font_description1 = self.font_dialog_button1.get_font_desc()
             pango_font_description1.set_size(int(self._fontsize_adjustment.get_value()) * Pango.SCALE)
@@ -605,7 +604,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         pango_attr_list = Pango.AttrList.new()
         pango_attr_list.insert(attr=pango_attr_font_description)
         label.set_attributes(attrs=pango_attr_list)
-        
+
         if self.fontversion_checkbox.get_active() is True:
             word1 = self.font_dialog_button1.get_font_desc().to_string().split()
             last_word1 = word1[-1]
@@ -635,10 +634,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                           +' '+'8'+'"' + FALLPARAM
                                           + '<b>' + self.get_font_version(self.font_dialog_button2.get_font_desc().to_string()) + '</b>'
                                           + '</span>')
-            LOGGER.info('button1_family %s:',self.font_dialog_button1.get_font_desc().to_string())
-            LOGGER.info('button1_family_version: %s',self.get_font_version(self.font_dialog_button1.get_font_desc().to_string()))
-            LOGGER.info('button2_family %s:',self.font_dialog_button2.get_font_desc().to_string())
-            LOGGER.info('button2_family_version: %s',self.get_font_version(self.font_dialog_button2.get_font_desc().to_string()))
 
     def fallback_checkbox_on_changed(
             self,
@@ -684,8 +679,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         if state:
             LOGGER.info('fontversion checkbox checked')
             if GTK_VERSION >= (4, 9, 3):
-                print(self.font_dialog_button1.get_font_desc().to_string())
-                print(self.font_dialog_button2.get_font_desc().to_string())
                 self.fv_label1.set_markup('<span foreground='+"'green'"+ 'font="'
                                           +self.get_default_font_family_for_language('en')
                                           +' '+'8'+'"' + FALLPARAM
@@ -698,8 +691,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                           + '<b>' + self.get_font_version(self.font_dialog_button2.get_font_desc().to_string().rsplit(' ',1)[0]) + '</b>'
                                           + '</span>')
 
-                #self.fv_label1.set_text(self.get_font_version(self.font_dialog_button1.get_font_desc().to_string().rsplit(' ',1)[0]))
-                #self.fv_label2.set_text(self.get_font_version(self.font_dialog_button2.get_font_desc().to_string().rsplit(' ',1)[0])) 
             self.fv_label1.show()
             self.fv_label2.show()
         else:
@@ -709,8 +700,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 self.fv_label2.set_property("visible", False)
         self._main_menu_popover.popdown()
         self.set_default_size(300,200)
-    
-    def get_font_version(self, font_name): 
+
+    def get_font_version(self, font_name):
         #getting fontpath from fontfamily
         fc_list_command = ['fc-list', font_name, 'file']
         result = subprocess.run(fc_list_command, capture_output=True, text=True)
@@ -720,7 +711,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             return 'No fontversion found'
         font_file_path = output_line.split(':')[0]
         LOGGER.info('font_path: %s',font_file_path)
-        
+
         # Getting font version using Freetype
         face = freetype.Face(font_file_path)
         num_name_strings = face.sfnt_name_count
@@ -732,7 +723,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 version_string = version_string.strip()
                 break
         cleaned_version_string = self.clean_string(version_string)
-        print('freetype_version: ',cleaned_version_string)
+        LOGGER.info('freetype_version: %s',cleaned_version_string)
         return cleaned_version_string
 
     #clean non-printable letters from freetype returned string
@@ -759,7 +750,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             if GTK_VERSION >= (4,9,3):
                 self.font_dialog_button1.set_level(Gtk.FontLevel.FAMILY)
                 self.font_dialog_button2.set_level(Gtk.FontLevel.FAMILY)
-            
+ 
         if self.pango_sample_text_checkbox.get_active() is False: 
             self.pango_sample_text_checkbox.set_active(True)
             self.pango_sample_text_checkbox.set_active(False)
@@ -844,7 +835,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                    + '</span>')
             LOGGER.info('lang from language list: %s', self._language_menu_button.get_label())
             self.button2.set_font(self.button2.get_font().rsplit(' ',1)[0] + ' ' + FONTSIZE)
- 
+
         self._fontsize_adjustment.set_value(int(FONTSIZE))
         self.set_default_size(300,200)
         self._main_menu_popover.popdown()
@@ -1308,9 +1299,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             fonts_listed2 = result2.stdout.strip().split('\n')
             fonts_listed = fonts_listed1 + fonts_listed2
             if GTK_VERSION >= (4, 9, 3):
-                    list_unfilter_random_font = [x for x in fonts_listed]
+                list_unfilter_random_font = [x for x in fonts_listed]
             else:
-                    list_unfilter_random_font = [x for x in fonts_listed
+                list_unfilter_random_font = [x for x in fonts_listed
                                                  if not ('Droid' in x or 'STIX' in x)]
             #selecting second font from fc-list
             if len(list_unfilter_random_font) > 1:
