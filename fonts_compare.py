@@ -20,7 +20,6 @@ import langdetect # type: ignore
 import gi # type: ignore
 import freetype
 import string
-from fontTools.ttLib import TTFont
 # pylint: disable=wrong-import-position
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk # type: ignore
