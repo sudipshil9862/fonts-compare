@@ -61,11 +61,34 @@ FALLPARAM = 'fallback="false">'
 FONTSIZE = '40'
 LABEL3_FONT = '20'
 SHOWSTYLEBOOL = False
+first_font_saved = ''
 
 class CustomDialog(Gtk.Dialog):
     '''
     this class is used for displaying custom dialog window for editing labels
     '''
+    def langdetect_edit_label_checkbox_on_changed(
+            self,
+            _checkbutton: Gtk.CheckButton) -> None:
+        '''
+        function to disable language detection level in edit label button
+        '''
+        state = self.langdetect_edit_label_checkbox.get_active()
+        LOGGER.info('The switch has been switched %s', 'on' if state else 'off')
+        if state:
+            ##show langdetect label
+            self.langdetect_edit_labels.show()
+            LOGGER.info('language detection turned on - edit label')
+            self.set_default_size(278, 250)
+        else:
+            ##hide langdetect label
+            if GTK_VERSION >= (4, 9, 3):
+                    self.langdetect_edit_labels.set_property("visible", False)
+            else:
+                self.langdetect_edit_labels.hide()
+            LOGGER.info('language detection turned off - edit label')
+            self.set_default_size(278, 180)
+
     def __init__(self, parent, **kwargs):
         super().__init__(**kwargs)
         self.parent = kwargs.get('transient_for')
@@ -75,8 +98,8 @@ class CustomDialog(Gtk.Dialog):
         self.connect('response', self.dialog_response, parent)
 
 
-        self.set_width = 683
-        self.set_height = 384
+        self.set_width = 278
+        self.set_height = 250
         self.temp_lang_custom_dialog = ''
         self.temp_text_custom_dialog = ''
 
@@ -101,9 +124,13 @@ class CustomDialog(Gtk.Dialog):
         self.entry_edit_labels = Gtk.Entry()
         self.label_entry_edit_labels = Gtk.Label(label="Type Here")
         self.langdetect_edit_labels = Gtk.Label(label="")
+        self.langdetect_edit_label_checkbox = Gtk.CheckButton.new_with_label('Detect Language of the text')
+        self.langdetect_edit_label_checkbox.set_active(True)
+        self.langdetect_edit_label_checkbox.connect('toggled', self.langdetect_edit_label_checkbox_on_changed)
         content_area.append(self.label_entry_edit_labels)
         content_area.append(self.entry_edit_labels)
         content_area.append(self.langdetect_edit_labels)
+        content_area.append(self.langdetect_edit_label_checkbox)
 
     def dialog_response(self, dialog, response, parent):
         '''
@@ -420,17 +447,17 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.fv_label2.set_property("visible", False)
         self.vbox.append(self.hbox_button2)
 
-        temp_random_font = self.get_random_font_family_for_language('en')
-        self.label2.set_markup('<span font="'+temp_random_font
+        temp_other_font = self.get_other_font_family_for_language('en')
+        self.label2.set_markup('<span font="'+temp_other_font
                                +' '+FONTSIZE+'"' + FALLPARAM
                                + self.sample_text_selector('en')
                                + '</span>')
         if GTK_VERSION >= (4,9,3):
-            self.font_dialog_button2.set_font_desc(Pango.font_description_from_string(temp_random_font + ' ' + FONTSIZE))
+            self.font_dialog_button2.set_font_desc(Pango.font_description_from_string(temp_other_font + ' ' + FONTSIZE))
             self.button1.set_title(self.font_dialog_button1.get_font_desc().to_string())
             self.button2.set_title(self.font_dialog_button2.get_font_desc().to_string())
         else:
-            self.button2.set_font(temp_random_font + ' ' + FONTSIZE)
+            self.button2.set_font(temp_other_font + ' ' + FONTSIZE)
         text = self.label1.get_text()
         lang = self.detect_language(text)
         self._currently_selected_language = lang
@@ -442,7 +469,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self.pango_sample_text_checkbox.set_active(True)
         self.pango_sample_text_checkbox.set_active(False)
-
+        
         self.set_default_size(300,200)
         self.set_resizable(True)
         self.set_child(self.vbox)
@@ -869,7 +896,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                         temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value())))
             self.font_dialog_button1.set_font_desc(Pango.font_description_from_string(temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value()))))
             LOGGER.info('self.font_dialog_button1.get_font(%s)',self.font_dialog_button1.get_font_desc().to_string())
-            temp_label2_font = self.get_random_font_family_for_language(detect_lang)
+            temp_label2_font = self.get_other_font_family_for_language(detect_lang)
             self.label2.set_markup('<span font="'+temp_label2_font
                                    +' '+str(int(self._fontsize_adjustment.get_value()))+'"' + FALLPARAM
                                    + set_text + '</span>')
@@ -884,7 +911,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                         temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value())))
             self.button1.set_font(temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value())))
             LOGGER.info('self.button1.get_font(%s)',self.button1.get_font())
-            temp_label2_font = self.get_random_font_family_for_language(detect_lang)
+            temp_label2_font = self.get_other_font_family_for_language(detect_lang)
             self.label2.set_markup('<span font="'+temp_label2_font
                                    +' '+str(int(self._fontsize_adjustment.get_value()))+'"' + FALLPARAM
                                    + set_text + '</span>')
@@ -1224,6 +1251,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         getting default font by fc-match
         '''
+        global first_font_saved
+        first_font_saved = ''
         lang = lang.replace('_','-')
         LOGGER.info('language: %s',lang)
         fc_match_binary = shutil.which('fc-match')
@@ -1253,13 +1282,19 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                             last_family = families[count]
                             LOGGER.info('locale lang = %s',locale.getlocale(locale.LC_MESSAGES)[0])
                             LOGGER.info('selected default font = %s',last_family)
+                            first_font_saved = last_family
+                            LOGGER.info('first button font = %s', first_font_saved)
                             return last_family
                     if last_family == '':
                         last_family = families[-1:][0]
                         LOGGER.info('selected default font = %s',last_family)
+                        first_font_saved = last_family
+                        LOGGER.info('first button font = %s', first_font_saved)
                         return last_family
                 else:
                     last_family = families[-1:][0]
+                    first_font_saved = last_family
+                    LOGGER.info('first button font = %s', first_font_saved)
                     LOGGER.info('selected default font = %s',last_family)
                     return last_family
             return ''
@@ -1279,10 +1314,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
     #----------selecting random font for label2
 
-    def get_random_font_family_for_language(self, lang: str) -> str:
+    def get_other_font_family_for_language(self, lang: str) -> str:
         '''
         getting a random font using fc-list
         '''
+        global first_font_saved
         lang = lang.replace('_','-')
         fc_list_binary = shutil.which('fc-list')
         if not fc_list_binary:
@@ -1298,17 +1334,35 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             fonts_listed2 = result2.stdout.strip().split('\n')
             fonts_listed = fonts_listed1 + fonts_listed2
             if GTK_VERSION >= (4, 9, 3):
-                list_unfilter_random_font = [x for x in fonts_listed]
+                list_unfilter_other_font = [x for x in fonts_listed]
             else:
-                list_unfilter_random_font = [x for x in fonts_listed
+                list_unfilter_other_font = [x for x in fonts_listed
                                                  if not ('Droid' in x or 'STIX' in x)]
             #selecting second font from fc-list
-            if len(list_unfilter_random_font) > 1:
-                random_font = list_unfilter_random_font[1]
-            elif len(list_unfilter_random_font) == 1:
-                random_font = list_unfilter_random_font[0]
-            LOGGER.info('selected random list from fc-list = %s',random_font)
-            if random_font:
+            #but the second font should not match the first font
+            LOGGER.info('first button font = %s', first_font_saved)
+            if len(list_unfilter_other_font) == 1:
+                other_font = list_unfilter_other_font[0]
+            elif len(list_unfilter_other_font) > 1:
+                for font in list_unfilter_other_font:
+                    LOGGER.info('font which may have comma separated multiple fonts: %s', font)
+                    #eg. Noto Sans Tamil,Noto Sans Tamil
+                    font_temp = font
+                    font_temp = font_temp.split(':family')[0]
+                    if ',' in font_temp:
+                        font_temp = font_temp.split(',')[0].strip()
+                    if (first_font_saved not in font_temp):
+                        #sometimes fontconfig includes style in family name
+                        #eg. Noto Sans Tamil is same Noto Sans Tamil Condensed
+                        other_font = font
+                        LOGGER.info('font without having multiple fonts: %s', font_temp)
+                        break
+                if not other_font:
+                    if ',' in other_font:
+                        other_font = other_font.split(',')[0].strip()
+                    other_font = list_unfilter_other_font[1]
+            LOGGER.info('selected random list from fc-list = %s',other_font)
+            if other_font:
                 #diable error label when font available
                 if GTK_VERSION >= (4, 9, 3):
                     self.label_error.set_property("visible", False)
@@ -1325,12 +1379,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                             + '</span>')
                 self.label_error.show()
                 return ''
-            #sometimes random_font doesnot contain any style then error arises
-            if random_font.find(":style") != -1:
+            #sometimes other_font doesnot contain any style then error arises
+            if other_font.find(":style") != -1:
                 pattern = re.compile(r'^(?P<families>.*?(?=:familylang=|$))(?::familylang=(?P<familylang>.*?))?:style=.*$')
             else:
                 pattern = re.compile(r'^(?P<families>.*?(?=:familylang=|$))(?::familylang=(?P<familylang>.*?))')
-            match = pattern.match(random_font)
+            match = pattern.match(other_font)
             if not match:
                 LOGGER.error('Regexp did not match %s', result.stdout.strip())
                 return ''
@@ -1775,17 +1829,17 @@ if __name__ == '__main__':
                 fonts_listed2 = result2.stdout.strip().split('\n')
                 fonts_listed = fonts_listed1 + fonts_listed2
                 if GTK_VERSION >= (4, 9, 3):
-                    list_unfilter_random_font = [x for x in fonts_listed]
+                    list_unfilter_other_font = [x for x in fonts_listed]
                 else:
-                    list_unfilter_random_font = [x for x in fonts_listed
+                    list_unfilter_other_font = [x for x in fonts_listed
                                              if not ('Droid' in x or 'STIX' in x)]
 
                 #selecting second font from fc-list
-                if len(list_unfilter_random_font) > 1:
-                    random_font = list_unfilter_random_font[1]
-                elif len(list_unfilter_random_font) == 1:
-                    random_font = list_unfilter_random_font[0]
-                if not random_font:
+                if len(list_unfilter_other_font) > 1:
+                    other_font = list_unfilter_other_font[1]
+                elif len(list_unfilter_other_font) == 1:
+                    other_font = list_unfilter_other_font[0]
+                if not other_font:
                     #print('fonts are not installed for %s language',lang)
                     lang_with_nofonts_installed.append(lang)
             except FileNotFoundError as error:
