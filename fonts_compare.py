@@ -26,6 +26,8 @@ from gi.repository import Gtk # type: ignore
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
 from gi.repository import GLib
+gi.require_version('Adw', '1')
+from gi.repository import Adw
 # pylint: enable=wrong-import-position
 
 LOGGER = logging.getLogger('fonts-compare')
@@ -479,10 +481,22 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self.pango_sample_text_checkbox.set_active(True)
         self.pango_sample_text_checkbox.set_active(False)
-        
+
+        if self.is_dark_mode_enabled():
+            LOGGER.info('system dark mode is on')
+            LOGGER.info('Turning ON darktheme checkbox')
+            self.darktheme_checkbox.set_active(True)
+
         self.set_default_size(300,200)
         self.set_resizable(True)
         self.set_child(self.vbox)
+
+    def is_dark_mode_enabled(self) -> bool:
+        '''
+        Check if dark mode is enabled based on system preference or application settings.
+        '''
+        style_manager = Adw.StyleManager.get_default()
+        return style_manager.get_dark()
 
     #font_filter
     def font_filter(self, font_family,font_face):
@@ -819,12 +833,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         state = self.darktheme_checkbox.get_active()
         if state:
             LOGGER.info("Dark Theme enabled")
-            settings = Gtk.Settings.get_default()
-            settings.set_property("gtk-application-prefer-dark-theme", True)
+            style_manager = Adw.StyleManager.get_default()
+            style_manager.set_color_scheme(Adw.ColorScheme.FORCE_DARK)
         else:
             LOGGER.info("Dark Theme disabled")
-            settings = Gtk.Settings.get_default()
-            settings.set_property("gtk-application-prefer-dark-theme", False)
+            style_manager = Adw.StyleManager.get_default()
+            style_manager.set_color_scheme(Adw.ColorScheme.FORCE_LIGHT)
         self._main_menu_popover.popdown()
 
     def pango_sample_text_checkbox_on_changed(
