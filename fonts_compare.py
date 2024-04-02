@@ -62,6 +62,8 @@ FONTSIZE = '40'
 LABEL3_FONT = '20'
 SHOWSTYLEBOOL = False
 first_font_saved = ''
+lang_before_ok_response = ''
+LANGDETECT_CHECKBOX = True
 
 class CustomDialog(Gtk.Dialog):
     '''
@@ -136,20 +138,27 @@ class CustomDialog(Gtk.Dialog):
         '''
         when we click on ok and cancek in dialog window
         '''
+        global LANGDETECT_CHECKBOX
         if response == Gtk.ResponseType.OK:
             LOGGER.info('pressed ok')
             text = self.entry_edit_labels.get_text()
             lang = parent.detect_language(text)
+            print('checkbox landetect state:', self.langdetect_edit_label_checkbox.get_active())
+            #fetch the lang_before_ok_response
+            langdetect_checkbox_state = self.langdetect_edit_label_checkbox.get_active()
+            LANGDETECT_CHECKBOX = langdetect_checkbox_state
             if GTK_VERSION >= (4, 9, 3):
-                parent.label_button_set_after_entry_dialog_ok_newversion(text,lang)
+                parent.label_button_set_after_entry_dialog_ok_newversion(text,lang, langdetect_checkbox_state)
             else:
-                parent.label_button_set_after_entry_dialog_ok(text,lang)
+                parent.label_button_set_after_entry_dialog_ok(text,lang, langdetect_checkbox_state)
             parent.set_default_size(300,200)
             #schedule dialog.close() to be called later
             GLib.idle_add(dialog.close)
 
         elif response == Gtk.ResponseType.CANCEL:
             LOGGER.info('pressed cancel')
+            langdetect_checkbox_state = self.langdetect_edit_label_checkbox.get_active()
+            LANGDETECT_CHECKBOX = langdetect_checkbox_state
             dialog.close()
 
 
@@ -341,6 +350,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._main_menu_edit_label_button.set_has_frame(False)
         self._main_menu_edit_label_button.connect('clicked', self._on_edit_label_button_clicked)
         main_menu_popover_vbox.append(self._main_menu_edit_label_button)
+        
         self._main_menu_about_button = Gtk.Button(label='About')
         self._main_menu_about_button.set_has_frame(False)
         self._main_menu_about_button.connect('clicked', self._on_about_button_clicked)
@@ -933,6 +943,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''The “Edit Label” button has been clicked'''
         LOGGER.debug('Edit Label button clicked')
         self._main_menu_popover.popdown()
+        #update global variable lang_before_ok_response = current selected dropdown language before changing
+        global lang_before_ok_response
+        lang_before_ok_response = self._language_menu_button.get_label()
         self.custom_dialog = CustomDialog(self, transient_for=self, use_header_bar=True)
         self.custom_dialog.entry_edit_labels.changed_signal_id = self.custom_dialog.entry_edit_labels.connect(
                 'notify::text', self.on_entry_changed)
@@ -943,6 +956,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         text = self.custom_dialog.entry_edit_labels.get_text()
         lang = self.detect_language(text)
         LOGGER.info('text=%s lang=%s', text, lang)
+        global LANGDETECT_CHECKBOX
+        self.custom_dialog.langdetect_edit_label_checkbox.set_active(LANGDETECT_CHECKBOX)
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = 'en'
         if lc_messages:
@@ -1126,10 +1141,14 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         popover.set_child(vbox_language_dropdown)
         self.search_entry.grab_focus()
 
-    def label_button_set_after_entry_dialog_ok(self, text:str, lang:str):
+    def label_button_set_after_entry_dialog_ok(self, text:str, lang:str, langdetect_checkbox_state: bool):
         self.label1.set_text(text)
         self.label2.set_text(text)
-        if lang in list_dropdown:
+        global lang_before_ok_response
+        if lang_before_ok_response == lang:
+            #previously selected and current detected lang are same - so no change in font for both buttons
+            LOGGER.info('no change in font for both buttons')
+        elif lang in list_dropdown and langdetect_checkbox_state == True:
             self.button1.set_preview_text(langtable.language_name(
                 languageId=lang, languageIdQuery=lang))
             self.button2.set_preview_text(langtable.language_name(
@@ -1138,7 +1157,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self._language_menu_button.set_label(lang)
             self.button1.set_filter_func(self.font_filter)
             self.button2.set_filter_func(self.font_filter)
-        elif not lang in list_dropdown:
+        elif not lang in list_dropdown and langdetect_checkbox_state == True:
             self.label1.set_markup('<span font="'
                                    +self.get_default_font_family_for_language(lang)
                                    +' '+FONTSIZE+'"' + FALLPARAM
@@ -1162,10 +1181,14 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     +' '+ FONTSIZE)
             LOGGER.info('self.button2.get_font(%s)',self.button2.get_font())
 
-    def label_button_set_after_entry_dialog_ok_newversion(self, text:str, lang:str):
+    def label_button_set_after_entry_dialog_ok_newversion(self, text:str, lang:str, langdetect_checkbox_state: bool):
         self.label1.set_text(text)
         self.label2.set_text(text)
-        if lang in list_dropdown:
+        global lang_before_ok_response
+        if lang_before_ok_response == lang:
+            #previously selected and current detected lang are same - so no change in font for both buttons
+            LOGGER.info('no change in font for both buttons')
+        elif lang in list_dropdown and langdetect_checkbox_state == True:
             #self.button1.set_preview_text(langtable.language_name(
             #    languageId=lang, languageIdQuery=lang))
             #self.button2.set_preview_text(langtable.language_name(
@@ -1176,7 +1199,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.custom_filter = GTKCustomFilter(current_lang)
             self.button1.set_filter(self.custom_filter)
             self.button2.set_filter(self.custom_filter)
-        elif not lang in list_dropdown:
+        elif not lang in list_dropdown and langdetect_checkbox_state == True:
             self.label1.set_markup('<span font="'
                                    +self.get_default_font_family_for_language(lang)
                                    +' '+FONTSIZE+'"' + FALLPARAM
