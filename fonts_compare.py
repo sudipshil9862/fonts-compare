@@ -228,6 +228,10 @@ class GTKCustomFilter(Gtk.CustomFilter):
     def __init__(self, language_code):
         super().__init__()
         self.language_code = language_code
+        if '-' in language_code:
+            language_code = language_code.split('-')[0]
+        elif '_' in language_code:
+            language_code = language_code.split('_')[0]
         self._fonts_supporting_language: Set[str] = set()
         if SHOWSTYLEBOOL:
             output = subprocess.check_output(["fc-list", ":lang=" + language_code, "family", "style"]).decode("utf-8")
@@ -1370,10 +1374,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     encoding='utf-8', check=True, capture_output=True)
             fonts_listed2 = result2.stdout.strip().split('\n')
             fonts_listed = fonts_listed1 + fonts_listed2
-            if GTK_VERSION >= (4, 9, 3):
-                list_unfilter_other_font = [x for x in fonts_listed]
-            else:
-                list_unfilter_other_font = [x for x in fonts_listed
+            list_unfilter_other_font = [x for x in fonts_listed
                                                  if not ('Droid' in x or 'STIX' in x)]
             #selecting second font from fc-list
             #but the second font should not match the first font
