@@ -228,10 +228,8 @@ class GTKCustomFilter(Gtk.CustomFilter):
     def __init__(self, language_code):
         super().__init__()
         self.language_code = language_code
-        if '-' in language_code:
-            language_code = language_code.split('-')[0]
-        elif '_' in language_code:
-            language_code = language_code.split('_')[0]
+        if '_' in language_code:
+            language_code = language_code.replace('_', '-')
         self._fonts_supporting_language: Set[str] = set()
         if SHOWSTYLEBOOL:
             output = subprocess.check_output(["fc-list", ":lang=" + language_code, "family", "style"]).decode("utf-8")
