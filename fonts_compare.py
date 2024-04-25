@@ -1351,11 +1351,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                              fc_match_binary, error.__class__.__name__, error)
             return ''
 
-    #----------selecting random font for label2
+    #----------selecting other font for label2
 
     def get_other_font_family_for_language(self, lang: str) -> str:
         '''
-        getting a random font using fc-list
+        getting a other font using fc-list
         '''
         global first_font_saved
         lang = lang.replace('_','-')
@@ -1373,31 +1373,33 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             fonts_listed2 = result2.stdout.strip().split('\n')
             fonts_listed = fonts_listed1 + fonts_listed2
             list_unfilter_other_font = [x for x in fonts_listed
-                                                 if not ('Droid' in x or 'STIX' in x)]
+                                        if x and not ('Droid' in x or 'STIX' in x)] #--if x and-- to exclude empty items 
             #selecting second font from fc-list
             #but the second font should not match the first font
             LOGGER.info('first button font = %s', first_font_saved)
             if len(list_unfilter_other_font) == 1:
                 other_font = list_unfilter_other_font[0]
             elif len(list_unfilter_other_font) > 1:
+                LOGGER.info("Number of fonts in list_unfilter_other_font: %d", len(list_unfilter_other_font))
                 for font in list_unfilter_other_font:
                     LOGGER.info('font which may have comma separated multiple fonts: %s', font)
-                    #eg. Noto Sans Tamil,Noto Sans Tamil
-                    font_temp = font
-                    font_temp = font_temp.split(':family')[0]
+                    font_temp = str(font)
+                    font_temp = font_temp.split(':familylang')[0]
                     if ',' in font_temp:
+                        #eg. Noto Sans Tamil,Noto Sans Tamil
                         font_temp = font_temp.split(',')[0].strip()
                     if (first_font_saved not in font_temp):
                         #sometimes fontconfig includes style in family name
                         #eg. Noto Sans Tamil is same Noto Sans Tamil Condensed
                         other_font = font
-                        LOGGER.info('font without having multiple fonts: %s', font_temp)
+                        LOGGER.info('resulted font without having multiple families - style included: %s', font)
+                        LOGGER.info('resulted font without having multiple families - style not included: %s', font_temp)
                         break
                 if not other_font:
                     if ',' in other_font:
                         other_font = other_font.split(',')[0].strip()
                     other_font = list_unfilter_other_font[1]
-            LOGGER.info('selected random list from fc-list = %s',other_font)
+            LOGGER.info('selected other list from fc-list = %s',other_font)
             if other_font:
                 #diable error label when font available
                 if GTK_VERSION >= (4, 9, 3):
@@ -1445,10 +1447,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                         return last_family
                 else:
                     last_family = families[0]
-                    LOGGER.info('selected random font before confirm = %s',last_family)
+                    LOGGER.info('selected other font before confirm = %s',last_family)
             if not last_family:
                 return ''
-            LOGGER.info('selected random font confirm = %s',last_family)
+            LOGGER.info('selected other font confirm = %s',last_family)
             return last_family
         except FileNotFoundError as error:
             LOGGER.exception('Exception when calling %s: %s: %s',
