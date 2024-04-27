@@ -36,7 +36,7 @@ def parse_args() -> Any:
     '''Parse the command line arguments'''
     parser = argparse.ArgumentParser(
             add_help=False,
-            description='fonts-compare program')
+            description='Fonts Compare Tool')
     parser.add_argument(
             '-d', '--debug',
             action='store_true',
@@ -47,14 +47,16 @@ def parse_args() -> Any:
             '-nf', '--nofonts',
             action='store_true',
             default=False,
-            help=('Print debug output '
-                  'default: %(default)s'))
+            help=('display languages with missing fonts'))
+    parser.add_argument(
+           '-l', '--lang',
+            type=str,
+            help=('Set language/directly open fonts-compare for a particular language from command line'))
     parser.add_argument(
            '-h', '--help',
             action='store_true',
             default=False,
-            help=('Print debug output '
-                  'default: %(default)s'))
+            help=('Display help message'))
     return parser.parse_args()
 
 _ARGS = parse_args()
@@ -265,8 +267,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
     '''
     Including appwindow class to window to present
     '''
-    def __init__(self, appp: Gtk.Application) -> None:
+    def __init__(self, appp: Gtk.Application, language: str) -> None:
         super().__init__(application=appp)
+        self.cli_language = language
         self.init_ui()
 
     def init_ui(self) -> None:
@@ -367,7 +370,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self._main_menu_popover.set_child(main_menu_popover_vbox)
 
-        self._language_menu_button = Gtk.MenuButton(label='en')
+        #self._language_menu_button = Gtk.MenuButton(label='en')
+        self._language_menu_button = Gtk.MenuButton(label=self.cli_language)
         self._language_menu_button.set_has_frame(False)
         self._language_menu_button.set_has_tooltip(True)
         self._language_menu_button.set_tooltip_text('Use language')
@@ -422,7 +426,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.font_dialog_button1.connect('notify::font-desc', self.label_font_change_newversion, self.label1)
             self.fontbutton_newversion(self.label1, self.font_dialog_button1, self.hbox_button1)
             self.font_dialog_button1.set_level(Gtk.FontLevel.FAMILY)
-            self.custom_filter = GTKCustomFilter('en')
+            #self.custom_filter = GTKCustomFilter('en')
+            self.custom_filter = GTKCustomFilter(self.cli_language)
             self.button1.set_filter(self.custom_filter)
         else:
             self.button1 = Gtk.FontButton.new()
@@ -461,7 +466,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.fv_label2.set_property("visible", False)
         self.vbox.append(self.hbox_button2)
 
-        temp_other_font = self.get_other_font_family_for_language('en')
+        #temp_other_font = self.get_other_font_family_for_language('en')
+        temp_other_font = self.get_other_font_family_for_language(self.cli_language)
         self.label2.set_markup('<span font="'+temp_other_font
                                +' '+FONTSIZE+'"' + FALLPARAM
                                + self.sample_text_selector('en')
@@ -607,7 +613,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         setting up initial font and text for labels and font button text updated
         '''
-        temp_label_button_font = self.get_default_font_family_for_language('en')
+        temp_label_button_font = self.get_default_font_family_for_language(self.cli_language)
         label.set_markup('<span font="'+temp_label_button_font
                          +' '+FONTSIZE+'"' + FALLPARAM
                          + self.sample_text_selector('en')
@@ -636,7 +642,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         setting up initial font and text for labels and font button text updated
         '''
-        temp_label_button_font = self.get_default_font_family_for_language('en')
+        temp_label_button_font = self.get_default_font_family_for_language(self.cli_language)
         label.set_markup('<span font="'+temp_label_button_font
                          +' '+FONTSIZE+'"' + FALLPARAM
                          + self.sample_text_selector('en')
@@ -1466,11 +1472,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                              fc_list_binary, error.__class__.__name__, error)
             return ''
 
-def on_activate(application: Gtk.Application) -> None:
+def on_activate(application: Gtk.Application, language: str) -> None:
     '''
     activating the application by adding the application into gtk window
     '''
-    win = AppWindow(application)
+    win = AppWindow(application, language)
     win.present()
 
 #langtable languages fro testing
@@ -1836,6 +1842,8 @@ def locale_language_description(locale_id: str) -> str:
 
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, '')
+    cli_language = 'en'
+    list_dropdown = sorted(list_languages())
     if _ARGS.debug:
         LOG_HANDLER = logging.StreamHandler(stream=sys.stderr)
         LOG_FORMATTER = logging.Formatter(
@@ -1849,7 +1857,7 @@ if __name__ == '__main__':
         #call nofonts function
         print('Fonts of these languages are not installed in your system')
         print('checking...please wait...')
-        list_dropdown = sorted(list_languages())
+        #list_dropdown = sorted(list_languages())
         lang_with_nofonts_installed = []
         for i in list_dropdown:
             lang = i.replace('_','-')
@@ -1895,11 +1903,24 @@ if __name__ == '__main__':
                 sys.exit()
         print(lang_with_nofonts_installed)
         sys.exit()
+    elif _ARGS.lang:
+        cli_language = _ARGS.lang
+        if cli_language not in list_dropdown:
+            print('unsupported language is entered')
+            print('printing list of languages supported by fontconfig')
+            print(list_dropdown)
+            sys.exit()
+        elif cli_language in list_dropdown:
+            print("initialize fonts-compare with ",cli_language)
+        else:
+            print("Error: No language name specified after -l or --lang.\nUse '-h' or '--help' for usage information.")
+            sys.exit()
     elif _ARGS.help:
         print('Usage: fonts-compare [OPTIONS]')
         print('[Options]:')
         print(' -d          --debug         debug fonts-compare with logs')
         print(' -nf         --nofonts       display those languages whose fonts are not installed in your system')
+        print(' -l          --lang          initialize fonts-compare with specific language')
         print(' -h          --help          display this help and exit')
         print('Learn more about fonts-compare:https://github.com/sudipshil9862/fonts-compare/blob/main/README.md')
         sys.exit()
@@ -1908,7 +1929,6 @@ if __name__ == '__main__':
     GTK_VERSION =   (Gtk.get_major_version(),
                     Gtk.get_minor_version(),
                     Gtk.get_micro_version())
-    list_dropdown = sorted(list_languages())
     app = Gtk.Application(application_id='org.github.sudipshil9862.fonts-compare')
-    app.connect('activate', on_activate)
+    app.connect('activate', on_activate, cli_language)
     app.run(None)
