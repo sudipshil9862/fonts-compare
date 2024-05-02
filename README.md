@@ -69,7 +69,16 @@ make sure you have pip updated `pip install --upgrade pip` and python devel is i
 
 `About fonts-compare:` To learn more about fonts-compare, its purpose, and additional resources, check out the "about" section. There, you'll find links to relevant information that will deepen your understanding of the tool.
 
----------------------------------------------------------------------
+---------------------------------------------------------------
+### Open fonts-compare with specific language
+        ```
+        python3 fonts_compare.py --lang <lang_input>
+        ```
+        or
+        ```
+        ./fonts_compare.py --lang <lang_input>
+        ```
+---------------------------------------------------------------
 ### Get languages whose Fonts are not installed in your system
     Run following commands: 
 
@@ -81,7 +90,7 @@ make sure you have pip updated `pip install --upgrade pip` and python devel is i
         ```
         ./fonts_compare.py --nofonts
         ```
------------------------------------------------------------
+---------------------------------------------------------------
 ### Debugging with Logs
 You can enable debug mode to generate logs by running either of the following commands:
 
@@ -91,4 +100,12 @@ You can enable debug mode to generate logs by running either of the following co
         or
         ```
         python3 fonts_compare.py --debug
+        ```
+--------------------------------------------------------------
+### Do you need help ?
+        ```
+        python3 fonts_compare.py --help
+        ```
+        ```
+        ./fonts_compare.py --help
         ```
