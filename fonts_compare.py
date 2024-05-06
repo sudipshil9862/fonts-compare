@@ -1838,12 +1838,45 @@ def locale_language_description(locale_id: str) -> str:
                 language_description[0].upper() + language_description[1:])
     return language_description
 
-
+def parse_lc_all() -> str:
+    '''Parse the LC_ALL environment variable for language'''
+    lc_all = os.environ.get('LC_ALL', '')
+    if lc_all:
+        lang_locale = lc_all.split('.')[0]
+        if lang_locale in list_dropdown:
+            return lang_locale
+        elif '-' in lang_locale or '_' in lang_locale:
+            lang_code = lang_locale.split('-')[0] if '-' in lang_locale else lang_locale.split('_')[0]
+            if lang_code in list_dropdown:
+                return lang_code
+            else:
+                print("Input language should be supported by fontconfig")
+                sys.exit()
+        else:
+            print("Input language should be supported by fontconfig")
+            sys.exit()
+    else:
+        default_locale_tuple = locale.getlocale()
+        if default_locale_tuple[0]:
+            default_locale = default_locale_tuple[0].split('.')[0]
+            if default_locale in list_dropdown:
+                return default_locale
+            elif '-' in default_locale or '_' in default_locale:
+                default_lang_code = default_locale.split('-')[0] if '-' in default_locale else default_locale.split('_')[0]
+                if default_lang_code in list_dropdown:
+                    return default_lang_code
+                else:
+                    print("your locale system language is not supported by fonts-compare")
+                    print("initializing with en")
+                    return 'en'
+        else:
+            return 'en'#worst case
+    return ''
 
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, '')
-    cli_language = 'en'
     list_dropdown = sorted(list_languages())
+    cli_language = parse_lc_all()
     if _ARGS.debug:
         LOG_HANDLER = logging.StreamHandler(stream=sys.stderr)
         LOG_FORMATTER = logging.Formatter(

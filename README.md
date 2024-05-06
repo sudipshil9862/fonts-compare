@@ -79,6 +79,18 @@ make sure you have pip updated `pip install --upgrade pip` and python devel is i
         ./fonts_compare.py --lang <lang_input>
         ```
 ---------------------------------------------------------------
+### open fonts-compare with locale language
+##### [NOTE: input language must be supported by fontconfig]
+##### Below command will open fonts-compare with <lang_locale>
+        ```
+        LC_ALL=<lang_locale>.utf8 ./fonts_compare.py
+        ```
+##### Below command will open fonts-compare with <lang>
+        ```
+	    LC_ALL=<lang_locale>.utf8 ./run.sh -l <lang>
+	    ```
+#### [NOTE: if your locale is <lang> and you are directly running ./fonts_compare.py then it will initialize with <lang>
+---------------------------------------------------------------
 ### Get languages whose Fonts are not installed in your system
     Run following commands: 
 
