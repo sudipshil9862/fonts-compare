@@ -1838,7 +1838,7 @@ def locale_language_description(locale_id: str) -> str:
                 language_description[0].upper() + language_description[1:])
     return language_description
 
-def parse_lc_all() -> str:
+def parse_lc_all(list_dropdown) -> str:
     '''Parse the LC_ALL environment variable for language'''
     lc_all = os.environ.get('LC_ALL', '')
     output = subprocess.check_output(['locale', '-a']).decode('utf-8').splitlines()
@@ -1856,13 +1856,14 @@ def parse_lc_all() -> str:
                 sys.exit()
         elif lang_locale in locales:
             #use locales list, if lang_locale in locales
-            #then fallback to en
-            #because all locales are not their fontconfig
+            #then lang_locale set to en
+            #because all locales are not in fontconfig
             lang_locale = 'en'
             return lang_locale
         else:
-            print("Input locale not supported")
-            sys.exit()
+            print("Unsupported locale setting. Falling back to C locale")
+            lang_locale = 'en'
+            return lang_locale
     else:
         #if system locale is different by default and not mentioned by LC_ALL
         default_locale_tuple = locale.getlocale()
@@ -1875,17 +1876,23 @@ def parse_lc_all() -> str:
                 if default_lang_code in list_dropdown:
                     return default_lang_code
                 else:
-                    print("your locale system language is not supported by fonts-compare")
-                    print("initializing with en")
+                    print("Unsupported locale setting. Falling back to C locale")
                     return 'en'
         else:
             return 'en'#worst case
-    return ''
+    return 'en' #default to 'en' if nothing matches
 
 if __name__ == '__main__':
-    locale.setlocale(locale.LC_ALL, '')
     list_dropdown = sorted(list_languages())
-    cli_language = parse_lc_all()
+    os.environ['LC_CTYPE'] = 'C.UTF-8'
+    os.environ['LC_MESSAGES'] = 'C.UTF-8'
+    os.environ['LC_COLLATE'] = 'C.UTF-8'
+    try:
+        locale.setlocale(locale.LC_ALL, '')
+    except locale.Error:
+        print("Unsupported locale setting. Falling back to C locale")
+        locale.setlocale(locale.LC_ALL, 'C.UTF-8')
+    cli_language = parse_lc_all(list_dropdown)
     if _ARGS.debug:
         LOG_HANDLER = logging.StreamHandler(stream=sys.stderr)
         LOG_FORMATTER = logging.Formatter(
