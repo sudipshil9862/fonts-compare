@@ -1841,6 +1841,8 @@ def locale_language_description(locale_id: str) -> str:
 def parse_lc_all() -> str:
     '''Parse the LC_ALL environment variable for language'''
     lc_all = os.environ.get('LC_ALL', '')
+    output = subprocess.check_output(['locale', '-a']).decode('utf-8').splitlines()
+    locales = [locale.split('.')[0] for locale in output]
     if lc_all:
         lang_locale = lc_all.split('.')[0]
         if lang_locale in list_dropdown:
@@ -1852,10 +1854,17 @@ def parse_lc_all() -> str:
             else:
                 print("Input language should be supported by fontconfig")
                 sys.exit()
+        elif lang_locale in locales:
+            #use locales list, if lang_locale in locales
+            #then fallback to en
+            #because all locales are not their fontconfig
+            lang_locale = 'en'
+            return lang_locale
         else:
-            print("Input language should be supported by fontconfig")
+            print("Input locale not supported")
             sys.exit()
     else:
+        #if system locale is different by default and not mentioned by LC_ALL
         default_locale_tuple = locale.getlocale()
         if default_locale_tuple[0]:
             default_locale = default_locale_tuple[0].split('.')[0]
