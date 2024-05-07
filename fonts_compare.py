@@ -1938,15 +1938,20 @@ if __name__ == '__main__':
         sys.exit()
     elif _ARGS.lang:
         cli_language = _ARGS.lang
-        if cli_language not in list_dropdown:
+        if '-' in cli_language or '_' in cli_language:
+            if '-' in cli_language:
+                (f,r) = cli_language.split('-', maxsplit=1)
+            else:
+                (f,r) = cli_language.split('_', maxsplit=1)
+            cli_language = f + '_' + r.upper()
+            if cli_language not in list_dropdown:
+                cli_language = cli_language.split('_')[0]
+        if cli_language in list_dropdown:
+            print("initialize fonts-compare with ",cli_language)
+        else:
             print('unsupported language is entered')
             print('printing list of languages supported by fontconfig')
             print(list_dropdown)
-            sys.exit()
-        elif cli_language in list_dropdown:
-            print("initialize fonts-compare with ",cli_language)
-        else:
-            print("Error: No language name specified after -l or --lang.\nUse '-h' or '--help' for usage information.")
             sys.exit()
     elif _ARGS.help:
         print('Usage: fonts-compare [OPTIONS]')
