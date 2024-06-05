@@ -1949,19 +1949,8 @@ if __name__ == '__main__':
                         encoding='utf-8', check=True, capture_output=True)
                 fonts_listed2 = result2.stdout.strip().split('\n')
                 fonts_listed = fonts_listed1 + fonts_listed2
-                if GTK_VERSION >= (4, 9, 3):
-                    list_unfilter_other_font = [x for x in fonts_listed]
-                else:
-                    list_unfilter_other_font = [x for x in fonts_listed
-                                             if not ('Droid' in x or 'STIX' in x)]
-
-                #selecting second font from fc-list
-                if len(list_unfilter_other_font) > 1:
-                    other_font = list_unfilter_other_font[1]
-                elif len(list_unfilter_other_font) == 1:
-                    other_font = list_unfilter_other_font[0]
-                if not other_font:
-                    #print('fonts are not installed for %s language',lang)
+                list_unfilter_other_font = [x for x in fonts_listed if x and not ('Droid' in x or 'STIX' in x)]
+                if not list_unfilter_other_font:
                     lang_with_nofonts_installed.append(lang)
             except FileNotFoundError as error:
                 LOGGER.exception('Exception when calling %s: %s: %s',
