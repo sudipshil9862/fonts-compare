@@ -179,10 +179,10 @@ class FontsCompareAboutDialog(Gtk.AboutDialog): # type: ignore
         self.set_logo_icon_name('help-about-symbolic')
         self.set_title('Fonts Compare')
         self.set_program_name('Fonts Compare')
-        self.set_version('1.0.6')
+        self.set_version('1.5.2')
         self.set_comments('A tool to compare fonts.')
         self.set_copyright(
-                'Copyright © 2022 Sudip Shil')
+                '© 2022 Sudip Shil, All Rights Reserved.')
         self.set_authors([
             'Sudip Shil <sudipshil9862@gmail.com>',
             ])
@@ -200,7 +200,7 @@ class FontsCompareAboutDialog(Gtk.AboutDialog): # type: ignore
         self.set_website_label(
                 'Github: https://github.com/sudipshil9862/fonts-compare')
         self.set_license('''
-        GPLv3
+        GPL-2.0-or-later
         ''')
         self.set_wrap_license(True)
         # overrides the above .set_license()
@@ -856,6 +856,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         function to change sample string depends upon toogle switch
         '''
         global FONTSIZE
+        LOGGER.info("font before pango sample text checkbox clicked")
+        LOGGER.info("fontbutton1:- %s, fontsize:- %s", self.font_dialog_button1.get_font_desc().to_string(), FONTSIZE)
+        LOGGER.info("fontbutton2:- %s, fontsize:- %s", self.font_dialog_button2.get_font_desc().to_string(), FONTSIZE)
         state = self.pango_sample_text_checkbox.get_active()
         LOGGER.info('The switch has been switched %s', 'on' if state else 'off')
         if state:
@@ -864,6 +867,20 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         else:
             FONTSIZE = '40'
             LOGGER.info('langtable font = %s',FONTSIZE)
+        components1 = self.font_dialog_button1.get_font_desc().to_string().split()
+        components2 = self.font_dialog_button2.get_font_desc().to_string().split()
+        if not components1[-1].isdigit():
+            tempfont1 = f"{self.font_dialog_button1.get_font_desc().to_string()} {FONTSIZE}"
+            self.font_dialog_button1.set_font_desc(Pango.font_description_from_string(tempfont1))
+            LOGGER.info("font after changing font from fontbutton1")
+            LOGGER.info("fontbutton1:- %s, fontsize:- %s", self.font_dialog_button1.get_font_desc().to_string(), FONTSIZE)
+            LOGGER.info("fontbutton2:- %s, fontsize:- %s", self.font_dialog_button2.get_font_desc().to_string(), FONTSIZE)
+        if not components2[-1].isdigit():
+            tempfont2 = f"{self.font_dialog_button2.get_font_desc().to_string()} {FONTSIZE}"
+            self.font_dialog_button2.set_font_desc(Pango.font_description_from_string(tempfont2))
+            LOGGER.info("font after changing font from fontbutton2")
+            LOGGER.info("fontbutton1:- %s, fontsize:- %s", self.font_dialog_button1.get_font_desc().to_string(), FONTSIZE)
+            LOGGER.info("fontbutton2:- %s, fontsize:- %s", self.font_dialog_button2.get_font_desc().to_string(), FONTSIZE)
         #instant label1 and label2 change after switch change
         if GTK_VERSION >= (4, 9, 3):
             self.label1.set_markup('<span font="'+self.font_dialog_button1.get_font_desc().to_string().rsplit(' ',1)[0]
@@ -897,6 +914,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._fontsize_adjustment.set_value(int(FONTSIZE))
         self.set_default_size(300,200)
         self._main_menu_popover.popdown()
+        LOGGER.info("font after pango sample text checkbox clicked")
+        LOGGER.info("fontbutton1:- %s, fontsize:- %s", self.font_dialog_button1.get_font_desc().to_string(), FONTSIZE)
+        LOGGER.info("fontbutton2:- %s, fontsize:- %s", self.font_dialog_button2.get_font_desc().to_string(), FONTSIZE)
 
     def sample_text_selector(self, lang: str) -> str:
         '''
