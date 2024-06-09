@@ -295,7 +295,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         main_menu_popover_vbox.set_spacing(0)
 
         #checkbox in menu sample text
-        self.pango_sample_text_checkbox = Gtk.CheckButton.new_with_label('Pango sample text')
+        self.pango_sample_text_checkbox = Gtk.CheckButton.new_with_label('Pango Sample Text')
         self.pango_sample_text_checkbox.set_active(False)
         self.pango_sample_text_checkbox.connect('toggled',
                                                 self.pango_sample_text_checkbox_on_changed)
@@ -316,19 +316,19 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         #hide style in menu
         if GTK_VERSION >= (4,9,3):
-            self.showstyle_checkbox = Gtk.CheckButton.new_with_label('Show style')
+            self.showstyle_checkbox = Gtk.CheckButton.new_with_label('Show Style')
             self.showstyle_checkbox.set_active(False)
             self.showstyle_checkbox.connect('toggled', self.showstyle_checkbox_on_changed)
             main_menu_popover_vbox.append(self.showstyle_checkbox)
 
         #wrap toggle/checkbox in menu
-        self.wrap_checkbox = Gtk.CheckButton.new_with_label('Wrap labels')
+        self.wrap_checkbox = Gtk.CheckButton.new_with_label('Wrap Text')
         self.wrap_checkbox.set_active(False)
         self.wrap_checkbox.connect('toggled', self.wrap_checkbox_on_changed)
         main_menu_popover_vbox.append(self.wrap_checkbox)
 
         #dark theme in menu
-        self.darktheme_checkbox = Gtk.CheckButton.new_with_label('Dark theme')
+        self.darktheme_checkbox = Gtk.CheckButton.new_with_label('Dark Theme')
         self.darktheme_checkbox.set_active(False)
         self.darktheme_checkbox.connect('toggled', self.darktheme_checkbox_on_changed)
         main_menu_popover_vbox.append(self.darktheme_checkbox)
@@ -353,7 +353,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         main_menu_popover_vbox.append(self._fontsize_spin_button)
 
 
-        self._main_menu_edit_label_button = Gtk.Button(label='Edit Label')
+        self._main_menu_edit_label_button = Gtk.Button(label='Edit Text')
         self._main_menu_edit_label_button.set_has_frame(False)
         self._main_menu_edit_label_button.connect('clicked', self._on_edit_label_button_clicked)
         main_menu_popover_vbox.append(self._main_menu_edit_label_button)
@@ -1403,6 +1403,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             #selecting second font from fc-list
             #but the second font should not match the first font
             LOGGER.info('first button font = %s', first_font_saved)
+            other_font = ''
             if len(list_unfilter_other_font) == 1:
                 other_font = list_unfilter_other_font[0]
             elif len(list_unfilter_other_font) > 1:
@@ -1949,7 +1950,8 @@ if __name__ == '__main__':
                         encoding='utf-8', check=True, capture_output=True)
                 fonts_listed2 = result2.stdout.strip().split('\n')
                 fonts_listed = fonts_listed1 + fonts_listed2
-                list_unfilter_other_font = [x for x in fonts_listed if x and not ('Droid' in x or 'STIX' in x)]
+                list_unfilter_other_font = [x for x in fonts_listed
+                                            if x and not ('Droid' in x or 'STIX' in x)]
                 if not list_unfilter_other_font:
                     lang_with_nofonts_installed.append(lang)
             except FileNotFoundError as error:
