@@ -926,6 +926,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             #True - Pango sample text
             sample_text = str(Pango.Language.get_sample_string(
                 Pango.language_from_string (lang)))
+            if lang != 'en' and sample_text == "The quick brown fox jumps over the lazy dog.":
+                sample_text = str(langtable.language_name(
+                    languageId=lang, languageIdQuery=lang))
             return sample_text
         #False - Langtable sample text
         sample_text = str(langtable.language_name(
@@ -1443,6 +1446,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                             + '<b>' + label_error_text + '</b>'
                                             + '</span>')
                 self.label_error.show()
+                self.label_error.set_visible(True)
                 return ''
             #sometimes other_font doesnot contain any style then error arises
             if other_font.find(":style") != -1:
