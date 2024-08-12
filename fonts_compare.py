@@ -1447,6 +1447,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                             + '</span>')
                 self.label_error.show()
                 self.label_error.set_visible(True)
+                # if no fonts are installed than first fontbutton should not select default noto sans - it should return none
+                if GTK_VERSION >= (4, 9, 3):
+                    self.font_dialog_button1.set_font_desc(Pango.font_description_from_string('' +' '+str(int(self._fontsize_adjustment.get_value()))))
+                else:
+                    self.button1.set_font('' +' '+str(int(self._fontsize_adjustment.get_value())))
                 return ''
             #sometimes other_font doesnot contain any style then error arises
             if other_font.find(":style") != -1:
