@@ -1337,6 +1337,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 LOGGER.error('Regexp did not match')
                 return ''
             families = match.group('families').split(',')
+            families = [f.replace("\\-", "-").strip() for f in families]
             familylang = match.group('familylang').split(',') if match.group('familylang') else []
             LOGGER.info('default font families=%s', families)
             LOGGER.info('default familylang=%s', familylang)
@@ -1403,8 +1404,10 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             fonts_listed = fonts_listed1 + fonts_listed2
             list_unfilter_other_font = [x for x in fonts_listed
                                         if x and not ('Droid' in x or 'STIX' in x)] #--if x and-- to exclude empty items 
+            families = [f.replace("\\-", "-").strip() for f in list_unfilter_other_font] #some fonts have //- or /-
             #selecting second font from fc-list
             #but the second font should not match the first font
+            first_font_saved = first_font_saved.replace("\\-", "-").replace("\\", "").strip().lower()
             LOGGER.info('first button font = %s', first_font_saved)
             other_font = ''
             if len(list_unfilter_other_font) == 1:
@@ -1413,12 +1416,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 LOGGER.info("Number of fonts in list_unfilter_other_font: %d", len(list_unfilter_other_font))
                 for font in list_unfilter_other_font:
                     LOGGER.info('font which may have comma separated multiple fonts: %s', font)
-                    font_temp = str(font)
-                    font_temp = font_temp.split(':familylang')[0]
+                    font_temp = font.split(':familylang')[0].replace("\\-", "-").replace("\\", "").strip().lower()
                     if ',' in font_temp:
                         #eg. Noto Sans Tamil,Noto Sans Tamil
                         font_temp = font_temp.split(',')[0].strip()
-                    if (first_font_saved not in font_temp):
+                    if first_font_saved.strip().lower() != font_temp:
                         #sometimes fontconfig includes style in family name
                         #eg. Noto Sans Tamil is same Noto Sans Tamil Condensed
                         other_font = font
@@ -1463,6 +1465,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 LOGGER.error('Regexp did not match %s', result.stdout.strip())
                 return ''
             families = match.group('families').split(',')
+            families = [f.replace("\\-", "-").strip() for f in families]
             familylang = match.group('familylang').split(',')
             LOGGER.info('Random font families=%s', families)
             LOGGER.info('Random font familylang=%s', familylang)
