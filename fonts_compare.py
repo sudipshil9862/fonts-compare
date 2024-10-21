@@ -147,7 +147,7 @@ class CustomDialog(Gtk.Dialog):
             LOGGER.info('pressed ok')
             text = self.entry_edit_labels.get_text()
             lang = parent.detect_language(text)
-            print('checkbox landetect state:', self.langdetect_edit_label_checkbox.get_active())
+            LOGGER.info('checkbox landetect state: %s', self.langdetect_edit_label_checkbox.get_active())
             #fetch the lang_before_ok_response
             langdetect_checkbox_state = self.langdetect_edit_label_checkbox.get_active()
             LANGDETECT_CHECKBOX = langdetect_checkbox_state
@@ -237,15 +237,16 @@ class GTKCustomFilter(Gtk.CustomFilter):
             output = subprocess.check_output(["fc-list", ":lang=" + language_code, "family", "style"]).decode("utf-8")
             font_families = set(output.splitlines())
             for font_entry in font_families:
-                font_name = font_entry.split(":")[0]
+                font_name = font_entry.split(":")[0].split(",")[0].replace("\\-", "-").strip() 
                 self._fonts_supporting_language.add(font_name)
-            LOGGER.info('style included')
+            LOGGER.info('style included with family')
         else:
             output = subprocess.check_output(["fc-list", ":lang=" + language_code, "family"]).decode("utf-8")
             font_families = set(output.splitlines())
             for fontname in font_families:
-                self._fonts_supporting_language.add(fontname)
-            LOGGER.info('family included')
+                fontname_cleaned = fontname.split(":")[0].split(",")[0].replace("\\-", "-").strip()
+                self._fonts_supporting_language.add(fontname_cleaned)
+            LOGGER.info('style not include with family')
         self.set_filter_func(self.font_filter)
     def font_filter(self, font_face):
         '''
@@ -548,12 +549,34 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         temp_label1_text = self.label1.get_text()
         temp_label2_text = self.label2.get_text()
         if GTK_VERSION >= (4, 9, 3):
-            button1_family = self.font_dialog_button1.get_font_desc().to_string().rsplit(' ',1)[0]
-            button2_family = self.font_dialog_button2.get_font_desc().to_string().rsplit(' ',1)[0]
+            LOGGER.info('before fontsize update')
+            LOGGER.info('font_dialog_button1: %s',self.font_dialog_button1.get_font_desc().to_string())
+            LOGGER.info('font_dialog_button2: %s',self.font_dialog_button2.get_font_desc().to_string())
+            button1_desc = self.font_dialog_button1.get_font_desc().to_string()
+            button2_desc = self.font_dialog_button2.get_font_desc().to_string()
+            #checking if last part only has any digit between 1-100 separated by space from the font
+            #means checking if fontsize available in the last part
+            #because changing font from fontbutton will remove the fontsize from the fontfamily
+            #if font has changed thn fontsize won't be available and need to add manually
+            if re.search(r'\s([1-9][0-9]?|100)$', button1_desc):
+                button1_family = button1_desc.rsplit(' ', 1)[0]
+            else:
+                button1_family = button1_desc
+            if re.search(r'\s([1-9][0-9]?|100)$', button2_desc):
+                button2_family = button2_desc.rsplit(' ', 1)[0]
+            else:
+                button2_family = button2_desc
+            LOGGER.info('button1 family: %s',button1_family)
+            LOGGER.info('button2 family: %s',button2_family)
             self.font_dialog_button1.set_font_desc(Pango.font_description_from_string(button1_family + ' '
                                   + str(self._fontsize_adjustment.get_value())))
             self.font_dialog_button2.set_font_desc(Pango.font_description_from_string(button2_family + ' '
                                   + str(self._fontsize_adjustment.get_value())))
+            LOGGER.info('after fontsize update')
+            LOGGER.info('font_dialog_button1: %s',self.font_dialog_button1.get_font_desc().to_string())
+            LOGGER.info('font_dialog_button2: %s',self.font_dialog_button2.get_font_desc().to_string())
+            LOGGER.info('\n')
+
         else:
             button1_family = self.button1.get_font().rsplit(' ',1)[0]
             button2_family = self.button2.get_font().rsplit(' ',1)[0]
