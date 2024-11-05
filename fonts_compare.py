@@ -1223,8 +1223,11 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 languageId=lang, languageIdQuery=lang))
             self.set_font(lang, text)
             self._language_menu_button.set_label(lang)
+            self._currently_selected_language = lang  # ensure language is updated
+            LOGGER.info(f'Updated language menu button and currently selected language to: {lang}')
             self.button1.set_filter_func(self.font_filter)
             self.button2.set_filter_func(self.font_filter)
+            self._language_menu_popover_listbox_fill('')
         elif not lang in list_dropdown and langdetect_checkbox_state == True:
             self.label1.set_markup('<span font="'
                                    +self.get_default_font_family_for_language(lang)
@@ -1264,9 +1267,12 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.set_font(lang, text)
             self._language_menu_button.set_label(lang)
             current_lang = self._language_menu_button.get_label()
+            self._currently_selected_language = lang  # ensure language is updated
+            LOGGER.info(f'Updated language menu button and currently selected language to: {lang}')
             self.custom_filter = GTKCustomFilter(current_lang)
             self.button1.set_filter(self.custom_filter)
             self.button2.set_filter(self.custom_filter)
+            self._language_menu_popover_listbox_fill('')
         elif not lang in list_dropdown and langdetect_checkbox_state == True:
             self.label1.set_markup('<span font="'
                                    +self.get_default_font_family_for_language(lang)
