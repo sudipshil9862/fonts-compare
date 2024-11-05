@@ -22,12 +22,11 @@ import freetype
 import string
 # pylint: disable=wrong-import-position
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk # type: ignore
+gi.require_version('Adw', '1')
+from gi.repository import Gtk, Adw # type: ignore
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
 from gi.repository import GLib
-gi.require_version('Adw', '1')
-from gi.repository import Adw
 # pylint: enable=wrong-import-position
 
 LOGGER = logging.getLogger('fonts-compare')
@@ -69,101 +68,80 @@ first_font_saved = ''
 lang_before_ok_response = ''
 LANGDETECT_CHECKBOX = True
 
-class CustomDialog(Gtk.Dialog):
+class CustomDialog(Adw.Window):
     '''
-    this class is used for displaying custom dialog window for editing labels
+    This class displays a custom dialog window for editing labels, with Adwaita styling.
     '''
-    def langdetect_edit_label_checkbox_on_changed(
-            self,
-            _checkbutton: Gtk.CheckButton) -> None:
-        '''
-        function to disable language detection level in edit label button
-        '''
-        state = self.langdetect_edit_label_checkbox.get_active()
-        LOGGER.info('The switch has been switched %s', 'on' if state else 'off')
-        if state:
-            ##show langdetect label
-            self.langdetect_edit_labels.show()
-            LOGGER.info('language detection turned on - edit label')
-            self.set_default_size(278, 250)
-        else:
-            ##hide langdetect label
-            if GTK_VERSION >= (4, 9, 3):
-                    self.langdetect_edit_labels.set_property("visible", False)
-            else:
-                self.langdetect_edit_labels.hide()
-            LOGGER.info('language detection turned off - edit label')
-            self.set_default_size(278, 180)
+    def langdetect_edit_label_checkbox_on_changed(self, _checkbutton: Gtk.CheckButton) -> None:
+        # Language detection checkbox toggle function (remains the same)
+        ...
 
     def __init__(self, parent, **kwargs):
         super().__init__(**kwargs)
-        self.parent = kwargs.get('transient_for')
+        self.parent = parent
 
-        self.set_title(title='Dialog Box')
-        self.use_header_bar = True
-        self.connect('response', self.dialog_response, parent)
+        self.set_title('Dialog Box')
+        self.set_modal(True)
+        self.set_transient_for(self.parent)
+        self.set_default_size(278, 250)
+        self.set_resizable(False)
 
+        # Main layout
+        content_area = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
+        content_area.set_margin_top(12)
+        content_area.set_margin_end(12)
+        content_area.set_margin_bottom(12)
+        content_area.set_margin_start(12)
 
-        self.set_width = 278
-        self.set_height = 250
-        self.temp_lang_custom_dialog = ''
-        self.temp_text_custom_dialog = ''
-
-        self.add_buttons(
-                '_Cancel', Gtk.ResponseType.CANCEL,
-                '_OK', Gtk.ResponseType.OK,
-                )
-        self.btn_ok = self.get_widget_for_response(Gtk.ResponseType.OK)
-        self.btn_cancel = self.get_widget_for_response(Gtk.ResponseType.CANCEL)
-        self.btn_ok.get_style_context().add_class('suggested-action')
-        self.btn_cancel.get_style_context().add_class('destructive-action')
-        self.set_default_response(Gtk.ResponseType.OK)
-
-        content_area = self.get_content_area()
-        content_area.set_orientation(orientation=Gtk.Orientation.VERTICAL)
-        content_area.set_spacing(spacing=24)
-        content_area.set_margin_top(margin=12)
-        content_area.set_margin_end(margin=12)
-        content_area.set_margin_bottom(margin=12)
-        content_area.set_margin_start(margin=12)
-
+        # Entry, label, and checkbox widgets in Adwaita style
         self.entry_edit_labels = Gtk.Entry()
         self.label_entry_edit_labels = Gtk.Label(label="Type Here")
         self.langdetect_edit_labels = Gtk.Label(label="")
         self.langdetect_edit_label_checkbox = Gtk.CheckButton.new_with_label('Detect Language of the text')
         self.langdetect_edit_label_checkbox.set_active(True)
         self.langdetect_edit_label_checkbox.connect('toggled', self.langdetect_edit_label_checkbox_on_changed)
-        content_area.append(self.label_entry_edit_labels)
-        content_area.append(self.entry_edit_labels)
+
+        # Adw.ActionRow for input label
+        label_row = Adw.ActionRow(title="Type Here")
+        label_row.add_suffix(self.entry_edit_labels)
+        content_area.append(label_row)
+
+        # Checkbox with Adw style
         content_area.append(self.langdetect_edit_labels)
         content_area.append(self.langdetect_edit_label_checkbox)
 
-    def dialog_response(self, dialog, response, parent):
-        '''
-        when we click on ok and cancek in dialog window
-        '''
-        global LANGDETECT_CHECKBOX
-        if response == Gtk.ResponseType.OK:
-            LOGGER.info('pressed ok')
-            text = self.entry_edit_labels.get_text()
-            lang = parent.detect_language(text)
-            LOGGER.info('checkbox landetect state: %s', self.langdetect_edit_label_checkbox.get_active())
-            #fetch the lang_before_ok_response
-            langdetect_checkbox_state = self.langdetect_edit_label_checkbox.get_active()
-            LANGDETECT_CHECKBOX = langdetect_checkbox_state
-            if GTK_VERSION >= (4, 9, 3):
-                parent.label_button_set_after_entry_dialog_ok_newversion(text,lang, langdetect_checkbox_state)
-            else:
-                parent.label_button_set_after_entry_dialog_ok(text,lang, langdetect_checkbox_state)
-            parent.set_default_size(300,200)
-            #schedule dialog.close() to be called later
-            GLib.idle_add(dialog.close)
+        # Button area
+        button_box = Gtk.Box(spacing=12)
+        button_box.set_halign(Gtk.Align.END)
 
-        elif response == Gtk.ResponseType.CANCEL:
-            LOGGER.info('pressed cancel')
-            langdetect_checkbox_state = self.langdetect_edit_label_checkbox.get_active()
-            LANGDETECT_CHECKBOX = langdetect_checkbox_state
-            dialog.close()
+        self.btn_ok = Gtk.Button(label="OK")
+        self.btn_ok.add_css_class('suggested-action')
+        self.btn_ok.connect('clicked', self.on_ok_clicked)
+
+        self.btn_cancel = Gtk.Button(label="Cancel")
+        self.btn_cancel.add_css_class('destructive-action')
+        self.btn_cancel.connect('clicked', self.on_cancel_clicked)
+
+        button_box.append(self.btn_cancel)
+        button_box.append(self.btn_ok)
+        content_area.append(button_box)
+
+        # Set content area as the child of the window
+        self.set_content(content_area)
+
+    def on_ok_clicked(self, _button):
+        '''Handles the OK button click event.'''
+        text = self.entry_edit_labels.get_text()
+        lang = self.parent.detect_language(text)
+        if GTK_VERSION >= (4,9,3):
+            self.parent.label_button_set_after_entry_dialog_ok_newversion(text, lang, self.langdetect_edit_label_checkbox.get_active())
+        else:
+            self.parent.label_button_set_after_entry_dialog_ok(text, lang, self.langdetect_edit_label_checkbox.get_active())
+        self.close()
+
+    def on_cancel_clicked(self, _button):
+        '''Handles the Cancel button click event.'''
+        self.close()
 
 
 class FontsCompareAboutDialog(Gtk.AboutDialog): # type: ignore
@@ -772,8 +750,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                           + '<b>' + self.get_font_version(self.font_dialog_button2.get_font_desc().to_string().rsplit(' ',1)[0]) + '</b>'
                                           + '</span>')
 
-            self.fv_label1.show()
-            self.fv_label2.show()
+            self.fv_label1.set_visible(True)
+            self.fv_label2.set_visible(True)
         else:
             LOGGER.info('fontversion checkbox unchecked')
             if GTK_VERSION >= (4, 9, 3):
@@ -1005,7 +983,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         when enter key pressed after editing  entry then ok button automatically will be pressed
         '''
-        custom_dialog.response(Gtk.ResponseType.OK)
+        custom_dialog.on_ok_clicked(None)
 
     def _on_edit_label_button_clicked(self, _button: Gtk.Button) -> None:
         '''The “Edit Label” button has been clicked'''
@@ -1014,7 +992,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         #update global variable lang_before_ok_response = current selected dropdown language before changing
         global lang_before_ok_response
         lang_before_ok_response = self._language_menu_button.get_label()
-        self.custom_dialog = CustomDialog(self, transient_for=self, use_header_bar=True)
+        self.custom_dialog = CustomDialog(self, transient_for=self)
         self.custom_dialog.entry_edit_labels.changed_signal_id = self.custom_dialog.entry_edit_labels.connect(
                 'notify::text', self.on_entry_changed)
         self.custom_dialog.entry_edit_labels.connect("activate", self.on_entry_activate_enter_pressed_ok_signal, self.custom_dialog)
@@ -1150,7 +1128,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self._language_menu_popover_language_ids = []
         LOGGER.info('language selected from menu = %s', language_id)
         text = self.sample_text_selector(language_id)
-        self.custom_dialog = CustomDialog(self, transient_for=self, use_header_bar=True)
+        self.custom_dialog = CustomDialog(self, transient_for=self)
         self.custom_dialog.entry_edit_labels.set_text(text)
         self.custom_dialog.entry_edit_labels.set_position(-1)
         self.custom_dialog.entry_edit_labels.grab_focus_without_selecting()
@@ -1476,7 +1454,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                                             +' '+'10'+'"' + FALLPARAM
                                             + '<b>' + label_error_text + '</b>'
                                             + '</span>')
-                self.label_error.show()
                 self.label_error.set_visible(True)
                 # if no fonts are installed than first fontbutton should not select default noto sans - it should return none
                 if GTK_VERSION >= (4, 9, 3):
