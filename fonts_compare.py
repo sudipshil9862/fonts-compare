@@ -23,7 +23,7 @@ import string
 # pylint: disable=wrong-import-position
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw # type: ignore
+from gi.repository import Gtk, Adw, Gdk # type: ignore
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
 from gi.repository import GLib
@@ -331,19 +331,23 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 self.button1_family, self.button2_family)
         main_menu_popover_vbox.append(self._fontsize_spin_button)
 
+        self.add_custom_css()
 
         self._main_menu_edit_label_button = Gtk.Button(label='Edit Text')
         self._main_menu_edit_label_button.set_has_frame(False)
+        self._main_menu_edit_label_button.add_css_class('text-button')
         self._main_menu_edit_label_button.connect('clicked', self._on_edit_label_button_clicked)
         main_menu_popover_vbox.append(self._main_menu_edit_label_button)
         
         self._main_menu_about_button = Gtk.Button(label='About')
         self._main_menu_about_button.set_has_frame(False)
+        self._main_menu_about_button.add_css_class('text-button')
         self._main_menu_about_button.connect('clicked', self._on_about_button_clicked)
         main_menu_popover_vbox.append(self._main_menu_about_button)
 
         self._main_menu_quit_button = Gtk.Button(label='Quit')
         self._main_menu_quit_button.set_has_frame(False)
+        self._main_menu_quit_button.add_css_class('text-button')
         self._main_menu_quit_button.connect('clicked', self._on_quit_button_clicked)
         main_menu_popover_vbox.append(self._main_menu_quit_button)
 
@@ -437,6 +441,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
             self.button2.set_level(Gtk.FontChooserLevel.SIZE)
             self.button2.set_filter_func(self.font_filter)
         self.vbox.append(self.label2)
+
         #fontversion label2
         if GTK_VERSION >= (4,9,3):
             self.fv_label2 = Gtk.Label()
@@ -477,6 +482,18 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         self.set_default_size(300,200)
         self.set_resizable(True)
         self.set_child(self.vbox)
+
+    def add_custom_css(self):
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_data(b"""
+            button.text-button {
+                font-weight: normal;
+            }
+        """)
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(), css_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
 
     def is_dark_mode_enabled(self) -> bool:
         '''
