@@ -92,19 +92,16 @@ class CustomDialog(Adw.Window):
         content_area.set_margin_end(12)
         content_area.set_margin_bottom(12)
         content_area.set_margin_start(12)
-
+        
         # Entry, label, and checkbox widgets in Adwaita style
         self.entry_edit_labels = Gtk.Entry()
-        self.label_entry_edit_labels = Gtk.Label(label="Type Here")
+        self.entry_edit_labels.set_placeholder_text("Type Here")
+        content_area.append(self.entry_edit_labels)
+
         self.langdetect_edit_labels = Gtk.Label(label="")
         self.langdetect_edit_label_checkbox = Gtk.CheckButton.new_with_label('Detect Language of the text')
         self.langdetect_edit_label_checkbox.set_active(True)
         self.langdetect_edit_label_checkbox.connect('toggled', self.langdetect_edit_label_checkbox_on_changed)
-
-        # Adw.ActionRow for input label
-        label_row = Adw.ActionRow(title="Type Here")
-        label_row.add_suffix(self.entry_edit_labels)
-        content_area.append(label_row)
 
         # Checkbox with Adw style
         content_area.append(self.langdetect_edit_labels)
