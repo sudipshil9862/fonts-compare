@@ -257,6 +257,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         '''
         self.set_title('Fonts Compare')
 
+        self.add_custom_css()
+
         header_bar = Gtk.HeaderBar()
         header_bar.set_hexpand(True)
         header_bar.set_vexpand(False)
@@ -330,8 +332,6 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 self.on_fontsize_adjustment_value_changed,
                 self.button1_family, self.button2_family)
         main_menu_popover_vbox.append(self._fontsize_spin_button)
-
-        self.add_custom_css()
 
         self._main_menu_edit_label_button = Gtk.Button(label='Edit Text')
         self._main_menu_edit_label_button.set_has_frame(False)
@@ -486,7 +486,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
     def add_custom_css(self):
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(b"""
-            button.text-button {
+            button.text-button, GtkFontDialogButton, label, entry {
                 font-weight: normal;
             }
         """)
