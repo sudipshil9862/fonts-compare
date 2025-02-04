@@ -52,6 +52,11 @@ def parse_args() -> Any:
             type=str,
             help=('Set language/directly open fonts-compare for a particular language from command line'))
     parser.add_argument(
+           '--text',
+            type=str,
+            nargs='+',
+            help=('Open fonts-compare with a specific text pre-filled'))
+    parser.add_argument(
            '-h', '--help',
             action='store_true',
             default=False,
@@ -59,6 +64,8 @@ def parse_args() -> Any:
     return parser.parse_args()
 
 _ARGS = parse_args()
+if _ARGS.text:
+    _ARGS.text = ' '.join(_ARGS.text)
 
 FALLPARAM = 'fallback="false">'
 FONTSIZE = '40'
@@ -134,6 +141,9 @@ class CustomDialog(Adw.Window):
             self.parent.label_button_set_after_entry_dialog_ok_newversion(text, lang, self.langdetect_edit_label_checkbox.get_active())
         else:
             self.parent.label_button_set_after_entry_dialog_ok(text, lang, self.langdetect_edit_label_checkbox.get_active())
+        self.parent._language_menu_button.set_label(lang)
+        self.parent._currently_selected_language = lang
+        self.parent.update_language_filter(lang)
         self.close()
 
     def on_cancel_clicked(self, _button):
@@ -954,14 +964,26 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
     def set_font(self, detect_lang: str, set_text: str) -> None:
         '''
         setting up text,
-        font family depending upon which language has detected
+        font family depending upon which language has detected.
+        If multiple scripts are detected, 
+        fallback is enabled automatically.
         '''
+        global FALLPARAM
+        if is_mixed_script(set_text):
+            FALLPARAM = 'fallback="true">'
+            self.fallback_checkbox.set_active(True)
+        
         temp_label1_font = self.get_default_font_family_for_language(detect_lang)
         self.label1.set_markup('<span font="'+temp_label1_font
                                +' '+str(int(self._fontsize_adjustment.get_value()))+'"' + FALLPARAM
                                + set_text + '</span>')
         LOGGER.info('label1 text now: %s',self.label1.get_text())
         if GTK_VERSION >= (4, 9, 3):
+            LOGGER.info('Updating custom filter with detected language: %s', detect_lang)
+            self.custom_filter = GTKCustomFilter(detect_lang)
+            self.button1.set_filter(self.custom_filter)
+            self.button2.set_filter(self.custom_filter)
+
             LOGGER.info('self.font_dialog_button1.set_font(%s)',
                         temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value())))
             self.font_dialog_button1.set_font_desc(Pango.font_description_from_string(temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value()))))
@@ -1299,6 +1321,17 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         text = self.custom_dialog.entry_edit_labels.get_text()
         lang = self.detect_language(text)
         LOGGER.info('text=%s lang=%s', text, lang)
+
+        if is_mixed_script(text):
+            global FALLPARAM
+            FALLPARAM = 'fallback="true">'
+            self.fallback_checkbox.set_active(True)
+        LOGGER.info('Detected language: %s, Text: %s', lang, text)
+
+        self._language_menu_button.set_label(lang)
+        self._currently_selected_language = lang
+        self.update_language_filter(lang)
+        
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
         lc_messages_lang = 'en'
         if lc_messages:
@@ -1525,12 +1558,54 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                              fc_list_binary, error.__class__.__name__, error)
             return ''
 
-def on_activate(application: Gtk.Application, language: str) -> None:
+    def update_language_filter(self, detected_lang: str) -> None:
+        '''
+        Updates the language filter for font selection and menu based on detected language.
+        '''
+        LOGGER.info(f'Updating language filter for detected language: {detected_lang}')
+        if detected_lang in list_languages():
+            if GTK_VERSION >= (4, 9, 3):
+                self.custom_filter = GTKCustomFilter(detected_lang)
+                self.button1.set_filter(self.custom_filter)
+                self.button2.set_filter(self.custom_filter)
+            else:
+                self.button1.set_filter_func(self.font_filter)
+                self.button2.set_filter_func(self.font_filter)
+            self._language_menu_button.set_tooltip_text(
+                langtable.language_name(languageId=detected_lang, languageIdQuery='en')
+            )
+
+def on_activate(application: Gtk.Application, language: str, text: str = "") -> None:
     '''
     activating the application by adding the application into gtk window
     '''
     win = AppWindow(application, language)
+    if text:
+        detected_lang = win.detect_language(text)
+        win.set_font(detected_lang, text)
+        win._language_menu_button.set_label(detected_lang)
+        win._currently_selected_language = detected_lang
+        win.update_language_filter(detected_lang)
     win.present()
+
+def detect_script(text: str) -> Set[str]:
+    '''
+    Detects all scripts used in the given text.
+    '''
+    scripts = set()
+    for char in text:
+        try:
+            script = unicodedata.name(char).split(' ')[0]
+            scripts.add(script)
+        except ValueError:
+            pass
+    return scripts
+
+def is_mixed_script(text: str) -> bool:
+    '''
+    Checks if the text contains multiple scripts.
+    '''
+    return len(detect_script(text)) > 1
 
 #langtable languages fro testing
 def list_languages_langtable() -> List[str]:
@@ -1952,6 +2027,7 @@ if __name__ == '__main__':
         print("Unsupported locale setting. Falling back to C locale")
         locale.setlocale(locale.LC_ALL, 'C.UTF-8')
     cli_language = parse_lc_all_lang(list_dropdown)
+    cli_text = _ARGS.text if _ARGS.text else ""
     if _ARGS.debug:
         LOG_HANDLER = logging.StreamHandler(stream=sys.stderr)
         LOG_FORMATTER = logging.Formatter(
@@ -2024,6 +2100,7 @@ if __name__ == '__main__':
         print(' -d          --debug         debug fonts-compare with logs')
         print(' -nf         --nofonts       display those languages whose fonts are not installed in your system')
         print(' -l          --lang          initialize fonts-compare with specific language')
+        print(' -t          --text          open fonts-compare with text pre-filled')
         print(' -h          --help          display this help and exit')
         print('Learn more about fonts-compare:https://github.com/sudipshil9862/fonts-compare/blob/main/README.md')
         sys.exit()
@@ -2033,5 +2110,5 @@ if __name__ == '__main__':
                     Gtk.get_minor_version(),
                     Gtk.get_micro_version())
     app = Gtk.Application(application_id='org.github.sudipshil9862.fonts-compare')
-    app.connect('activate', on_activate, cli_language)
+    app.connect('activate', on_activate, cli_language, cli_text)
     app.run(None)
