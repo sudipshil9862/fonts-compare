@@ -249,7 +249,8 @@ class GTKCustomFilter(Gtk.CustomFilter):
         '''
         return font in self._fonts_supporting_language
 
-class AppWindow(Gtk.ApplicationWindow): # type: ignore
+#class AppWindow(Gtk.ApplicationWindow): # type: ignore
+class AppWindow(Adw.ApplicationWindow): # type: ignore
     '''
     Including appwindow class to window to present
     '''
@@ -266,7 +267,7 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self.add_custom_css()
 
-        header_bar = Gtk.HeaderBar()
+        header_bar = Adw.HeaderBar()
         header_bar.set_hexpand(True)
         header_bar.set_vexpand(False)
         main_menu_button = Gtk.MenuButton()
@@ -387,8 +388,9 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 'show', self._on_language_menu_popover_show)
         self._language_menu_popover_language_ids: List[str] = []
 
-        self.set_titlebar(header_bar)
-
+        self.toolbar_view = Adw.ToolbarView()
+        self.toolbar_view.add_top_bar(header_bar)
+        self.set_content(self.toolbar_view)
         self.vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.vbox.props.halign = Gtk.Align.CENTER
         self.vbox.set_margin_top(5)
@@ -488,7 +490,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
 
         self.set_default_size(300,200)
         self.set_resizable(True)
-        self.set_child(self.vbox)
+        #self.set_child(self.vbox)
+        self.toolbar_view.set_content(self.vbox)
 
     def add_custom_css(self):
         css_provider = Gtk.CssProvider()
@@ -617,11 +620,23 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         if (self.pango_sample_text_checkbox.get_active() is True) and (
                 int(self._fontsize_adjustment.get_value()) > 60):
             self.label1.set_wrap(True)
+            self.label1.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            self.label1.set_max_width_chars(60)
+            self.label1.set_width_chars(60)
             self.label2.set_wrap(True)
+            self.label2.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            self.label2.set_max_width_chars(60)
+            self.label2.set_width_chars(60)
             self.wrap_checkbox.set_active(True)
         elif (int(self._fontsize_adjustment.get_value()) > 30) and (len(self.label1.get_text()) > 45):
             self.label1.set_wrap(True)
+            self.label1.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            self.label1.set_max_width_chars(60)
+            self.label1.set_width_chars(60)
             self.label2.set_wrap(True)
+            self.label2.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            self.label2.set_max_width_chars(60)
+            self.label2.set_width_chars(60)
             self.wrap_checkbox.set_active(True)
         else:
             self.label1.set_wrap(False)
@@ -851,7 +866,13 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
         if state:
             LOGGER.info('wrap checked %s',state)
             self.label1.set_wrap(True)
+            self.label1.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            self.label1.set_max_width_chars(60)
+            self.label1.set_width_chars(60)
             self.label2.set_wrap(True)
+            self.label2.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            self.label2.set_max_width_chars(60)
+            self.label2.set_width_chars(60)
         else:
             LOGGER.info('wrap unchecked %s',state)
             self.label1.set_wrap(False)
@@ -1310,6 +1331,20 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                     self.get_default_font_family_for_language(lang)
                     +' '+ FONTSIZE))
             LOGGER.info('self.font_dialog_button2.get_font_desc(%s)',self.font_dialog_button2.get_font_desc().to_string())
+            if len(text) > 40 or int(FONTSIZE) > 60:
+                self.label1.set_wrap(True)
+                self.label1.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
+                self.label1.set_max_width_chars(60)
+                self.label1.set_width_chars(60)
+                self.label2.set_wrap(True)
+                self.label2.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
+                self.label1.set_max_width_chars(60)
+                self.label1.set_width_chars(60)
+                self.wrap_checkbox.set_active(True)
+            else:
+                self.label1.set_wrap(False)
+                self.label2.set_wrap(False)
+                self.wrap_checkbox.set_active(False)
 
     def on_entry_changed(self, widget: Gtk.Entry, _property_spec: Any) -> None:
         '''Called when the text in the entry has changed.
@@ -1575,7 +1610,8 @@ class AppWindow(Gtk.ApplicationWindow): # type: ignore
                 langtable.language_name(languageId=detected_lang, languageIdQuery='en')
             )
 
-def on_activate(application: Gtk.Application, language: str, text: str = "") -> None:
+#def on_activate(application: Gtk.Application, language: str, text: str = "") -> None:
+def on_activate(application: Adw.Application, language: str, text: str = "") -> None:
     '''
     activating the application by adding the application into gtk window
     '''
@@ -2109,6 +2145,7 @@ if __name__ == '__main__':
     GTK_VERSION =   (Gtk.get_major_version(),
                     Gtk.get_minor_version(),
                     Gtk.get_micro_version())
-    app = Gtk.Application(application_id='org.github.sudipshil9862.fonts-compare')
+    #app = Gtk.Application(application_id='org.github.sudipshil9862.fonts-compare')
+    app = Adw.Application(application_id='org.github.sudipshil9862.fonts-compare')
     app.connect('activate', on_activate, cli_language, cli_text)
     app.run(None)
