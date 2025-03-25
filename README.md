@@ -1,5 +1,5 @@
 # fonts-compare
-fonts-compare is a project that allows users to compare different fonts of a specific language, based on their FontWeight, FontSize, and FontStyle. The project is designed to help users choose the best font for their needs, whether they are creating a document or designing a website. The project uses the Gtk4 toolkit and requires the installation of font packages for the specific languages users wish to work with. The project is available on Fedora Copr and can also be installed by downloading the Git repository and installing the necessary dependencies.
+`fonts-compare` is a GTK4-based visual font comparison tool that helps you **explore, analyze, and choose the best fonts** for your specific language needs based on their FontWeight, FontSize, and FontStyle. Whether you’re designing a multilingual UI, creating a document, or just curious about typography in your language, this tool has you covered. The project is available on Fedora, epel and can also be installed by downloading the Git repository and installing the necessary dependencies.
 
 ### NOTE: `fonts-compare` package is compatible with all GTK versions
 
@@ -9,6 +9,19 @@ fonts-compare is a project that allows users to compare different fonts of a spe
 ### Screenshots of fonts-compare UI
 ![fonts-compare](https://github.com/sudipshil9862/fonts-compare/assets/66914502/f8d5da8d-9461-401f-bac0-2500fec9ca4c)
 ![fonts-compare-ui](https://github.com/sudipshil9862/fonts-compare/assets/66914502/cc65f007-64e5-4972-bd45-ac995f388164)
+
+### ✨ Key Highlights
+
+-  **Pango Sample Text:** Get meaningful sample sentences with a checkbox—no need to come up with test text on your own.
+-  **Language-Aware Fallback:** Mix scripts in your text? Enable fallback to render all characters correctly.
+-  **Font Version at a Glance:** Shows live version info as you switch fonts or languages.
+-  **Show Font Style:** Toggle between just family names or detailed family + style.
+-  **Editable Labels:** Customize your test sentences through a simple edit dialog.
+- ️ **Auto Language Detection:** Know what language your test text is in—great for multilingual debugging.
+-  **Smart Text Wrapping:** Automatically adjusts long sentences for better readability and layout
+-  **Dark Mode Support:** Respects your system theme, or toggle it manually if you're team dark mode.
+- ℹ️ **About Section:** Dive deeper into the purpose and background of fonts-compare with just a click.
+
 
 ### Fedora Users
 For fedora users, you can install fonts-compare with the following command:
@@ -90,6 +103,16 @@ make sure you have pip updated `pip install --upgrade pip` and python devel is i
 	    LC_ALL=<lang_locale>.utf8 ./run.sh -l <lang>
 	    ```
 #### [NOTE: if your locale is <lang> and you are directly running ./fonts_compare.py then it will initialize with <lang>
+---------------------------------------------------------------
+### Open fonts-compare with Pre-Filled Text
+    You can launch fonts-compare with a specific text pre-filled using the --text argument.
+        ```
+        python3 fonts_compare.py --text "বাংলা ফন্ট পরীক্ষা" "Test fonts in English"
+        ```
+        or
+        ```
+        ./fonts_compare.py --text "বাংলা ফন্ট পরীক্ষা" "Test fonts in English"
+        ```
 ---------------------------------------------------------------
 ### Get languages whose Fonts are not installed in your system
     Run following commands: 
