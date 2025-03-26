@@ -167,7 +167,7 @@ class FontsCompareAboutDialog(Gtk.AboutDialog): # type: ignore
         self.set_version('1.5.2')
         self.set_comments('A tool to compare fonts.')
         self.set_copyright(
-                '© 2022 Sudip Shil, All Rights Reserved.')
+                '© 2025 Sudip Shil, All Rights Reserved.')
         self.set_authors([
             'Sudip Shil <sudipshil9862@gmail.com>',
             ])
