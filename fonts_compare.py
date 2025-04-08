@@ -23,11 +23,12 @@ import string
 # pylint: disable=wrong-import-position
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gdk # type: ignore
+from gi.repository import Gtk, Adw, Gdk, Gio # type: ignore
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
 from gi.repository import GLib
 # pylint: enable=wrong-import-position
+Adw.init()
 
 LOGGER = logging.getLogger('fonts-compare')
 
@@ -150,62 +151,23 @@ class CustomDialog(Adw.Window):
         '''Handles the Cancel button click event.'''
         self.close()
 
+def show_about_window(parent):
+    about = Adw.AboutWindow(
+        transient_for=parent,
+        application_name='Fonts Compare',
+        application_icon='fonts-compare',
+        version='1.6.0',
+        developer_name='Sudip Shil',
+        comments='A GTK4-based visual font comparison tool',
+        copyright='© 2025 Sudip Shil',
+        license_type=Gtk.License.GPL_2_0,
+        website='https://github.com/sudipshil9862/fonts-compare',
+        issue_url='https://github.com/sudipshil9862/fonts-compare/issues',
+        translator_credits='Nobody translated anything yet.',
+        documenters=['Sudip Shil <sudipshil9862@gmail.com>']
+    )
+    about.present()
 
-class FontsCompareAboutDialog(Gtk.AboutDialog): # type: ignore
-    '''
-    The “About” dialog for fonts-compare
-    '''
-    def  __init__(self, parent: Gtk.Window = None) -> None:
-        Gtk.AboutDialog.__init__(self, parent=parent)
-        self.set_modal(True)
-        # An empty string in aboutdialog.set_logo_icon_name('')
-        # prevents an ugly default icon to be shown. We don’t yet
-        # have nice icons for Fonts Compare
-        self.set_logo_icon_name('help-about-symbolic')
-        self.set_title('Fonts Compare')
-        self.set_program_name('Fonts Compare')
-        self.set_version('1.5.2')
-        self.set_comments('A tool to compare fonts.')
-        self.set_copyright(
-                '© 2025 Sudip Shil, All Rights Reserved.')
-        self.set_authors([
-            'Sudip Shil <sudipshil9862@gmail.com>',
-            ])
-        self.set_translator_credits(
-                # Translators: put your names here, one name per line.
-                #_('translator-credits')
-                'Nobody translated anything yet.'
-                )
-        # self.set_artists('')
-        self.set_documenters([
-            'Sudip Shil sudipshil9862@gmail.com',
-            ])
-        self.set_website(
-                'https://github.com/sudipshil9862/fonts-compare')
-        self.set_website_label(
-                'Github: https://github.com/sudipshil9862/fonts-compare')
-        self.set_license('''
-        GPL-2.0-or-later
-        ''')
-        self.set_wrap_license(True)
-        # overrides the above .set_license()
-        #self.set_license_type(Gtk.License.GPL_3_0)
-        self.connect('close-request', self._on_close_aboutdialog)
-        if parent:
-            self.set_transient_for(parent.get_toplevel())
-        self.show()
-
-    def _on_close_aboutdialog( # pylint: disable=no-self-use
-                              self,
-                              _about_dialog: Gtk.Dialog,
-                              ) -> None:
-        '''
-        The “About” dialog has been closed by the user
-
-        :param _about_dialog: The “About” dialog
-        :param _response: The response when the “About” dialog was closed
-        '''
-        self.destroy()
 
 #custom filter
 class GTKCustomFilter(Gtk.CustomFilter):
@@ -256,6 +218,9 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
     '''
     def __init__(self, appp: Gtk.Application, language: str) -> None:
         super().__init__(application=appp)
+        controller = Gtk.EventControllerKey.new()
+        controller.connect("key-pressed", self._on_key_press_global)
+        self.add_controller(controller)
         self.cli_language = language
         self.init_ui()
 
@@ -877,6 +842,7 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
             LOGGER.info('wrap unchecked %s',state)
             self.label1.set_wrap(False)
             self.label2.set_wrap(False)
+        self.set_default_size(300,200)#jft
 
     def darktheme_checkbox_on_changed(
             self,
@@ -1081,7 +1047,7 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         '''The “About” button has been clicked'''
         LOGGER.debug('About button clicked')
         self._main_menu_popover.popdown()
-        FontsCompareAboutDialog()
+        show_about_window(self)
 
     def _on_quit_button_clicked(self, _button: Gtk.Button) -> None:
         '''The “Quit” button has been clicked'''
@@ -1610,6 +1576,20 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
                 langtable.language_name(languageId=detected_lang, languageIdQuery='en')
             )
 
+    def _on_key_press_global(self, controller, keyval, keycode, state):
+        ctrl = state & Gdk.ModifierType.CONTROL_MASK
+        key = Gdk.keyval_name(keyval)
+        if self._main_menu_popover.get_visible():
+            self._main_menu_popover.popdown()
+        if ctrl and key == "q":
+            self.close()
+            return True
+        elif ctrl and key == "e":
+            self._on_edit_label_button_clicked(None)
+            return True
+
+        return False
+
 #def on_activate(application: Gtk.Application, language: str, text: str = "") -> None:
 def on_activate(application: Adw.Application, language: str, text: str = "") -> None:
     '''
@@ -1622,6 +1602,7 @@ def on_activate(application: Adw.Application, language: str, text: str = "") -> 
         win._language_menu_button.set_label(detected_lang)
         win._currently_selected_language = detected_lang
         win.update_language_filter(detected_lang)
+
     win.present()
 
 def detect_script(text: str) -> Set[str]:
