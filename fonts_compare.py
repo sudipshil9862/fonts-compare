@@ -1003,7 +1003,7 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         return sample_text
 
 
-    def set_font(self, detect_lang: str, set_text: str) -> None:
+    def set_font(self, detect_lang: str, set_text: str, apply_fallback: bool = False) -> None:
         '''
         setting up text,
         font family depending upon which language has detected.
@@ -1011,9 +1011,12 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         fallback is enabled automatically.
         '''
         global FALLPARAM
-        if is_mixed_script(set_text):
+        if apply_fallback and is_mixed_script(set_text):
             FALLPARAM = 'fallback="true">'
             self.fallback_checkbox.set_active(True)
+        else:
+            FALLPARAM = 'fallback="false">'
+            self.fallback_checkbox.set_active(False)
         
         temp_label1_font = self.get_default_font_family_for_language(detect_lang)
         self.label1.set_markup('<span font="'+temp_label1_font
@@ -1283,7 +1286,7 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
                 languageId=lang, languageIdQuery=lang))
             self.button2.set_preview_text(langtable.language_name(
                 languageId=lang, languageIdQuery=lang))
-            self.set_font(lang, text)
+            self.set_font(lang, text, apply_fallback=True)
             self._language_menu_button.set_label(lang)
             self._currently_selected_language = lang  # ensure language is updated
             LOGGER.info(f'Updated language menu button and currently selected language to: {lang}')
@@ -1332,7 +1335,7 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
             #    languageId=lang, languageIdQuery=lang))
             #self.button2.set_preview_text(langtable.language_name(
             #    languageId=lang, languageIdQuery=lang))
-            self.set_font(lang, text)
+            self.set_font(lang, text, apply_fallback=True)
             self._language_menu_button.set_label(lang)
             current_lang = self._language_menu_button.get_label()
             self._currently_selected_language = lang  # ensure language is updated
@@ -1390,10 +1393,6 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         lang = self.detect_language(text)
         LOGGER.info('text=%s lang=%s', text, lang)
 
-        if is_mixed_script(text):
-            global FALLPARAM
-            FALLPARAM = 'fallback="true">'
-            self.fallback_checkbox.set_active(True)
         LOGGER.info('Detected language: %s, Text: %s', lang, text)
 
         self.custom_dialog.temp_lang_custom_dialog = lang
