@@ -455,11 +455,58 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
             LOGGER.info('Turning ON darktheme checkbox')
             self.darktheme_checkbox.set_active(True)
 
+        #fallback is ON text with animation
+        self.fallback_status_label = Gtk.Label(label="Fallback is ON")
+        self.fallback_status_label.set_margin_top(8)
+        self.fallback_status_label.set_margin_bottom(4)
+        self.fallback_status_label.add_css_class('fallback-status-label')
+        self.fallback_status_label.set_visible(False)
+        self.vbox.append(self.fallback_status_label)
+        self.fallback_animation_id = None
+        self.fallback_status_label.set_opacity(1.0)
+        self._fade_in = True
+
         self.set_default_size(300,200)
         self.set_resizable(True)
-        #self.set_child(self.vbox)
         self.toolbar_view.set_content(self.vbox)
 
+    def start_fallback_animation(self):
+        self.stop_fallback_animation()
+        self._fade_in = True
+        self.fallback_status_label.set_opacity(1.0)
+        if self.fallback_animation_id is not None:
+            return  # Already running
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_data(b"""
+            .fallback-status-label {
+                font-size: 16px;
+                color: red;
+                font-weight: bold;
+            }
+        """)
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(), css_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+        def pulse():
+            if not self.fallback_status_label.get_visible():
+                return False
+
+            self.fallback_status_label.set_opacity(1.0 if self._fade_in else 0.3)
+            self._fade_in = not self._fade_in
+            return True
+        self.fallback_animation_id = GLib.timeout_add(500, pulse)
+
+    def stop_fallback_animation(self):
+        if self.fallback_animation_id is not None:
+            removed = GLib.source_remove(self.fallback_animation_id)
+            if removed:
+                LOGGER.debug(f"Stopped fallback animation with ID {self.fallback_animation_id}")
+            else:
+                LOGGER.debug(f"Animation ID {self.fallback_animation_id} was already removed")
+            self.fallback_animation_id = None
+        self.fallback_status_label.set_opacity(1.0)
+    
     def add_custom_css(self):
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(b"""
@@ -711,9 +758,15 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         if state:
             FALLPARAM = 'fallback="true">'
             LOGGER.info('fallback checked %s',state)
+            self.fallback_status_label.set_visible(True)
+            self.stop_fallback_animation()
+            self.start_fallback_animation()
+            self.fallback_status_label.set_opacity(1.0)
         else:
             FALLPARAM = 'fallback="false">'
-            LOGGER.info('fallback checked %s',state)
+            LOGGER.info('fallback unchecked %s',state)
+            self.start_fallback_animation()
+            self.fallback_status_label.set_visible(False)
         LOGGER.info('version check and continue to next line')
         if GTK_VERSION >= (4, 9, 3):
             self.label1.set_markup('<span font="'+self.font_dialog_button1.get_font_desc().to_string()
