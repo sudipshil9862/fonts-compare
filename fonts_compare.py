@@ -138,13 +138,15 @@ class CustomDialog(Adw.Window):
         '''Handles the OK button click event.'''
         text = self.entry_edit_labels.get_text()
         lang = self.parent.detect_language(text)
-        if GTK_VERSION >= (4,9,3):
-            self.parent.label_button_set_after_entry_dialog_ok_newversion(text, lang, self.langdetect_edit_label_checkbox.get_active())
+        checkbox_state = self.langdetect_edit_label_checkbox.get_active()
+        if GTK_VERSION >= (4, 9, 3):
+            self.parent.label_button_set_after_entry_dialog_ok_newversion(text, lang, checkbox_state)
         else:
-            self.parent.label_button_set_after_entry_dialog_ok(text, lang, self.langdetect_edit_label_checkbox.get_active())
-        self.parent._language_menu_button.set_label(lang)
-        self.parent._currently_selected_language = lang
-        self.parent.update_language_filter(lang)
+            self.parent.label_button_set_after_entry_dialog_ok(text, lang, checkbox_state)
+        if checkbox_state:
+            self.parent._language_menu_button.set_label(lang)
+            self.parent._currently_selected_language = lang
+            self.parent.update_language_filter(lang)
         self.close()
 
     def on_cancel_clicked(self, _button):
@@ -1214,6 +1216,12 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         self.label1.set_text(text)
         self.label2.set_text(text)
         global lang_before_ok_response
+        if not langdetect_checkbox_state:
+            self.label1.set_text(text)
+            self.label2.set_text(text)
+            LOGGER.info("lang detect checkbox off so using dropdown lang=%s", lang_before_ok_response)
+            self.set_font(lang_before_ok_response, text)
+            return
         if lang_before_ok_response == lang:
             #previously selected and current detected lang are same - so no change in font for both buttons
             LOGGER.info('no change in font for both buttons')
@@ -1257,6 +1265,12 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         self.label1.set_text(text)
         self.label2.set_text(text)
         global lang_before_ok_response
+        if not langdetect_checkbox_state:
+            self.label1.set_text(text)
+            self.label2.set_text(text)
+            LOGGER.info("lang detect checkbox off so using dropdown lang=%s", lang_before_ok_response)
+            self.set_font(lang_before_ok_response, text)
+            return
         if lang_before_ok_response == lang:
             #previously selected and current detected lang are same - so no change in font for both buttons
             LOGGER.info('no change in font for both buttons')
@@ -1329,8 +1343,7 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
             self.fallback_checkbox.set_active(True)
         LOGGER.info('Detected language: %s, Text: %s', lang, text)
 
-        self._language_menu_button.set_label(lang)
-        self._currently_selected_language = lang
+        self.custom_dialog.temp_lang_custom_dialog = lang
         self.update_language_filter(lang)
         
         lc_messages = locale.getlocale(locale.LC_MESSAGES)[0]
