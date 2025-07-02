@@ -53,7 +53,7 @@ def parse_args() -> Any:
             type=str,
             help=('Set language/directly open fonts-compare for a particular language from command line'))
     parser.add_argument(
-           '--text',
+           '--text', '-t',
             type=str,
             nargs='+',
             help=('Open fonts-compare with a specific text pre-filled'))
