@@ -171,47 +171,6 @@ def show_about_window(parent):
     about.present()
 
 
-#custom filter
-class GTKCustomFilter(Gtk.CustomFilter):
-    '''
-    class to filter fonts against language for gtk version 4.9.3 and above
-    '''
-    def __init__(self, language_code):
-        super().__init__()
-        self.language_code = language_code
-        if '_' in language_code:
-            language_code = language_code.replace('_', '-')
-        self._fonts_supporting_language: Set[str] = set()
-        if SHOWSTYLEBOOL:
-            output = subprocess.check_output(["fc-list", ":lang=" + language_code, "family", "style"]).decode("utf-8")
-            font_families = set(output.splitlines())
-            for font_entry in font_families:
-                font_name = font_entry.split(":")[0].split(",")[0].replace("\\-", "-").strip() 
-                self._fonts_supporting_language.add(font_name)
-            LOGGER.info('style included with family')
-        else:
-            output = subprocess.check_output(["fc-list", ":lang=" + language_code, "family"]).decode("utf-8")
-            font_families = set(output.splitlines())
-            for fontname in font_families:
-                fontname_cleaned = fontname.split(":")[0].split(",")[0].replace("\\-", "-").strip()
-                self._fonts_supporting_language.add(fontname_cleaned)
-            LOGGER.info('style not include with family')
-        self.set_filter_func(self.font_filter)
-    def font_filter(self, font_face):
-        '''
-        function to filter fonts for set_filter_func
-        '''
-        if SHOWSTYLEBOOL:
-            font_pango_font_description = font_face.describe().to_string()
-        else:
-            font_pango_font_description = font_face.get_name()
-        return self.font_support_language_filter(font_pango_font_description, self.language_code)
-    #font_support_language_filter
-    def font_support_language_filter(self, font, lang):
-        '''
-        function returns boolean value for font_filter function
-        '''
-        return font in self._fonts_supporting_language
 
 #class AppWindow(Gtk.ApplicationWindow): # type: ignore
 class AppWindow(Adw.ApplicationWindow): # type: ignore
@@ -383,11 +342,10 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
             self.font_dialog_button1 = Gtk.FontDialogButton()
             self.font_dialog_button1.set_dialog(self.button1)
             self.font_dialog_button1.connect('notify::font-desc', self.label_font_change_newversion, self.label1)
-            self.fontbutton_newversion(self.label1, self.font_dialog_button1, self.hbox_button1)
             self.font_dialog_button1.set_level(Gtk.FontLevel.FAMILY)
-            #self.custom_filter = GTKCustomFilter('en')
-            self.custom_filter = GTKCustomFilter(self.cli_language)
-            self.button1.set_filter(self.custom_filter)
+            self.fontbutton_newversion(self.label1, self.font_dialog_button1, self.hbox_button1)
+            # Don't set language filter at initialization
+            # It will be set when language is explicitly selected or detected
         else:
             self.button1 = Gtk.FontButton.new()
             self.fontbutton(self.label1, self.button1, self.hbox_button1)
@@ -408,9 +366,10 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
             self.font_dialog_button2 = Gtk.FontDialogButton()
             self.font_dialog_button2.set_dialog(self.button2)
             self.font_dialog_button2.connect('notify::font-desc', self.label_font_change_newversion, self.label2)
-            self.fontbutton_newversion(self.label2, self.font_dialog_button2, self.hbox_button2)
             self.font_dialog_button2.set_level(Gtk.FontLevel.FAMILY)
-            self.button2.set_filter(self.custom_filter)
+            self.fontbutton_newversion(self.label2, self.font_dialog_button2, self.hbox_button2)
+            # Don't set language filter at initialization
+            # It will be set when language is explicitly selected or detected
         else:
             self.button2 = Gtk.FontButton.new()
             self.fontbutton(self.label2, self.button2, self.hbox_button2)
@@ -436,6 +395,13 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
             self.font_dialog_button2.set_font_desc(Pango.font_description_from_string(temp_other_font + ' ' + FONTSIZE))
             self.button1.set_title(self.font_dialog_button1.get_font_desc().to_string())
             self.button2.set_title(self.font_dialog_button2.get_font_desc().to_string())
+
+            # Set language filter after fonts are initialized
+            # This enables font filtering when app starts with -l flag
+            language_code = self.cli_language.replace('_', '-') if '_' in self.cli_language else self.cli_language
+            LOGGER.info(f'Setting initial language filter to: {language_code}')
+            self.button1.set_language(Pango.Language.from_string(language_code))
+            self.button2.set_language(Pango.Language.from_string(language_code))
         else:
             self.button2.set_font(temp_other_font + ' ' + FONTSIZE)
         text = self.label1.get_text()
@@ -1019,21 +985,30 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
             self.fallback_checkbox.set_active(False)
         
         temp_label1_font = self.get_default_font_family_for_language(detect_lang)
+        temp_label2_font = self.get_other_font_family_for_language(detect_lang)
+
         self.label1.set_markup('<span font="'+temp_label1_font
                                +' '+str(int(self._fontsize_adjustment.get_value()))+'"' + FALLPARAM
                                + set_text + '</span>')
         LOGGER.info('label1 text now: %s',self.label1.get_text())
-        if GTK_VERSION >= (4, 9, 3):
-            LOGGER.info('Updating custom filter with detected language: %s', detect_lang)
-            self.custom_filter = GTKCustomFilter(detect_lang)
-            self.button1.set_filter(self.custom_filter)
-            self.button2.set_filter(self.custom_filter)
 
+        if GTK_VERSION >= (4, 9, 3):
+            LOGGER.info('Setting language filter for detected language: %s', detect_lang)
+            language_code = detect_lang.replace('_', '-') if '_' in detect_lang else detect_lang
+            
+            temp_safe_font = Pango.font_description_from_string("Sans 40")
+            self.font_dialog_button1.set_font_desc(temp_safe_font)
+            self.font_dialog_button2.set_font_desc(temp_safe_font)
+            
+            self.button1.set_language(Pango.Language.from_string(language_code))
+            self.button2.set_language(Pango.Language.from_string(language_code))
+            LOGGER.info('Language filter applied: %s', language_code)
+            
             LOGGER.info('self.font_dialog_button1.set_font(%s)',
                         temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value())))
             self.font_dialog_button1.set_font_desc(Pango.font_description_from_string(temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value()))))
             LOGGER.info('self.font_dialog_button1.get_font(%s)',self.font_dialog_button1.get_font_desc().to_string())
-            temp_label2_font = self.get_other_font_family_for_language(detect_lang)
+
             self.label2.set_markup('<span font="'+temp_label2_font
                                    +' '+str(int(self._fontsize_adjustment.get_value()))+'"' + FALLPARAM
                                    + set_text + '</span>')
@@ -1198,12 +1173,8 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         self._currently_selected_language = language_id
         self._language_menu_popover.popdown()
         self._language_menu_button.set_label(language_id)
-        if GTK_VERSION >= (4, 9, 3):
-            current_lang = self._language_menu_button.get_label()
-            self.custom_filter = GTKCustomFilter(current_lang)
-            self.button1.set_filter(self.custom_filter)
-            self.button2.set_filter(self.custom_filter)
-        else:
+        # Don't set language filter here - it will be set in set_font() after fonts are updated
+        if GTK_VERSION < (4, 9, 3):
             self.button1.set_filter_func(self.font_filter)
             self.button2.set_filter_func(self.font_filter)
         self._language_menu_popover_language_ids = []
@@ -1337,12 +1308,9 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
             #    languageId=lang, languageIdQuery=lang))
             self.set_font(lang, text, apply_fallback=True)
             self._language_menu_button.set_label(lang)
-            current_lang = self._language_menu_button.get_label()
             self._currently_selected_language = lang  # ensure language is updated
             LOGGER.info(f'Updated language menu button and currently selected language to: {lang}')
-            self.custom_filter = GTKCustomFilter(current_lang)
-            self.button1.set_filter(self.custom_filter)
-            self.button2.set_filter(self.custom_filter)
+            # Language filter is already set in set_font(), no need to set it again here
             self._language_menu_popover_listbox_fill('')
         elif not lang in list_dropdown and langdetect_checkbox_state == True:
             self.label1.set_markup('<span font="'
@@ -1627,13 +1595,13 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
     def update_language_filter(self, detected_lang: str) -> None:
         '''
         Updates the language filter for font selection and menu based on detected language.
+        Note: For GTK >= 4.9.3, language filter is NOT set here.
+        The filter is set in set_font() when fonts are actually updated.
         '''
         LOGGER.info(f'Updating language filter for detected language: {detected_lang}')
         if detected_lang in list_languages():
             if GTK_VERSION >= (4, 9, 3):
-                self.custom_filter = GTKCustomFilter(detected_lang)
-                self.button1.set_filter(self.custom_filter)
-                self.button2.set_filter(self.custom_filter)
+                LOGGER.info('Language filter will be set when fonts are updated')
             else:
                 self.button1.set_filter_func(self.font_filter)
                 self.button2.set_filter_func(self.font_filter)
