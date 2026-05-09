@@ -177,12 +177,13 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
     '''
     Including appwindow class to window to present
     '''
-    def __init__(self, appp: Gtk.Application, language: str) -> None:
+    def __init__(self, appp: Gtk.Application, language: str, lang_explicitly_set: bool = False) -> None:
         super().__init__(application=appp)
         controller = Gtk.EventControllerKey.new()
         controller.connect("key-pressed", self._on_key_press_global)
         self.add_controller(controller)
         self.cli_language = language
+        self.lang_explicitly_set = lang_explicitly_set
         self.init_ui()
 
     def init_ui(self) -> None:
@@ -396,12 +397,12 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
             self.button1.set_title(self.font_dialog_button1.get_font_desc().to_string())
             self.button2.set_title(self.font_dialog_button2.get_font_desc().to_string())
 
-            # Set language filter after fonts are initialized
-            # This enables font filtering when app starts with -l flag
-            language_code = self.cli_language.replace('_', '-') if '_' in self.cli_language else self.cli_language
-            LOGGER.info(f'Setting initial language filter to: {language_code}')
-            self.button1.set_language(Pango.Language.from_string(language_code))
-            self.button2.set_language(Pango.Language.from_string(language_code))
+            # Set language filter only if user explicitly specified language via -l flag
+            if self.lang_explicitly_set:
+                language_code = self.cli_language.replace('_', '-') if '_' in self.cli_language else self.cli_language
+                LOGGER.info(f'Setting language filter for explicitly set language: {language_code}')
+                self.button1.set_language(Pango.Language.from_string(language_code))
+                self.button2.set_language(Pango.Language.from_string(language_code))
         else:
             self.button2.set_font(temp_other_font + ' ' + FONTSIZE)
         text = self.label1.get_text()
@@ -969,12 +970,13 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         return sample_text
 
 
-    def set_font(self, detect_lang: str, set_text: str, apply_fallback: bool = False) -> None:
+    def set_font(self, detect_lang: str, set_text: str, apply_fallback: bool = False, update_language_filter: bool = False) -> None:
         '''
         setting up text,
         font family depending upon which language has detected.
-        If multiple scripts are detected, 
+        If multiple scripts are detected,
         fallback is enabled automatically.
+        update_language_filter: Only set language filter when True (when user explicitly selects from dropdown)
         '''
         global FALLPARAM
         if apply_fallback and is_mixed_script(set_text):
@@ -983,7 +985,7 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         else:
             FALLPARAM = 'fallback="false">'
             self.fallback_checkbox.set_active(False)
-        
+
         temp_label1_font = self.get_default_font_family_for_language(detect_lang)
         temp_label2_font = self.get_other_font_family_for_language(detect_lang)
 
@@ -993,16 +995,19 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         LOGGER.info('label1 text now: %s',self.label1.get_text())
 
         if GTK_VERSION >= (4, 9, 3):
-            LOGGER.info('Setting language filter for detected language: %s', detect_lang)
-            language_code = detect_lang.replace('_', '-') if '_' in detect_lang else detect_lang
-            
             temp_safe_font = Pango.font_description_from_string("Sans 40")
             self.font_dialog_button1.set_font_desc(temp_safe_font)
             self.font_dialog_button2.set_font_desc(temp_safe_font)
-            
-            self.button1.set_language(Pango.Language.from_string(language_code))
-            self.button2.set_language(Pango.Language.from_string(language_code))
-            LOGGER.info('Language filter applied: %s', language_code)
+
+            # Only set language filter when user explicitly changes language dropdown
+            if update_language_filter:
+                LOGGER.info('Setting language filter for detected language: %s', detect_lang)
+                language_code = detect_lang.replace('_', '-') if '_' in detect_lang else detect_lang
+                self.button1.set_language(Pango.Language.from_string(language_code))
+                self.button2.set_language(Pango.Language.from_string(language_code))
+                LOGGER.info('Language filter applied: %s', language_code)
+            else:
+                LOGGER.info('Skipping language filter update (not explicitly selected by user)')
             
             LOGGER.info('self.font_dialog_button1.set_font(%s)',
                         temp_label1_font +' '+str(int(self._fontsize_adjustment.get_value())))
@@ -1191,7 +1196,7 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         else:
             self.button1.set_preview_text(text)
             self.button2.set_preview_text(text)
-        self.set_font(language_id, text)
+        self.set_font(language_id, text, update_language_filter=True)
         #detect language by langdetect
         text = self.custom_dialog.entry_edit_labels.get_text()
         lang = self.detect_language(text)
@@ -1257,7 +1262,7 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
                 languageId=lang, languageIdQuery=lang))
             self.button2.set_preview_text(langtable.language_name(
                 languageId=lang, languageIdQuery=lang))
-            self.set_font(lang, text, apply_fallback=True)
+            self.set_font(lang, text, apply_fallback=True, update_language_filter=True)
             self._language_menu_button.set_label(lang)
             self._currently_selected_language = lang  # ensure language is updated
             LOGGER.info(f'Updated language menu button and currently selected language to: {lang}')
@@ -1302,11 +1307,7 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
             #previously selected and current detected lang are same - so no change in font for both buttons
             LOGGER.info('no change in font for both buttons')
         elif lang in list_dropdown and langdetect_checkbox_state == True:
-            #self.button1.set_preview_text(langtable.language_name(
-            #    languageId=lang, languageIdQuery=lang))
-            #self.button2.set_preview_text(langtable.language_name(
-            #    languageId=lang, languageIdQuery=lang))
-            self.set_font(lang, text, apply_fallback=True)
+            self.set_font(lang, text, apply_fallback=True, update_language_filter=True)
             self._language_menu_button.set_label(lang)
             self._currently_selected_language = lang  # ensure language is updated
             LOGGER.info(f'Updated language menu button and currently selected language to: {lang}')
@@ -1624,17 +1625,16 @@ class AppWindow(Adw.ApplicationWindow): # type: ignore
         return False
 
 #def on_activate(application: Gtk.Application, language: str, text: str = "") -> None:
-def on_activate(application: Adw.Application, language: str, text: str = "") -> None:
+def on_activate(application: Adw.Application, language: str, text: str = "", lang_explicitly_set: bool = False) -> None:
     '''
     activating the application by adding the application into gtk window
     '''
-    win = AppWindow(application, language)
+    win = AppWindow(application, language, lang_explicitly_set)
     if text:
         detected_lang = win.detect_language(text)
         win.set_font(detected_lang, text)
         win._language_menu_button.set_label(detected_lang)
         win._currently_selected_language = detected_lang
-        win.update_language_filter(detected_lang)
 
     win.present()
 
@@ -2078,6 +2078,7 @@ if __name__ == '__main__':
         locale.setlocale(locale.LC_ALL, 'C.UTF-8')
     cli_language = parse_lc_all_lang(list_dropdown)
     cli_text = _ARGS.text if _ARGS.text else ""
+    lang_explicitly_set = False  # Track if language was explicitly set via -l flag
     if _ARGS.debug:
         LOG_HANDLER = logging.StreamHandler(stream=sys.stderr)
         LOG_FORMATTER = logging.Formatter(
@@ -2128,6 +2129,7 @@ if __name__ == '__main__':
         print(lang_with_nofonts_installed)
         sys.exit()
     elif _ARGS.lang:
+        lang_explicitly_set = True  # User explicitly set language via -l flag
         cli_language = _ARGS.lang
         if '-' in cli_language or '_' in cli_language:
             if '-' in cli_language:
@@ -2161,5 +2163,5 @@ if __name__ == '__main__':
                     Gtk.get_micro_version())
     #app = Gtk.Application(application_id='org.github.sudipshil9862.fonts-compare')
     app = Adw.Application(application_id='org.github.sudipshil9862.fonts-compare')
-    app.connect('activate', on_activate, cli_language, cli_text)
+    app.connect('activate', on_activate, cli_language, cli_text, lang_explicitly_set)
     app.run(None)
